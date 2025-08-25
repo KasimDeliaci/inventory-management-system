@@ -5,8 +5,8 @@ spring:
   # Database Configuration
   datasource:
     url: jdbc:postgresql://${INVENTORY_DB_HOST:localhost}:${INVENTORY_DB_PORT:5432}/${INVENTORY_DB_NAME:inventory_db}
-    username: ${INVENTORY_DB_USERNAME:inventory_user}
-    password: ${INVENTORY_DB_PASSWORD:inventory_pass}
+    username: ${INVENTORY_DB_USERNAME:admin}
+    password: ${INVENTORY_DB_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
 
   # JPA Configuration
@@ -26,15 +26,7 @@ server:
   servlet:
     context-path: /api/v1
 
-# Management and Monitoring
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: when-authorized
+
 
 # Logging Configuration
 logging:
