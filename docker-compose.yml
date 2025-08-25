@@ -1,10 +1,10 @@
 services:
   postgresql:
     container_name: postgresql
-    image: postgres
+    image: postgres:17
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
