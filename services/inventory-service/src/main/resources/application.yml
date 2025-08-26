@@ -5,8 +5,8 @@ spring:
   # --- Database (PostgreSQL) ---
   datasource:
     url: jdbc:postgresql://${INVENTORY_DB_HOST:localhost}:${INVENTORY_DB_PORT:5432}/${INVENTORY_DB_NAME:inventory_db}
-    username: ${INVENTORY_DB_USERNAME}   # no default - must be provided externally
-    password: ${INVENTORY_DB_PASSWORD}   # no default - must be provided externally
+    username: ${INVENTORY_DB_USERNAME:admin}
+    password: ${INVENTORY_DB_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
 
   # --- JPA / Hibernate ---
@@ -19,8 +19,6 @@ spring:
       hibernate:
         '[format_sql]': true
         '[use_sql_comments]': true
-        # dialect is auto-detected, keep explicit if you prefer:
-        '[dialect]': org.hibernate.dialect.PostgreSQLDialect
 
 # --- Server ---
 server:
