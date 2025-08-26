@@ -1,3 +1,15 @@
-http://localhost:8000/api/v1/products
+
+POST http://localhost:8000/api/v1/products
+content-type: application/json
+
+{
+    "productName": "Eren",
+    "description": "Test ürünü",
+    "category": "Elektronik",
+    "unitOfMeasure": "adet",
+    "safetyStock": 10.0,
+    "reorderPoint": 5.0,
+    "currentPrice": 99.99
+}
 
 ###
