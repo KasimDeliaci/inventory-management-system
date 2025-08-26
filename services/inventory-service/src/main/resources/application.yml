@@ -1,61 +1,61 @@
 spring:
   application:
     name: inventory-service
-  
-  # Database Configuration
+
+  # --- Database (PostgreSQL) ---
   datasource:
     url: jdbc:postgresql://${INVENTORY_DB_HOST:localhost}:${INVENTORY_DB_PORT:5432}/${INVENTORY_DB_NAME:inventory_db}
-    username: ${INVENTORY_DB_USERNAME:admin}
-    password: ${INVENTORY_DB_PASSWORD:admin}
+    username: ${INVENTORY_DB_USERNAME}   # no default - must be provided externally
+    password: ${INVENTORY_DB_PASSWORD}   # no default - must be provided externally
     driver-class-name: org.postgresql.Driver
 
-  # JPA Configuration
+  # --- JPA / Hibernate ---
   jpa:
     hibernate:
       ddl-auto: validate
+    open-in-view: false
     show-sql: false
     properties:
       hibernate:
-        '[dialect]': org.hibernate.dialect.PostgreSQLDialect
         '[format_sql]': true
         '[use_sql_comments]': true
+        # dialect is auto-detected, keep explicit if you prefer:
+        '[dialect]': org.hibernate.dialect.PostgreSQLDialect
 
-# Server Configuration
+# --- Server ---
 server:
   port: ${SERVER_PORT:8000}
   servlet:
     context-path: /api/v1
 
-
-
-# Logging Configuration
+# --- Logging ---
 logging:
   level:
     '[com.petek.inventory_service]': INFO
-    '[org.springframework.web]': DEBUG
-    '[org.hibernate.SQL]': DEBUG
+    '[org.springframework.web]': INFO
+    '[org.hibernate.SQL]': INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 ---
-# Development Profile
+# ===== Development Profile (H2 in-memory) =====
 spring:
   config:
     activate:
       on-profile: dev
-  
+
   datasource:
-    url: jdbc:h2:mem:inventory_dev
+    url: jdbc:h2:mem:inventory_dev;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
-    password: 
+    password:
     driver-class-name: org.h2.Driver
-  
+
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-  
+
   h2:
     console:
       enabled: true
@@ -64,5 +64,3 @@ logging:
   level:
     root: DEBUG
     '[com.petek.inventory_service]': DEBUG
-
-
