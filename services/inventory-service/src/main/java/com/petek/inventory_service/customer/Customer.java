@@ -2,6 +2,8 @@ package com.petek.inventory_service.customer;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,6 +23,11 @@ import lombok.Setter;
 @Entity
 @Table(name = "customers")
 public class Customer {
+    
+    public enum CustomerSegment {
+        INDIVIDUAL, SME, CORPORATE, ENTERPRISE, OTHER
+    }
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "customer_id")
@@ -29,8 +36,9 @@ public class Customer {
     @Column(name = "customer_name", nullable = false, length = 200)
     private String customerName;
     
-    @Column(name = "customer_segment", length = 50)
-    private String customerSegment;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "customer_segment")
+    private CustomerSegment customerSegment;
     
     @Column(length = 100)
     private String email;

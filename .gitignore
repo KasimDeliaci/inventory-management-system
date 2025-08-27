@@ -94,6 +94,16 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 
+# Angular specific
+.angular/
+.angular/cache/
+coverage/
+e2e/results/
+e2e/reports/
+*.tsbuildinfo
+.nx/cache/
+.sass-cache/
+
 # Python (for ML models and scripts)
 __pycache__/
 *.py[cod]
