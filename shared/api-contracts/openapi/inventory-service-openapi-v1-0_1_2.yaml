@@ -1,0 +1,236 @@
+openapi: 3.1.0
+info:
+  title: Inventory Service API
+  version: 0.1.2
+  description: >-
+    Minimal CRUD API for master data only (Products, Suppliers, Customers).
+    Integer IDs everywhere; no auth; keep it simple for MVP. Audit fields are present
+    (createdAt/updatedAt) but updatedAt is maintained in application code for now.
+servers:
+  - url: http://localhost:8080
+    description: Local dev
+  - url: http://inventory-service:8080
+    description: In-cluster name
+components:
+  parameters:
+    PageParam:
+      in: query
+      name: page
+      description: 0-based page number
+      schema: { type: integer, minimum: 0, default: 0 }
+    SizeParam:
+      in: query
+      name: size
+      description: Page size
+      schema: { type: integer, minimum: 1, maximum: 200, default: 20 }
+    SortParam:
+      in: query
+      name: sort
+      description: Optional sort clause (field,[asc|desc])
+      schema: { type: string }
+  schemas:
+    # Shared tiny request DTOs
+    NamedCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, example: "Bananas" }
+    NamedUpdate:
+      allOf: [ { $ref: '#/components/schemas/NamedCreate' } ]
+
+    # Domain models (ID + name + audit)
+    Product:
+      type: object
+      properties:
+        productId:   { type: integer, format: int64, example: 101 }
+        productName: { type: string, example: "Bananas" }
+        createdAt:   { type: string, format: date-time }
+        updatedAt:   { type: string, format: date-time }
+    Supplier:
+      type: object
+      properties:
+        supplierId:   { type: integer, format: int64, example: 11 }
+        supplierName: { type: string, example: "Acme Foods" }
+        createdAt:    { type: string, format: date-time }
+        updatedAt:    { type: string, format: date-time }
+    Customer:
+      type: object
+      properties:
+        customerId:   { type: integer, format: int64, example: 501 }
+        customerName: { type: string, example: "Blue Mart" }
+        createdAt:    { type: string, format: date-time }
+        updatedAt:    { type: string, format: date-time }
+
+    # Pagination wrappers
+    PageMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    PageProduct:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+    PageSupplier:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Supplier' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+    PageCustomer:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Customer' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+paths:
+  # -----------------
+  # Products
+  # -----------------
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: List products
+      parameters: [ { $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/SizeParam' }, { $ref: '#/components/parameters/SortParam' } ]
+      responses:
+        '200':
+          description: Paged products
+          content: { application/json: { schema: { $ref: '#/components/schemas/PageProduct' } } }
+    post:
+      tags: [Products]
+      summary: Create product
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NamedCreate' } } }
+      responses:
+        '201':
+          description: Created
+          content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } }
+        '400': { description: Invalid input }
+  /api/v1/products/{id}:
+    get:
+      tags: [Products]
+      summary: Get product by ID
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
+        '404': { description: Not found }
+    put:
+      tags: [Products]
+      summary: Update product name
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NamedUpdate' } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
+        '404': { description: Not found }
+    delete:
+      tags: [Products]
+      summary: Delete product
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
+
+  # -----------------
+  # Suppliers
+  # -----------------
+  /api/v1/suppliers:
+    get:
+      tags: [Suppliers]
+      summary: List suppliers
+      parameters: [ { $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/SizeParam' }, { $ref: '#/components/parameters/SortParam' } ]
+      responses:
+        '200':
+          description: Paged suppliers
+          content: { application/json: { schema: { $ref: '#/components/schemas/PageSupplier' } } }
+    post:
+      tags: [Suppliers]
+      summary: Create supplier
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NamedCreate' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '400': { description: Invalid input }
+  /api/v1/suppliers/{id}:
+    get:
+      tags: [Suppliers]
+      summary: Get supplier by ID
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '404': { description: Not found }
+    put:
+      tags: [Suppliers]
+      summary: Update supplier name
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NamedUpdate' } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '404': { description: Not found }
+    delete:
+      tags: [Suppliers]
+      summary: Delete supplier
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
+
+  # -----------------
+  # Customers
+  # -----------------
+  /api/v1/customers:
+    get:
+      tags: [Customers]
+      summary: List customers
+      parameters: [ { $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/SizeParam' }, { $ref: '#/components/parameters/SortParam' } ]
+      responses:
+        '200':
+          description: Paged customers
+          content: { application/json: { schema: { $ref: '#/components/schemas/PageCustomer' } } }
+    post:
+      tags: [Customers]
+      summary: Create customer
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NamedCreate' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } } }
+        '400': { description: Invalid input }
+  /api/v1/customers/{id}:
+    get:
+      tags: [Customers]
+      summary: Get customer by ID
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } } }
+        '404': { description: Not found }
+    put:
+      tags: [Customers]
+      summary: Update customer name
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NamedUpdate' } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } } }
+        '404': { description: Not found }
+    delete:
+      tags: [Customers]
+      summary: Delete customer
+      parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
