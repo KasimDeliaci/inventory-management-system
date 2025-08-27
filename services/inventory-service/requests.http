@@ -1,3 +1,37 @@
-http://localhost:8000/api/v1/products
+### Create Product
 
-###
+POST http://localhost:8000/api/v1/products
+content-type: application/json
+
+{
+    "productName": "Elma",
+    "description": "Test ürünü",
+    "category": "Meyve",
+    "unitOfMeasure": "adet",
+    "safetyStock": 10.0,
+    "reorderPoint": 5.0,
+    "currentPrice": 99.99
+}
+
+### Get Product By ID
+
+GET http://localhost:8000/api/v1/products/5
+
+### Get All Products
+
+GET http://localhost:8000/api/v1/products
+
+### Update Product
+
+PUT http://localhost:8000/api/v1/products/5
+content-type: application/json
+
+{
+    "productName": "Armut",
+    "description": "Test ürünü",
+    "category": "Meyve"
+}
+
+### Delete Product
+
+DELETE http://localhost:8000/api/v1/products/4
