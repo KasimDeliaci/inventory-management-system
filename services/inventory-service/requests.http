@@ -15,10 +15,20 @@ content-type: application/json
 
 ### Get Product By ID
 
-GET http://localhost:8000/api/v1/products/2
+GET http://localhost:8000/api/v1/products/5
 
 ### Get All Products
 
 GET http://localhost:8000/api/v1/products
 
-###
+### Update Product
+
+PUT http://localhost:8000/api/v1/products/5
+content-type: application/json
+
+{
+    "productName": "Kasım",
+    "description": "Test ürünü",
+    "category": "Bilgisayar",
+    "unitOfMeasure": ""
+}
