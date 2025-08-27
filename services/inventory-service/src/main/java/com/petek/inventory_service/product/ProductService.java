@@ -31,7 +31,7 @@ public class ProductService {
         return repository.findAll();
     }
 
-    public Product updateProduct(Long productId, ProductRequest request) {
+    public Product updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new RuntimeException("Product not found"));
         
