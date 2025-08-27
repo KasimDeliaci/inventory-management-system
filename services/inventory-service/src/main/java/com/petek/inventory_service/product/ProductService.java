@@ -1,6 +1,7 @@
 package com.petek.inventory_service.product;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,10 @@ public class ProductService {
     public Product getProductById(Long productId) {
         return repository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+    }
+
+    public List<Product> getAllProducts() {
+        return repository.findAll();
     }
 
 }
