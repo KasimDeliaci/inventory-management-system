@@ -31,3 +31,7 @@ content-type: application/json
     "description": "Test ürünü",
     "category": "Meyve"
 }
+
+### Delete Product
+
+DELETE http://localhost:8000/api/v1/products/4

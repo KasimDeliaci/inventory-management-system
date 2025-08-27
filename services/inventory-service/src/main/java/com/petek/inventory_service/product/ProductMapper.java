@@ -16,4 +16,19 @@ public class ProductMapper {
             .currentPrice(request.currentPrice())
             .build();
     }
+
+    public ProductResponse toProductResponse(Product product) {
+        return new ProductResponse(
+            product.getProductId(),
+            product.getProductName(),
+            product.getDescription(),
+            product.getCategory(),
+            product.getUnitOfMeasure(),
+            product.getSafetyStock(),
+            product.getReorderPoint(),
+            product.getCurrentPrice(),
+            product.getCreatedAt(),
+            product.getUpdatedAt()
+        );
+    }
 }

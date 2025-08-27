@@ -22,16 +22,20 @@ public class ProductService {
         return repository.save(product).getProductId();
     }
 
-    public Product getProductById(Long productId) {
+    public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
+                .map(mapper::toProductResponse)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
     }
 
-    public List<Product> getAllProducts() {
-        return repository.findAll();
+    public List<ProductResponse> getAllProducts() {
+        return repository.findAll()
+                .stream()
+                .map(mapper::toProductResponse)
+                .toList();
     }
 
-    public Product updateProduct(Long productId, ProductUpdateRequest request) {
+    public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new RuntimeException("Product not found"));
         
@@ -61,8 +65,14 @@ public class ProductService {
             .ifPresent(existingProduct::setCurrentPrice);
         
         existingProduct.setUpdatedAt(LocalDateTime.now());
-        
-        return repository.save(existingProduct);
+
+        return mapper.toProductResponse(repository.save(existingProduct));
+    }
+
+    public void deleteProduct(Long productId) {
+        Product existingProduct = repository.findById(productId)
+            .orElseThrow(() -> new RuntimeException("Product not found"));
+        repository.delete(existingProduct);
     }
 
 }
