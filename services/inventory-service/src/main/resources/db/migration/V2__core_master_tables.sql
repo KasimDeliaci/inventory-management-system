@@ -18,7 +18,8 @@ CREATE TABLE suppliers (
   email             VARCHAR(100),
   phone             VARCHAR(30),
   city              VARCHAR(50),
-  created_at        timestamptz NOT NULL DEFAULT now()
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE customers (
@@ -28,5 +29,6 @@ CREATE TABLE customers (
   email             VARCHAR(100),
   phone             VARCHAR(30),
   city              VARCHAR(50),
-  created_at        timestamptz NOT NULL DEFAULT now()
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
 );
