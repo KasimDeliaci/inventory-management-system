@@ -4,9 +4,9 @@ POST http://localhost:8000/api/v1/products
 content-type: application/json
 
 {
-    "productName": "Eren",
+    "productName": "Elma",
     "description": "Test ürünü",
-    "category": "Elektronik",
+    "category": "Meyve",
     "unitOfMeasure": "adet",
     "safetyStock": 10.0,
     "reorderPoint": 5.0,
@@ -27,8 +27,7 @@ PUT http://localhost:8000/api/v1/products/5
 content-type: application/json
 
 {
-    "productName": "Kasım",
+    "productName": "Armut",
     "description": "Test ürünü",
-    "category": "Bilgisayar",
-    "unitOfMeasure": ""
+    "category": "Meyve"
 }
