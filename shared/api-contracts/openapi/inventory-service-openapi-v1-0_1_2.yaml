@@ -160,7 +160,7 @@ paths:
   /api/v1/products:
     get:
       tags: [Products]
-      summary: List products
+      summary: Retrieve paginated list of products with optional sorting
       parameters: [ { $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/SizeParam' }, { $ref: '#/components/parameters/SortParam' } ]
       responses:
         '200':
@@ -168,7 +168,7 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/PageProduct' } } }
     post:
       tags: [Products]
-      summary: Create product (all fields including category required)
+      summary: Create a new product with required fields
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: '#/components/schemas/ProductCreate' } } }
@@ -183,14 +183,14 @@ paths:
   /api/v1/products/{id}:
     get:
       tags: [Products]
-      summary: Get product by ID
+      summary: Retrieve detailed information for a specific product
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
         '404': { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     put:
       tags: [Products]
-      summary: Update product (all fields including category required)
+      summary: Update product with all required fields
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       requestBody:
         required: true
@@ -201,7 +201,7 @@ paths:
         '404': { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     delete:
       tags: [Products]
-      summary: Delete product
+      summary: Permanently remove a product from the inventory system
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       responses:
         '204': { description: Deleted }
@@ -213,7 +213,7 @@ paths:
   /api/v1/suppliers:
     get:
       tags: [Suppliers]
-      summary: List suppliers
+      summary: Retrieve paginated list of suppliers with optional sorting
       parameters: [ { $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/SizeParam' }, { $ref: '#/components/parameters/SortParam' } ]
       responses:
         '200':
@@ -221,7 +221,7 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/PageSupplier' } } }
     post:
       tags: [Suppliers]
-      summary: Create supplier (name + contact required)
+      summary: Register a new supplier with required fields
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: '#/components/schemas/SupplierCreate' } } }
@@ -237,14 +237,14 @@ paths:
   /api/v1/suppliers/{id}:
     get:
       tags: [Suppliers]
-      summary: Get supplier by ID
+      summary: Retrieve detailed information for a specific supplier
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
         '404': { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     put:
       tags: [Suppliers]
-      summary: Update supplier (name + contact required)
+      summary: Update supplier with all required fields
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       requestBody:
         required: true
@@ -256,7 +256,7 @@ paths:
         '409': { description: Duplicate email, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     delete:
       tags: [Suppliers]
-      summary: Delete supplier
+      summary: Permanently remove a supplier from the system
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       responses:
         '204': { description: Deleted }
@@ -268,7 +268,7 @@ paths:
   /api/v1/customers:
     get:
       tags: [Customers]
-      summary: List customers
+      summary: Retrieve paginated list of customers with optional sorting
       parameters: [ { $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/SizeParam' }, { $ref: '#/components/parameters/SortParam' } ]
       responses:
         '200':
@@ -276,7 +276,7 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/PageCustomer' } } }
     post:
       tags: [Customers]
-      summary: Create customer (name + segment + contact required)
+      summary: Register a new customer with required fields
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: '#/components/schemas/CustomerCreate' } } }
@@ -292,14 +292,14 @@ paths:
   /api/v1/customers/{id}:
     get:
       tags: [Customers]
-      summary: Get customer by ID
+      summary: Retrieve detailed information for a specific customer
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } } }
         '404': { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     put:
       tags: [Customers]
-      summary: Update customer (name + segment + contact required)
+      summary: Update customer with all required fields
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       requestBody:
         required: true
@@ -311,7 +311,7 @@ paths:
         '409': { description: Duplicate email, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
     delete:
       tags: [Customers]
-      summary: Delete customer
+      summary: Permanently remove a customer from the system
       parameters: [ { in: path, name: id, required: true, schema: { type: integer, format: int64 } } ]
       responses:
         '204': { description: Deleted }
