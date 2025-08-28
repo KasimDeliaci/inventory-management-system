@@ -1,4 +1,4 @@
-package com.petek.inventory_service.product;
+package com.petek.inventory_service.controller;
 
 import java.util.List;
 
@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.petek.inventory_service.dto.ProductRequest;
+import com.petek.inventory_service.dto.ProductResponse;
+import com.petek.inventory_service.dto.ProductUpdateRequest;
+import com.petek.inventory_service.service.ProductService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

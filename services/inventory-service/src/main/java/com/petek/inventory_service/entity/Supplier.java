@@ -1,9 +1,7 @@
-package com.petek.inventory_service.customer;
+package com.petek.inventory_service.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,24 +19,15 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "customers")
-public class Customer {
-    
-    public enum CustomerSegment {
-        INDIVIDUAL, SME, CORPORATE, ENTERPRISE, OTHER
-    }
-    
+@Table(name = "suppliers")
+public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "customer_id")
-    private Long customerId;
+    @Column(name = "supplier_id")
+    private Long supplierId;
     
-    @Column(name = "customer_name", nullable = false, length = 200)
-    private String customerName;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "customer_segment")
-    private CustomerSegment customerSegment;
+    @Column(name = "supplier_name", nullable = false, length = 200)
+    private String supplierName;
     
     @Column(length = 100)
     private String email;

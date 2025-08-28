@@ -1,4 +1,4 @@
-package com.petek.inventory_service.product;
+package com.petek.inventory_service.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,6 +7,13 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.petek.inventory_service.dto.ProductRequest;
+import com.petek.inventory_service.dto.ProductResponse;
+import com.petek.inventory_service.dto.ProductUpdateRequest;
+import com.petek.inventory_service.entity.Product;
+import com.petek.inventory_service.mapper.ProductMapper;
+import com.petek.inventory_service.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
 

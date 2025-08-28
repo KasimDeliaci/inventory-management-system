@@ -1,4 +1,4 @@
-package com.petek.inventory_service.product;
+package com.petek.inventory_service.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

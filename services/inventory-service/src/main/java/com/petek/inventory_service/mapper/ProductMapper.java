@@ -1,6 +1,10 @@
-package com.petek.inventory_service.product;
+package com.petek.inventory_service.mapper;
 
 import org.springframework.stereotype.Service;
+
+import com.petek.inventory_service.dto.ProductRequest;
+import com.petek.inventory_service.dto.ProductResponse;
+import com.petek.inventory_service.entity.Product;
 
 @Service
 public class ProductMapper {
