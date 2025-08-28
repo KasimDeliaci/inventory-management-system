@@ -39,7 +39,7 @@ components:
       properties:
         status: { type: integer, example: 400 }
         error: { type: string, example: "Bad Request" }
-        message: { type: string, example: "Validation failed: unitOfMeasure must not be blank." }
+        message: { type: string, example: "Validation failed: reorderPoint must be greater than or equal to safetyStock." }
         path: { type: string, example: "/api/v1/products" }
         timestamp: { type: string, format: date-time }
 
@@ -54,9 +54,9 @@ components:
         productName: { type: string, maxLength: 200, example: "iPhone 15 Pro", description: "Name of the product (max 200 characters)" }
         description: { type: string, nullable: true, example: "Latest model with advanced camera system", description: "Optional detailed description of the product" }
         category: { type: string, maxLength: 100, example: "Electronics", description: "Product category for organization and filtering (max 100 characters)" }
-        unitOfMeasure: { type: string, maxLength: 20, minLength: 1, example: "adet", description: "Unit of measurement. Allowed: adet, ton, kg, g, lt, ml, koli, paket, çuval, şişe" }
+        unitOfMeasure: { type: string, maxLength: 20, minLength: 1, example: "adet", description: "Unit of measurement. Allowed: adet, ton, kg, g, lt, ml, koli, paket, cuval, sise" }
         safetyStock: { type: number, format: double, minimum: 0, example: 10, description: "Minimum stock level that triggers reordering alerts" }
-        reorderPoint: { type: number, format: double, minimum: 0, example: 25, description: "Stock level threshold for automatic reordering" }
+        reorderPoint: { type: number, format: double, minimum: 0, example: 25, description: "Stock level threshold for automatic reordering (must be >= safetyStock)" }
         currentPrice: { type: number, format: double, minimum: 0, example: 1299.99, description: "Current selling price of the product" }
         createdAt: { type: string, format: date-time, readOnly: true, description: "Timestamp when the product was created" }
         updatedAt: { type: string, format: date-time, readOnly: true, description: "Timestamp when the product was last updated" }
@@ -67,9 +67,9 @@ components:
         productName: { type: string, minLength: 1, maxLength: 200, description: "Name of the product (1-200 characters)" }
         description: { type: string, nullable: true, description: "Optional detailed description of the product" }
         category: { type: string, minLength: 1, maxLength: 100, description: "Product category for organization (1-100 characters)" }
-        unitOfMeasure: { type: string, minLength: 1, maxLength: 20, example: "adet", description: "Unit of measurement. Allowed: adet, ton, kg, g, lt, ml, koli, paket, çuval, şişe" }
+        unitOfMeasure: { type: string, minLength: 1, maxLength: 20, example: "adet", description: "Unit of measurement. Allowed: adet, ton, kg, g, lt, ml, koli, paket, cuval, sise" }
         safetyStock: { type: number, format: double, minimum: 0, description: "Minimum stock level that triggers reordering alerts" }
-        reorderPoint: { type: number, format: double, minimum: 0, description: "Stock level threshold for automatic reordering" }
+        reorderPoint: { type: number, format: double, minimum: 0, description: "Stock level threshold for automatic reordering (must be >= safetyStock)" }
         currentPrice: { type: number, format: double, minimum: 0, description: "Current selling price of the product" }
     ProductUpdate:
       allOf:
