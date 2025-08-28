@@ -52,7 +52,7 @@ CREATE TABLE suppliers (
   CONSTRAINT chk_supplier_city_nonblank CHECK (btrim(city) <> '')            -- No empty cities
   -- Email/phone format validation handled in application layer
 );
--- Performance indexes for common queries-- Performance indexes for common queries
+-- Performance indexes for common queries
 CREATE INDEX idx_suppliers_city       ON suppliers (city);         -- Location-based filtering
 CREATE INDEX idx_suppliers_updated_at ON suppliers (updated_at);   -- Recent updates
 CREATE INDEX idx_suppliers_name       ON suppliers (supplier_name); -- Name search/sorting
