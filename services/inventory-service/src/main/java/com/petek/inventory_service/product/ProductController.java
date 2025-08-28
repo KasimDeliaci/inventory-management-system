@@ -22,16 +22,16 @@ public class ProductController {
 
     private final ProductService service;
     
-    @PostMapping
-    public ResponseEntity<Long> createProduct(@RequestBody @Valid ProductRequest request) {
-        return ResponseEntity.ok(service.createProduct(request));
-    }
-
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
         return ResponseEntity.ok(service.getAllProducts());
     }
     
+    @PostMapping
+    public ResponseEntity<Long> createProduct(@RequestBody @Valid ProductRequest request) {
+        return ResponseEntity.status(201).body(service.createProduct(request));
+    }
+
     @GetMapping("/{productId}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
         return ResponseEntity.ok(service.getProductById(productId));

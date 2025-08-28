@@ -16,19 +16,19 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
-
-    public Long createProduct(ProductRequest request) {
-        Product product = mapper.toProduct(request);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
-        return repository.save(product).getProductId();
-    }
     
     public List<ProductResponse> getAllProducts() {
         return repository.findAll()
         .stream()
         .map(mapper::toProductResponse)
         .toList();
+    }
+
+    public Long createProduct(ProductRequest request) {
+        Product product = mapper.toProduct(request);
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
+        return repository.save(product).getProductId();
     }
 
     public ProductResponse getProductById(Long productId) {

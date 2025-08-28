@@ -1,3 +1,8 @@
+
+### Get All Products
+
+GET http://localhost:8000/api/v1/products
+
 ### Create Product
 
 POST http://localhost:8000/api/v1/products
@@ -12,10 +17,6 @@ content-type: application/json
     "reorderPoint": 5.0,
     "currentPrice": 99.99
 }
-
-### Get All Products
-
-GET http://localhost:8000/api/v1/products
 
 ### Get Product By ID
 
