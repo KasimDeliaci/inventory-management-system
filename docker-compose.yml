@@ -1,4 +1,15 @@
 services:
+  inventory_service:
+    container_name: inventory_service
+    build: ./services/inventory-service
+    environment:
+      - INVENTORY_DB_HOST=postgresql
+    ports:
+      - "8000:8000"
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
   postgresql:
     container_name: postgresql
     image: postgres:17
