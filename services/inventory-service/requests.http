@@ -13,13 +13,13 @@ content-type: application/json
     "currentPrice": 99.99
 }
 
-### Get Product By ID
-
-GET http://localhost:8000/api/v1/products/5
-
 ### Get All Products
 
 GET http://localhost:8000/api/v1/products
+
+### Get Product By ID
+
+GET http://localhost:8000/api/v1/products/2
 
 ### Update Product
 

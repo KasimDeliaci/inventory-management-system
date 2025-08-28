@@ -27,14 +27,14 @@ public class ProductController {
         return ResponseEntity.ok(service.createProduct(request));
     }
 
-    @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
-        return ResponseEntity.ok(service.getProductById(productId));
-    }
-
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
         return ResponseEntity.ok(service.getAllProducts());
+    }
+    
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
+        return ResponseEntity.ok(service.getProductById(productId));
     }
 
     @PutMapping("/{productId}")

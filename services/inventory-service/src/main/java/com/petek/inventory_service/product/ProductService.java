@@ -23,20 +23,20 @@ public class ProductService {
         product.setUpdatedAt(LocalDateTime.now());
         return repository.save(product).getProductId();
     }
+    
+    public List<ProductResponse> getAllProducts() {
+        return repository.findAll()
+        .stream()
+        .map(mapper::toProductResponse)
+        .toList();
+    }
 
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productId));    
     }
-
-    public List<ProductResponse> getAllProducts() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::toProductResponse)
-                .toList();
-    }
-
+    
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
