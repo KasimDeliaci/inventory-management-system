@@ -22,30 +22,39 @@ public class ProductController {
 
     private final ProductService service;
     
-    @PostMapping
-    public ResponseEntity<Long> createProduct(@RequestBody @Valid ProductRequest request) {
-        return ResponseEntity.ok(service.createProduct(request));
-    }
-
-    @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
-        return ResponseEntity.ok(service.getProductById(productId));
-    }
-
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
         return ResponseEntity.ok(service.getAllProducts());
     }
+    
+    @PostMapping
+    public ResponseEntity<Long> createProduct(
+        @RequestBody @Valid ProductRequest request
+    ) {
+        return ResponseEntity.status(201).body(service.createProduct(request));
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponse> getProductById(
+        @PathVariable Long productId
+    ) {
+        return ResponseEntity.ok(service.getProductById(productId));
+    }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long productId, @RequestBody @Valid ProductUpdateRequest request) {
+    public ResponseEntity<ProductResponse> updateProduct(
+        @PathVariable Long productId,
+        @RequestBody @Valid ProductUpdateRequest request
+    ) {
         return ResponseEntity.ok(service.updateProduct(productId, request));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<Void> deleteProduct(
+        @PathVariable Long productId
+    ) {
         service.deleteProduct(productId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
     }
 
 }

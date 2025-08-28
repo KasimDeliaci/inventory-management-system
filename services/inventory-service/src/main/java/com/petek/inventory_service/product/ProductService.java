@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,6 +16,13 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
+    
+    public List<ProductResponse> getAllProducts() {
+        return repository.findAll()
+        .stream()
+        .map(mapper::toProductResponse)
+        .toList();
+    }
 
     public Long createProduct(ProductRequest request) {
         Product product = mapper.toProduct(request);
@@ -25,19 +34,12 @@ public class ProductService {
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productId));    
     }
-
-    public List<ProductResponse> getAllProducts() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::toProductResponse)
-                .toList();
-    }
-
+    
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         
         Optional.ofNullable(request.productName())
             .filter(name -> !name.trim().isEmpty())
@@ -71,7 +73,7 @@ public class ProductService {
 
     public void deleteProduct(Long productId) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         repository.delete(existingProduct);
     }
 
