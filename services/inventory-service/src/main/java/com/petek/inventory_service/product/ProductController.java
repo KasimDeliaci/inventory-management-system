@@ -28,22 +28,31 @@ public class ProductController {
     }
     
     @PostMapping
-    public ResponseEntity<Long> createProduct(@RequestBody @Valid ProductRequest request) {
+    public ResponseEntity<Long> createProduct(
+        @RequestBody @Valid ProductRequest request
+    ) {
         return ResponseEntity.status(201).body(service.createProduct(request));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
+    public ResponseEntity<ProductResponse> getProductById(
+        @PathVariable Long productId
+    ) {
         return ResponseEntity.ok(service.getProductById(productId));
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long productId, @RequestBody @Valid ProductUpdateRequest request) {
+    public ResponseEntity<ProductResponse> updateProduct(
+        @PathVariable Long productId,
+        @RequestBody @Valid ProductUpdateRequest request
+    ) {
         return ResponseEntity.ok(service.updateProduct(productId, request));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<Void> deleteProduct(
+        @PathVariable Long productId
+    ) {
         service.deleteProduct(productId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
     }
