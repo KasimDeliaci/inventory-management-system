@@ -39,7 +39,7 @@ public class ProductService {
 
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         
         Optional.ofNullable(request.productName())
             .filter(name -> !name.trim().isEmpty())
