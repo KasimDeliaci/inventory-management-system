@@ -1,4 +1,4 @@
-package com.petek.inventory_service.customer;
+package com.petek.inventory_service.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +23,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "customers")
 public class Customer {
-    
     public enum CustomerSegment {
         INDIVIDUAL, SME, CORPORATE, ENTERPRISE, OTHER
     }
