@@ -23,7 +23,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "customers")
 public class Customer {
-    
     public enum CustomerSegment {
         INDIVIDUAL, SME, CORPORATE, ENTERPRISE, OTHER
     }

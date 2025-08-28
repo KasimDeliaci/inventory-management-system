@@ -8,6 +8,10 @@ import com.petek.inventory_service.entity.Product;
 
 @Service
 public class ProductMapper {
+
+    /**
+     * Map ProductRequest to Product entity.
+     */
     public Product toProduct(ProductRequest request) {
         return Product.builder()
             .productId(request.productId())
@@ -21,6 +25,9 @@ public class ProductMapper {
             .build();
     }
 
+    /**
+     * Map Product entity to ProductResponse.
+     */
     public ProductResponse toProductResponse(Product product) {
         return new ProductResponse(
             product.getProductId(),
@@ -35,4 +42,5 @@ public class ProductMapper {
             product.getUpdatedAt()
         );
     }
+
 }

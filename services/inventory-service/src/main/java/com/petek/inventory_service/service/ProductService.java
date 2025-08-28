@@ -23,7 +23,10 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
-    
+
+    /**
+     * Get all products.
+     */
     public List<ProductResponse> getAllProducts() {
         return repository.findAll()
         .stream()
@@ -31,6 +34,9 @@ public class ProductService {
         .toList();
     }
 
+    /**
+     * Create a new product.
+     */
     public Long createProduct(ProductRequest request) {
         Product product = mapper.toProduct(request);
         product.setCreatedAt(LocalDateTime.now());
@@ -38,12 +44,18 @@ public class ProductService {
         return repository.save(product).getProductId();
     }
 
+    /**
+     * Get a product by ID.
+     */
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productId));    
     }
-    
+
+    /**
+     * Update a product.
+     */
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
@@ -78,6 +90,9 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(existingProduct));
     }
 
+    /**
+     * Delete a product.
+     */
     public void deleteProduct(Long productId) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
