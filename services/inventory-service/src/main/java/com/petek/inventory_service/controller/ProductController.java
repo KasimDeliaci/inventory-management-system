@@ -42,7 +42,7 @@ public class ProductController {
     );
 
     /**
-     * Validate query parameters.
+     * Utils
      */
     private void validateParameters(HttpServletRequest request) {
         Map<String, String[]> paramMap = request.getParameterMap();
@@ -77,17 +77,20 @@ public class ProductController {
         @RequestParam(name = "updated_after", required = false) LocalDateTime updatedAfter,
         HttpServletRequest request
     ) {
-    
-        // Validate unknown parameters
-        validateParameters(request);
-        
-        ProductFilterRequest filterRequest = new ProductFilterRequest(
-            page, size, sort, q, category, uom, priceGte, priceLte,
-            safetyGte, safetyLte, reorderGte, reorderLte, updatedAfter
-        );
-        
-        PageResponse<ProductResponse> response = service.getAllProducts(filterRequest);
-        return ResponseEntity.ok(response);
+        try {
+            // Validate unknown parameters
+            validateParameters(request);
+            
+            ProductFilterRequest filterRequest = new ProductFilterRequest(
+                page, size, sort, q, category, uom, priceGte, priceLte,
+                safetyGte, safetyLte, reorderGte, reorderLte, updatedAfter
+            );
+            
+            PageResponse<ProductResponse> response = service.getAllProducts(filterRequest);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     /**
