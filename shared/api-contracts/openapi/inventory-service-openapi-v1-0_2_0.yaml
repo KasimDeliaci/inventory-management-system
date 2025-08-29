@@ -22,7 +22,7 @@ info:
 servers:
   - url: http://localhost:8000
     description: Local dev
-  - url: http://inventory-service:8000
+  - url: http://inventory:8000
     description: In-cluster name
 
 components:
