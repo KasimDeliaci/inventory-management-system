@@ -1,4 +1,4 @@
-package com.petek.inventory_service.spec;
+package com.petek.inventoryService.spec;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -6,8 +6,8 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
-import com.petek.inventory_service.dto.ProductFilterRequest;
-import com.petek.inventory_service.entity.Product;
+import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.entity.Product;
 
 import java.util.ArrayList;
 import java.util.List;

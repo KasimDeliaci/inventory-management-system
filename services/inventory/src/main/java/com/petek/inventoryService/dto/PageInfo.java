@@ -1,4 +1,4 @@
-package com.petek.inventory_service.dto;
+package com.petek.inventoryService.dto;
 
 public record PageInfo(
     int page,

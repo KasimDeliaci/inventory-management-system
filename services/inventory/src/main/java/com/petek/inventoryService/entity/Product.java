@@ -1,4 +1,4 @@
-package com.petek.inventory_service.entity;
+package com.petek.inventoryService.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

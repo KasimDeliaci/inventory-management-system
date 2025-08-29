@@ -1,4 +1,4 @@
-package com.petek.inventory_service.controller;
+package com.petek.inventoryService.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.petek.inventory_service.dto.PageResponse;
-import com.petek.inventory_service.dto.ProductFilterRequest;
-import com.petek.inventory_service.dto.ProductRequest;
-import com.petek.inventory_service.dto.ProductResponse;
-import com.petek.inventory_service.dto.ProductUpdateRequest;
-import com.petek.inventory_service.service.ProductService;
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.dto.ProductRequest;
+import com.petek.inventoryService.dto.ProductResponse;
+import com.petek.inventoryService.dto.ProductUpdateRequest;
+import com.petek.inventoryService.service.ProductService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package com.petek.inventory_service;
+package com.petek.inventoryService;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

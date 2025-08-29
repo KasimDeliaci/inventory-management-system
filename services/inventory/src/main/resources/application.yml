@@ -29,7 +29,7 @@ server:
 # --- Logging ---
 logging:
   level:
-    '[com.petek.inventory_service]': INFO
+    '[com.petek.inventoryService]': INFO
     '[org.springframework.web]': INFO
     '[org.hibernate.SQL]': INFO
   pattern:
@@ -61,4 +61,4 @@ spring:
 logging:
   level:
     root: DEBUG
-    '[com.petek.inventory_service]': DEBUG
+    '[com.petek.inventoryService]': DEBUG

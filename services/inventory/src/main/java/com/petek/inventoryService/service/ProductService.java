@@ -1,4 +1,4 @@
-package com.petek.inventory_service.service;
+package com.petek.inventoryService.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,16 +15,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.petek.inventory_service.dto.PageInfo;
-import com.petek.inventory_service.dto.PageResponse;
-import com.petek.inventory_service.dto.ProductFilterRequest;
-import com.petek.inventory_service.dto.ProductRequest;
-import com.petek.inventory_service.dto.ProductResponse;
-import com.petek.inventory_service.dto.ProductUpdateRequest;
-import com.petek.inventory_service.entity.Product;
-import com.petek.inventory_service.mapper.ProductMapper;
-import com.petek.inventory_service.repository.ProductRepository;
-import com.petek.inventory_service.spec.ProductSpecifications;
+import com.petek.inventoryService.dto.PageInfo;
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.dto.ProductRequest;
+import com.petek.inventoryService.dto.ProductResponse;
+import com.petek.inventoryService.dto.ProductUpdateRequest;
+import com.petek.inventoryService.entity.Product;
+import com.petek.inventoryService.mapper.ProductMapper;
+import com.petek.inventoryService.repository.ProductRepository;
+import com.petek.inventoryService.spec.ProductSpecifications;
 
 import lombok.RequiredArgsConstructor;
 
