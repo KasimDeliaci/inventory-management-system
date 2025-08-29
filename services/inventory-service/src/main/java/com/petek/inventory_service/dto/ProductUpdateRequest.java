@@ -27,6 +27,4 @@ public record ProductUpdateRequest (
 
     @Positive(message = "Current price should be positive")
     BigDecimal currentPrice
-) {
-
-}
+) {}

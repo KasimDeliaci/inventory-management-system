@@ -1,19 +1,30 @@
 package com.petek.inventory_service.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.petek.inventory_service.dto.PageInfo;
+import com.petek.inventory_service.dto.PageResponse;
+import com.petek.inventory_service.dto.ProductFilterRequest;
 import com.petek.inventory_service.dto.ProductRequest;
 import com.petek.inventory_service.dto.ProductResponse;
 import com.petek.inventory_service.dto.ProductUpdateRequest;
 import com.petek.inventory_service.entity.Product;
 import com.petek.inventory_service.mapper.ProductMapper;
 import com.petek.inventory_service.repository.ProductRepository;
+import com.petek.inventory_service.spec.ProductSpecifications;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,15 +34,92 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "productId", "productName", "category", "currentPrice", "updatedAt"
+    );
+
+    /**
+     * Utils
+     */
+    private void validateRequest(ProductFilterRequest request) {
+        // Validate price range
+        if (request.priceGte() != null && request.priceLte() != null && 
+            request.priceGte().compareTo(request.priceLte()) > 0) {
+            throw new IllegalArgumentException("price_gte cannot be greater than price_lte");
+        }
+        
+        // Validate safety stock range
+        if (request.safetyGte() != null && request.safetyLte() != null && 
+            request.safetyGte() > request.safetyLte()) {
+            throw new IllegalArgumentException("safety_gte cannot be greater than safety_lte");
+        }
+        
+        // Validate reorder point range
+        if (request.reorderGte() != null && request.reorderLte() != null && 
+            request.reorderGte() > request.reorderLte()) {
+            throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
+        }
+    }
+    
+    private Pageable createPageable(ProductFilterRequest request) {
+        int page = request.page() != null ? request.page() : 0;
+        int size = request.size() != null ? request.size() : 20;
+        
+        Sort sort = createSort(request.sort());
+        
+        return PageRequest.of(page, size, sort);
+    }
+    
+    private Sort createSort(List<String> sortParams) {
+        if (sortParams == null || sortParams.isEmpty()) {
+            return Sort.by(Sort.Direction.ASC, "productId");
+        }
+        
+        List<Sort.Order> orders = new ArrayList<>();
+        
+        for (String sortParam : sortParams) {
+            Sort.Direction direction = Sort.Direction.ASC;
+            String field = sortParam;
+                
+            if (sortParam.startsWith("-")) {
+                direction = Sort.Direction.DESC;
+                field = sortParam.substring(1);
+            }
+            
+            if (!ALLOWED_SORT_FIELDS.contains(field)) {
+                throw new IllegalArgumentException("Invalid sort field: " + field);
+            }
+            
+            orders.add(new Sort.Order(direction, field));
+        }
+        
+        return Sort.by(orders);
+    }
 
     /**
      * Get all products.
      */
-    public List<ProductResponse> getAllProducts() {
-        return repository.findAll()
-        .stream()
-        .map(mapper::toProductResponse)
-        .toList();
+    public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
+        validateRequest(request);
+        
+        Pageable pageable = createPageable(request);
+        Specification<Product> spec = ProductSpecifications.withFilters(request);
+        
+        Page<Product> productPage = repository.findAll(spec, pageable);
+        
+        List<ProductResponse> productResponses = productPage.getContent()
+            .stream()
+            .map(mapper::toProductResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            productPage.getNumber(),
+            productPage.getSize(),
+            productPage.getTotalElements(),
+            productPage.getTotalPages()
+        );
+        
+        return new PageResponse<>(productResponses, pageInfo);
     }
 
     /**

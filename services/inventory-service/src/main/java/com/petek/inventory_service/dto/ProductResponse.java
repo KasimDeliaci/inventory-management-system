@@ -14,6 +14,4 @@ public record ProductResponse(
     BigDecimal currentPrice,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
-) {
-    
-}
+) {}
