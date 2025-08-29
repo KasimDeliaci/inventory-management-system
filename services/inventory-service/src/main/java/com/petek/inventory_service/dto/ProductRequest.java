@@ -34,7 +34,5 @@ public record ProductRequest (
     @NotNull(message = "Current price is required")
     @Positive(message = "Current price should be positive")
     BigDecimal currentPrice
-) {
-
-}
+) {}
 
