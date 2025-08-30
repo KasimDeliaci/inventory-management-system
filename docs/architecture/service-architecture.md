@@ -1043,7 +1043,7 @@ spring:
       routes:  
         \# Direct to Inventory Service  
         \- id: inventory-direct  
-          uri: http://inventory-service:8080  
+          uri: http://inventory:8080  
           predicates:  
             \- Path=/api/products/\*\*  
             \- Path=/api/suppliers/\*\*  
@@ -1118,10 +1118,10 @@ This is a beautiful separation of concerns. It's clean, logical, and each servic
 
 Let's verify the relationships based on this new model:
 
-1. **Forecast Service \<- Inventory Service:** The Forecast service needs sales\_history to train models. It will periodically **PULL** this data via an API call (GET inventory-service/api/sales-history?product=U0001).  
-2. **Planning Service \<- Inventory Service:** The Planning service needs to know the current\_stock to make a decision. This will be a real-time **PULL** (GET inventory-service/api/stock/U0001).  
+1. **Forecast Service \<- Inventory Service:** The Forecast service needs sales\_history to train models. It will periodically **PULL** this data via an API call (GET inventory/api/sales-history?product=U0001).  
+2. **Planning Service \<- Inventory Service:** The Planning service needs to know the current\_stock to make a decision. This will be a real-time **PULL** (GET inventory/api/stock/U0001).  
 3. **Planning Service \<- Forecast Service:** The Planning service needs the demand forecast. This will be a real-time **PULL** (GET forecast-service/api/forecasts?product=U0001).  
-4. **Inventory Service \<- Planning Service (Action Loop):** When a user "Accepts" a reorder recommendation in the UI, the request goes to the Planning Service, which then **PUSHES** a command to the Operations part of the Inventory Service to create a real Purchase Order (POST inventory-service/api/purchase-orders).
+4. **Inventory Service \<- Planning Service (Action Loop):** When a user "Accepts" a reorder recommendation in the UI, the request goes to the Planning Service, which then **PUSHES** a command to the Operations part of the Inventory Service to create a real Purchase Order (POST inventory/api/purchase-orders).
 
 This flow is logical and robust.
 
