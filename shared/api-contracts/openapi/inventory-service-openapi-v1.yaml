@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Inventory Service API
-  version: 0.5.0
+  version: 0.6.0
   description: >-
     CRUD for master data (Products, Suppliers, Customers) with comprehensive filtering support.
     Integer IDs, no auth. Timestamps are read-only and maintained in app code (e.g., JPA auditing).
@@ -146,6 +146,57 @@ components:
       style: form
       explode: true
       example: ["SME", "CORPORATE"]
+
+    # ---- Product-Suppliers Filter Parameters ----
+    ProductSupplierProductIdParam:
+      in: query
+      name: product_id
+      description: >-
+        Filter by product IDs. Repeatable for OR logic within the same parameter.
+        Only allowed on top-level /product-suppliers (not on nested by product).
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+      example: [101, 102]
+
+    ProductSupplierSupplierIdParam:
+      in: query
+      name: supplier_id
+      description: >-
+        Filter by supplier IDs. Repeatable for OR logic within the same parameter.
+        Only allowed on top-level /product-suppliers (not on nested by supplier).
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+      example: [11, 12]
+
+    ProductSupplierActiveParam:
+      in: query
+      name: active
+      description: >-
+        Filter by active status. If omitted, returns both active and inactive records.
+      schema: {type: boolean}
+
+    ProductSupplierPreferredParam:
+      in: query
+      name: preferred
+      description: >-
+        Filter by preferred status. Maps to isPreferred on the link resource.
+        Note: At most one preferred per product (regardless of active) enforced by DB.
+      schema: {type: boolean}
+
+    ProductSupplierLastDeliverySinceParam:
+      in: query
+      name: last_delivery_since
+      description: >-
+        Filter by last delivery date (inclusive). Format: YYYY-MM-DD.
+      schema: {type: string, format: date, example: "2025-08-01"}
 
   schemas:
     # -----------------------------
@@ -325,7 +376,334 @@ components:
         page: 
           $ref: '#/components/schemas/PageMeta'
 
+    # -----------------------------
+    # Product-Suppliers
+    # -----------------------------
+    ProductSupplierLink:
+      type: object
+      description: Canonical product–supplier link with operational flags and simple KPIs.
+      properties:
+        productSupplierId: {type: integer, format: int64}
+        productId: {type: integer, format: int64}
+        supplierId: {type: integer, format: int64}
+        minOrderQuantity: {type: number, format: double, description: "Minimum order quantity for this link (3 decimals)"}
+        isPreferred: {type: boolean}
+        active: {type: boolean}
+        avgLeadTimeDays: {type: number, format: double, nullable: true, readOnly: true}
+        avgDelayDays: {type: number, format: double, nullable: true, readOnly: true}
+        totalOrdersCount: {type: integer, readOnly: true}
+        delayedOrdersCount: {type: integer, readOnly: true}
+        lastDeliveryDate: {type: string, format: date, nullable: true}
+        createdAt: {type: string, format: date-time, readOnly: true}
+        updatedAt: {type: string, format: date-time, readOnly: true}
+
+    ProductSupplierCreate:
+      type: object
+      required: [productId, supplierId, minOrderQuantity]
+      properties:
+        productId: {type: integer, format: int64}
+        supplierId: {type: integer, format: int64}
+        minOrderQuantity: {type: number, format: double, minimum: 0.001, description: "Must be > 0"}
+        isPreferred: {type: boolean, default: false}
+        active: {type: boolean, default: true}
+
+    ProductSupplierUpdate:
+      type: object
+      properties:
+        minOrderQuantity: {type: number, format: double, minimum: 0.001}
+        isPreferred: {type: boolean}
+        active: {type: boolean}
+
+    SupplierSummary:
+      type: object
+      properties:
+        supplierId: {type: integer, format: int64}
+        supplierName: {type: string}
+        city: {type: string}
+
+    ProductSummary:
+      type: object
+      properties:
+        productId: {type: integer, format: int64}
+        productName: {type: string}
+        category: {type: string}
+
+    ProductSupplierWithSupplier:
+      type: object
+      properties:
+        supplier:
+          $ref: '#/components/schemas/SupplierSummary'
+        link:
+          $ref: '#/components/schemas/ProductSupplierLink'
+
+    ProductSupplierWithProduct:
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/ProductSummary'
+        link:
+          $ref: '#/components/schemas/ProductSupplierLink'
+
+    PageProductSupplierLink:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSupplierLink'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    PageProductSupplierWithSupplier:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSupplierWithSupplier'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    PageProductSupplierWithProduct:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSupplierWithProduct'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
 paths:
+  # -----------------
+  # Product-Suppliers
+  # -----------------
+  /api/v1/product-suppliers:
+    get:
+      tags: [ProductSuppliers]
+      summary: Retrieve paginated product-supplier links with filtering and sorting
+      description: >-
+        Returns a paginated list of product-supplier links. Supports multiple filter parameters
+        that combine with AND logic. Repeatable parameters (product_id, supplier_id) use OR logic
+        within the same parameter. Unknown query parameters will result in HTTP 400.
+        Default sort is by updatedAt descending. If 'active' is omitted, both active and inactive records are returned.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/ProductSupplierProductIdParam'
+        - $ref: '#/components/parameters/ProductSupplierSupplierIdParam'
+        - $ref: '#/components/parameters/ProductSupplierActiveParam'
+        - $ref: '#/components/parameters/ProductSupplierPreferredParam'
+        - $ref: '#/components/parameters/ProductSupplierLastDeliverySinceParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged links matching filter criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageProductSupplierLink'
+        '400':
+          description: Invalid or unknown filter parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags: [ProductSuppliers]
+      summary: Create a product-supplier link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductSupplierCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created link
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/product-suppliers/123"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductSupplierLink'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (duplicate pair or preferred constraint violation)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/product-suppliers/{productSupplierId}:
+    get:
+      tags: [ProductSuppliers]
+      summary: Retrieve a specific product-supplier link
+      parameters:
+        - in: path
+          name: productSupplierId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductSupplierLink'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [ProductSuppliers]
+      summary: Update fields of a product-supplier link
+      parameters:
+        - in: path
+          name: productSupplierId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductSupplierUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductSupplierLink'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Preferred constraint violation (PREFERRED_CONFLICT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [ProductSuppliers]
+      summary: Permanently remove a product-supplier link
+      parameters:
+        - in: path
+          name: productSupplierId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/products/{productId}/suppliers:
+    get:
+      tags: [ProductSuppliers]
+      summary: List suppliers for a product with link details (read-only projection)
+      description: >-
+        Returns suppliers for the specified product together with link details. Do not pass product_id
+        in query (conflicts with path). Unknown parameters result in 400. Default sort is updatedAt,desc.
+        Sorting whitelist for this view: supplierName, city, isPreferred, active, lastDeliveryDate, updatedAt.
+        If the productId does not exist, returns 404.
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/ProductSupplierActiveParam'
+        - $ref: '#/components/parameters/ProductSupplierPreferredParam'
+        - $ref: '#/components/parameters/ProductSupplierLastDeliverySinceParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged suppliers for the product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageProductSupplierWithSupplier'
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/suppliers/{supplierId}/products:
+    get:
+      tags: [ProductSuppliers]
+      summary: List products for a supplier with link details (read-only projection)
+      description: >-
+        Returns products for the specified supplier together with link details. Do not pass supplier_id
+        in query (conflicts with path). Unknown parameters result in 400. Default sort is updatedAt,desc.
+        Sorting whitelist for this view: productName, category, isPreferred, active, lastDeliveryDate, updatedAt.
+        If the supplierId does not exist, returns 404.
+      parameters:
+        - in: path
+          name: supplierId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/ProductSupplierActiveParam'
+        - $ref: '#/components/parameters/ProductSupplierPreferredParam'
+        - $ref: '#/components/parameters/ProductSupplierLastDeliverySinceParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged products for the supplier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageProductSupplierWithProduct'
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Supplier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   # -----------------
   # Products
   # -----------------
