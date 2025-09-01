@@ -31,7 +31,7 @@ CREATE TYPE purchase_order_status AS ENUM (
 );
 
 -- -------------------------------------------------------
--- Sales order lifecycle (PoC: 4 states)
+-- Sales order lifecycle (PoC: 5 states)
 -- -------------------------------------------------------
 CREATE TYPE sales_order_status AS ENUM (
   'PENDING',
