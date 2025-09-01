@@ -105,4 +105,3 @@ CREATE UNIQUE INDEX uq_prod_one_preferred
   ON product_suppliers (product_id)
   INCLUDE (supplier_id)  -- Include supplier_id for index-only scans (performance boost)
   WHERE is_preferred = TRUE;
-
