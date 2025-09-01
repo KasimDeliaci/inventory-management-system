@@ -2,7 +2,7 @@ package com.petek.inventoryService.mapper;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.ProductRequest;
+import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.entity.Product;
 
@@ -12,9 +12,8 @@ public class ProductMapper {
     /**
      * Map ProductRequest to Product entity.
      */
-    public Product toProduct(ProductRequest request) {
+    public Product toProduct(ProductCreateRequest request) {
         return Product.builder()
-            .productId(request.productId())
             .productName(request.productName())
             .description(request.description())
             .category(request.category())

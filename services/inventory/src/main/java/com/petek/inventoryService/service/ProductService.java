@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductFilterRequest;
-import com.petek.inventoryService.dto.ProductRequest;
+import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.dto.ProductUpdateRequest;
 import com.petek.inventoryService.entity.Product;
@@ -125,7 +125,7 @@ public class ProductService {
     /**
      * Create a new product.
      */
-    public ProductResponse createProduct(ProductRequest request) {
+    public ProductResponse createProduct(ProductCreateRequest request) {
         Product product = mapper.toProduct(request);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());

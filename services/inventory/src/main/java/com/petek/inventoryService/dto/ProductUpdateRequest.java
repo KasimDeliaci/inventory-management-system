@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record ProductUpdateRequest (
-    Long productId,
-
     @Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters")
     String productName,
 

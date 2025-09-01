@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductFilterRequest;
-import com.petek.inventoryService.dto.ProductRequest;
+import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.dto.ProductUpdateRequest;
 import com.petek.inventoryService.exception.UnknownQueryParamsException;
@@ -93,7 +93,7 @@ public class ProductController {
      */
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(
-        @RequestBody @Valid ProductRequest request
+        @RequestBody @Valid ProductCreateRequest request
     ) {
         return ResponseEntity.status(201).body(service.createProduct(request));
     }
