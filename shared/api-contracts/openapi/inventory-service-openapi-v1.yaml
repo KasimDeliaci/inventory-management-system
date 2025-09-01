@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Inventory Service API
-  version: 0.8.0
+  version: 0.9.0
   description: >-
     CRUD for master data (Products, Suppliers, Customers) with comprehensive filtering support.
     Integer IDs, no auth. Timestamps are read-only and maintained in app code (e.g., JPA auditing).
@@ -356,6 +356,64 @@ components:
       name: received_since
       description: >-
         Filter by actualDelivery timestamp >= this value (inclusive). Must be UTC with Z or +00:00.
+      schema: {type: string, format: date-time}
+
+    # ---- Sales Orders Filter Parameters ----
+    SalesOrderCustomerIdParam:
+      in: query
+      name: customer_id
+      description: >-
+        Filter by customer IDs. Repeatable for OR logic.
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+      example: [501, 502]
+
+    SalesOrderStatusParam:
+      in: query
+      name: status
+      description: >-
+        Filter by sales order status. Repeatable for OR logic.
+      schema:
+        type: array
+        items: {type: string, enum: [PENDING, ALLOCATED, IN_TRANSIT, DELIVERED, CANCELLED]}
+        minItems: 1
+      style: form
+      explode: true
+      example: [IN_TRANSIT, PENDING]
+
+    SalesOrderOrderDateGteParam:
+      in: query
+      name: order_date_gte
+      description: "Order date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    SalesOrderOrderDateLteParam:
+      in: query
+      name: order_date_lte
+      description: "Order date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    SalesOrderDeliveryDateGteParam:
+      in: query
+      name: delivery_date_gte
+      description: "Delivery date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    SalesOrderDeliveryDateLteParam:
+      in: query
+      name: delivery_date_lte
+      description: "Delivery date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    SalesOrderDeliveredSinceParam:
+      in: query
+      name: delivered_since
+      description: >-
+        Filter by deliveredAt timestamp >= this value (inclusive). Must be UTC with Z or +00:00.
       schema: {type: string, format: date-time}
 
   examples:
@@ -842,6 +900,88 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PurchaseOrderItem'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    # -----------------------------
+    # Sales Orders & Items
+    # -----------------------------
+    SalesOrderStatus:
+      type: string
+      enum: [PENDING, ALLOCATED, IN_TRANSIT, DELIVERED, CANCELLED]
+
+    SalesOrder:
+      type: object
+      required: [salesOrderId, customerId, orderDate, deliveryDate, status]
+      properties:
+        salesOrderId: {type: integer, format: int64}
+        customerId: {type: integer, format: int64}
+        orderDate: {type: string, format: date}
+        deliveryDate: {type: string, format: date}
+        deliveredAt: {type: string, format: date-time, nullable: true, readOnly: true}
+        status: {$ref: '#/components/schemas/SalesOrderStatus'}
+        customerSpecialOfferId: {type: integer, format: int64, nullable: true, readOnly: true}
+        customerDiscountPctApplied: {type: number, format: double, minimum: 0, maximum: 100, nullable: true, readOnly: true}
+        createdAt: {type: string, format: date-time, readOnly: true}
+        updatedAt: {type: string, format: date-time, readOnly: true}
+
+    SalesOrderCreate:
+      type: object
+      required: [customerId, deliveryDate]
+      properties:
+        customerId: {type: integer, format: int64}
+        deliveryDate: {type: string, format: date}
+
+    SalesOrderUpdate:
+      type: object
+      properties:
+        deliveryDate: {type: string, format: date}
+        status: {$ref: '#/components/schemas/SalesOrderStatus'}
+
+    PageSalesOrder:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesOrder'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    SalesOrderItem:
+      type: object
+      required: [salesOrderItemId, salesOrderId, productId, quantity, unitPrice, discountPercentage]
+      properties:
+        salesOrderItemId: {type: integer, format: int64}
+        salesOrderId: {type: integer, format: int64}
+        productId: {type: integer, format: int64}
+        quantity: {type: number, format: double}
+        unitPrice: {type: number, format: double, readOnly: true}
+        discountPercentage: {type: number, format: double, readOnly: true}
+        campaignId: {type: integer, format: int64, nullable: true, readOnly: true, description: "Attribution to the product campaign active on orderDate (nullable)."}
+        discountAmount: {type: number, format: double, readOnly: true}
+        lineTotal: {type: number, format: double, readOnly: true}
+        createdAt: {type: string, format: date-time, readOnly: true}
+
+    SalesOrderItemCreate:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: {type: integer, format: int64}
+        quantity: {type: number, format: double, minimum: 0.001}
+
+    SalesOrderItemUpdate:
+      type: object
+      properties:
+        quantity: {type: number, format: double, minimum: 0.001}
+
+    PageSalesOrderItem:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesOrderItem'
         page:
           $ref: '#/components/schemas/PageMeta'
 
@@ -2199,6 +2339,8 @@ paths:
     put:
       tags: [PurchaseOrderItems]
       summary: Update a purchase order item
+      description: >-
+        Editable fields: quantityReceived and unitPrice. Service rejects unitPrice changes after any quantityReceived > 0.
       parameters:
         - in: path
           name: purchaseOrderItemId
@@ -2247,6 +2389,326 @@ paths:
         '204': {description: Deleted}
         '404':
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # -----------------
+  # Sales Orders
+  # -----------------
+  /api/v1/sales-orders:
+    get:
+      tags: [SalesOrders]
+      summary: Retrieve paginated list of sales orders with filtering and sorting
+      description: >-
+        Returns a paginated list of sales orders. Unknown query parameters will result in HTTP 400.
+        Default sort is updatedAt,desc. Whitelisted sort fields: orderDate, deliveryDate, status, updatedAt.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/SalesOrderCustomerIdParam'
+        - $ref: '#/components/parameters/SalesOrderStatusParam'
+        - $ref: '#/components/parameters/SalesOrderOrderDateGteParam'
+        - $ref: '#/components/parameters/SalesOrderOrderDateLteParam'
+        - $ref: '#/components/parameters/SalesOrderDeliveryDateGteParam'
+        - $ref: '#/components/parameters/SalesOrderDeliveryDateLteParam'
+        - $ref: '#/components/parameters/SalesOrderDeliveredSinceParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged sales orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageSalesOrder'
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
+    post:
+      tags: [SalesOrders]
+      summary: Create a sales order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOrderCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created sales order
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/sales-orders/123"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOrder'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/sales-orders/{salesOrderId}:
+    get:
+      tags: [SalesOrders]
+      summary: Retrieve a specific sales order
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOrder'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [SalesOrders]
+      summary: Update a sales order
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOrderUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOrder'
+        '400':
+          description: Invalid input or invalid state transitions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (e.g., cancelling a delivered order)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [SalesOrders]
+      summary: Delete a sales order
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (blocked by service rules)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/sales-orders/{salesOrderId}/items:
+    get:
+      tags: [SalesOrderItems]
+      summary: List items for a sales order (paged)
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paged items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageSalesOrderItem'
+        '404':
+          description: Sales order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags: [SalesOrderItems]
+      summary: Add an item to a sales order
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOrderItemCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created item
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/sales-orders/123/items/456"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOrderItem'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sales order or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate item (same product per sales order)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/sales-orders/{salesOrderId}/items/{salesOrderItemId}:
+    get:
+      tags: [SalesOrderItems]
+      summary: Retrieve a sales order item
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+        - in: path
+          name: salesOrderItemId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOrderItem'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [SalesOrderItems]
+      summary: Update a sales order item
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+        - in: path
+          name: salesOrderItemId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesOrderItemUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesOrderItem'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (cannot mutate items on a delivered order)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [SalesOrderItems]
+      summary: Delete a sales order item
+      parameters:
+        - in: path
+          name: salesOrderId
+          required: true
+          schema: {type: integer, format: int64}
+        - in: path
+          name: salesOrderItemId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (cannot delete items on a delivered order)
           content:
             application/json:
               schema:
