@@ -92,7 +92,7 @@ public class ProductController {
      * Create a new product.
      */
     @PostMapping
-    public ResponseEntity<Long> createProduct(
+    public ResponseEntity<ProductResponse> createProduct(
         @RequestBody @Valid ProductRequest request
     ) {
         return ResponseEntity.status(201).body(service.createProduct(request));

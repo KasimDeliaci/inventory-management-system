@@ -1,7 +1,7 @@
 
 ### Get All Products
 
-GET http://localhost:8000/api/v1/products?page=1&size=5&sort=category
+GET http://localhost:8000/api/v1/products?page=0&size=10
 
 ### Create Product
 

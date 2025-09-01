@@ -125,11 +125,11 @@ public class ProductService {
     /**
      * Create a new product.
      */
-    public Long createProduct(ProductRequest request) {
+    public ProductResponse createProduct(ProductRequest request) {
         Product product = mapper.toProduct(request);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
-        return repository.save(product).getProductId();
+        return mapper.toProductResponse(repository.save(product));
     }
 
     /**
