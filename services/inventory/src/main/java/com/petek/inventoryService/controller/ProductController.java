@@ -23,6 +23,7 @@ import com.petek.inventoryService.dto.ProductFilterRequest;
 import com.petek.inventoryService.dto.ProductRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.dto.ProductUpdateRequest;
+import com.petek.inventoryService.exception.UnknownQueryParamsException;
 import com.petek.inventoryService.service.ProductService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,9 +52,7 @@ public class ProductController {
             .collect(Collectors.toList());
             
         if (!unknownParams.isEmpty()) {
-            throw new IllegalArgumentException(
-                "Unknown query parameters: " + String.join(", ", unknownParams)
-            );
+            throw new UnknownQueryParamsException(unknownParams);
         }
     }
     
@@ -77,20 +76,16 @@ public class ProductController {
         @RequestParam(name = "updated_after", required = false) LocalDateTime updatedAfter,
         HttpServletRequest request
     ) {
-        try {
-            // Validate unknown parameters
-            validateParameters(request);
-            
-            ProductFilterRequest filterRequest = new ProductFilterRequest(
-                page, size, sort, q, category, uom, priceGte, priceLte,
-                safetyGte, safetyLte, reorderGte, reorderLte, updatedAfter
-            );
-            
-            PageResponse<ProductResponse> response = service.getAllProducts(filterRequest);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        // Validate unknown parameters
+        validateParameters(request);
+        
+        ProductFilterRequest filterRequest = new ProductFilterRequest(
+            page, size, sort, q, category, uom, priceGte, priceLte,
+            safetyGte, safetyLte, reorderGte, reorderLte, updatedAfter
+        );
+        
+        PageResponse<ProductResponse> response = service.getAllProducts(filterRequest);
+        return ResponseEntity.ok(response);
     }
 
     /**
