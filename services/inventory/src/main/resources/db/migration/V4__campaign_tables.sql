@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS campaigns (
   -- Type parameters (nullable depending on type)
   discount_percentage        NUMERIC(5,2)
                   CHECK (discount_percentage IS NULL OR (discount_percentage >= 0 AND discount_percentage <= 100)),
-
   min_qty INTEGER CHECK (min_qty IS NULL OR min_qty > 0),
   buy_qty        INTEGER CHECK (buy_qty IS NULL OR buy_qty > 0),
   get_qty        INTEGER CHECK (get_qty IS NULL OR get_qty > 0),
