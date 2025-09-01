@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.petek.inventoryService.dto.PageInfo;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductFilterRequest;
 import com.petek.inventoryService.dto.ProductRequest;
