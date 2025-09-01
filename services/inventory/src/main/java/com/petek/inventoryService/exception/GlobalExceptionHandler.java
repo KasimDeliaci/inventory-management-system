@@ -17,6 +17,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -135,6 +136,15 @@ public class GlobalExceptionHandler {
         });
     }
 
+    // === 404: Not Found ====================================================
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(
+        ResponseStatusException ex,
+        HttpServletRequest req
+    ) {
+        return build(HttpStatus.NOT_FOUND, ex.getReason(), req, d -> { });
+    }
+
     // === 409: Business/state conflicts (cancel with receipts, etc.) =========
     @ExceptionHandler(StateConflictException.class)
     public ResponseEntity<ErrorResponse> handleStateConflict(
@@ -217,8 +227,11 @@ public class GlobalExceptionHandler {
     // ======= helpers ========================================================
 
     private ResponseEntity<ErrorResponse> build(
-            HttpStatus status, String message, HttpServletRequest req,
-            java.util.function.Consumer<ErrorDetails> detailsCustomizer) {
+            HttpStatus status,
+            String message,
+            HttpServletRequest req,
+            java.util.function.Consumer<ErrorDetails> detailsCustomizer
+    ) {
 
         ErrorDetails details = new ErrorDetails();
         if (detailsCustomizer != null) detailsCustomizer.accept(details);
