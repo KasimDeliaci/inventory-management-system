@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Inventory Service API
-  version: 0.6.0
+  version: 0.8.0
   description: >-
     CRUD for master data (Products, Suppliers, Customers) with comprehensive filtering support.
     Integer IDs, no auth. Timestamps are read-only and maintained in app code (e.g., JPA auditing).
@@ -17,7 +17,7 @@ info:
     ## Performance Notes
     - Text search (`q` parameter) performs substring matching and may be slow on large datasets
     - Maximum pagination window is 10,000 records (page * size cannot exceed 10,000)
-    - All filter parameters use database indexes for optimal performance
+    - Most filters are index-backed; `q` may be slower on very large datasets
     
 servers:
   - url: http://localhost:8000
@@ -198,6 +198,175 @@ components:
         Filter by last delivery date (inclusive). Format: YYYY-MM-DD.
       schema: {type: string, format: date, example: "2025-08-01"}
 
+    # ---- Campaigns Filter Parameters ----
+    CampaignTypeParam:
+      in: query
+      name: type
+      description: >-
+        Filter by campaign type. Repeatable for OR logic.
+      schema:
+        type: array
+        items: {type: string, enum: [DISCOUNT, BXGY_SAME_PRODUCT]}
+        minItems: 1
+      style: form
+      explode: true
+      example: [DISCOUNT]
+
+    CampaignStartGteParam:
+      in: query
+      name: start_gte
+      description: "Start date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CampaignStartLteParam:
+      in: query
+      name: start_lte
+      description: "Start date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CampaignEndGteParam:
+      in: query
+      name: end_gte
+      description: "End date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CampaignEndLteParam:
+      in: query
+      name: end_lte
+      description: "End date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CampaignActiveOnParam:
+      in: query
+      name: active_on
+      description: >-
+        Return campaigns active on this date (inclusive window check). Format: YYYY-MM-DD.
+      schema: {type: string, format: date}
+
+    # ---- Customer Special Offers Filter Parameters ----
+    CSOCustomerIdParam:
+      in: query
+      name: customer_id
+      description: >-
+        Filter by customer IDs. Repeatable for OR logic within the same parameter.
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+      example: [501, 502]
+
+    CSOPercentGteParam:
+      in: query
+      name: percent_gte
+      description: "Minimum percentOff (inclusive). 0-100"
+      schema: {type: number, format: double, minimum: 0, maximum: 100}
+
+    CSOPercentLteParam:
+      in: query
+      name: percent_lte
+      description: "Maximum percentOff (inclusive). 0-100"
+      schema: {type: number, format: double, minimum: 0, maximum: 100}
+
+    CSOStartGteParam:
+      in: query
+      name: start_gte
+      description: "Start date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CSOStartLteParam:
+      in: query
+      name: start_lte
+      description: "Start date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CSOEndGteParam:
+      in: query
+      name: end_gte
+      description: "End date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CSOEndLteParam:
+      in: query
+      name: end_lte
+      description: "End date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    CSOActiveOnParam:
+      in: query
+      name: active_on
+      description: >-
+        Return offers active on this date (inclusive window check). Format: YYYY-MM-DD.
+      schema: {type: string, format: date}
+
+    # ---- Purchase Orders Filter Parameters ----
+    PurchaseOrderSupplierIdParam:
+      in: query
+      name: supplier_id
+      description: >-
+        Filter by supplier IDs. Repeatable for OR logic.
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+      example: [11, 12]
+
+    PurchaseOrderStatusParam:
+      in: query
+      name: status
+      description: >-
+        Filter by purchase order status. Repeatable for OR logic.
+      schema:
+        type: array
+        items: {type: string, enum: [PLACED, IN_TRANSIT, RECEIVED, CANCELLED]}
+        minItems: 1
+      style: form
+      explode: true
+      example: [IN_TRANSIT, PLACED]
+
+    PurchaseOrderOrderDateGteParam:
+      in: query
+      name: order_date_gte
+      description: "Order date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    PurchaseOrderOrderDateLteParam:
+      in: query
+      name: order_date_lte
+      description: "Order date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    PurchaseOrderEtaGteParam:
+      in: query
+      name: expected_delivery_gte
+      description: "Expected delivery date greater than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    PurchaseOrderEtaLteParam:
+      in: query
+      name: expected_delivery_lte
+      description: "Expected delivery date less than or equal (inclusive). Format: YYYY-MM-DD"
+      schema: {type: string, format: date}
+
+    PurchaseOrderReceivedSinceParam:
+      in: query
+      name: received_since
+      description: >-
+        Filter by actualDelivery timestamp >= this value (inclusive). Must be UTC with Z or +00:00.
+      schema: {type: string, format: date-time}
+
+  examples:
+    PaginationWindowExceeded:
+      summary: "Pagination window exceeded"
+      value:
+        status: 400
+        error: "Bad Request"
+        message: "page * size cannot exceed 10,000"
+        path: "/api/v1/resource"
+        timestamp: "2025-08-28T10:00:00Z"
   schemas:
     # -----------------------------
     # ENUMS (from V1__types.sql)
@@ -474,6 +643,208 @@ components:
         page:
           $ref: '#/components/schemas/PageMeta'
 
+    # -----------------------------
+    # Campaigns & Customer Special Offers
+    # -----------------------------
+    CampaignType:
+      type: string
+      enum: [DISCOUNT, BXGY_SAME_PRODUCT]
+
+    Campaign:
+      type: object
+      required: [campaignId, campaignName, campaignType, startDate, endDate]
+      properties:
+        campaignId: {type: integer, format: int64}
+        campaignName: {type: string}
+        campaignType: {$ref: '#/components/schemas/CampaignType'}
+        discountPercentage: {type: number, format: double, minimum: 0, maximum: 100, nullable: true}
+        minQty: {type: integer, minimum: 1, nullable: true}
+        buyQty: {type: integer, minimum: 1, nullable: true}
+        getQty: {type: integer, minimum: 1, nullable: true}
+        startDate: {type: string, format: date}
+        endDate: {type: string, format: date}
+        createdAt: {type: string, format: date-time, readOnly: true}
+        updatedAt: {type: string, format: date-time, readOnly: true}
+
+    CampaignCreateDiscount:
+      type: object
+      required: [campaignName, campaignType, startDate, endDate, discountPercentage]
+      properties:
+        campaignName: {type: string}
+        campaignType:
+          $ref: '#/components/schemas/CampaignType'
+        discountPercentage: {type: number, format: double, minimum: 0, maximum: 100}
+        minQty: {type: integer, minimum: 1, nullable: true}
+        startDate: {type: string, format: date}
+        endDate: {type: string, format: date}
+
+    CampaignCreateBxgy:
+      type: object
+      required: [campaignName, campaignType, startDate, endDate, buyQty, getQty]
+      properties:
+        campaignName: {type: string}
+        campaignType:
+          $ref: '#/components/schemas/CampaignType'
+        buyQty: {type: integer, minimum: 1}
+        getQty: {type: integer, minimum: 1}
+        minQty: {type: integer, minimum: 1, nullable: true}
+        startDate: {type: string, format: date}
+        endDate: {type: string, format: date}
+
+    CampaignCreate:
+      oneOf:
+        - $ref: '#/components/schemas/CampaignCreateDiscount'
+        - $ref: '#/components/schemas/CampaignCreateBxgy'
+
+    CampaignUpdate:
+      allOf:
+        - $ref: '#/components/schemas/CampaignCreate'
+
+    PageCampaign:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Campaign'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    CampaignAssignProductsRequest:
+      type: object
+      required: [productIds]
+      properties:
+        productIds:
+          type: array
+          items: {type: integer, format: int64}
+          minItems: 1
+
+    PageProductSummary:
+      type: object
+      properties:
+        content:
+          type: array
+          items: {$ref: '#/components/schemas/ProductSummary'}
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    CustomerSpecialOffer:
+      type: object
+      required: [specialOfferId, customerId, percentOff, startDate, endDate]
+      properties:
+        specialOfferId: {type: integer, format: int64}
+        customerId: {type: integer, format: int64}
+        percentOff: {type: number, format: double, minimum: 0, maximum: 100}
+        startDate: {type: string, format: date}
+        endDate: {type: string, format: date}
+        createdAt: {type: string, format: date-time, readOnly: true}
+        updatedAt: {type: string, format: date-time, readOnly: true}
+
+    CustomerSpecialOfferCreate:
+      type: object
+      required: [customerId, percentOff, startDate, endDate]
+      properties:
+        customerId: {type: integer, format: int64}
+        percentOff: {type: number, format: double, minimum: 0, maximum: 100}
+        startDate: {type: string, format: date}
+        endDate: {type: string, format: date}
+
+    CustomerSpecialOfferUpdate:
+      allOf:
+        - $ref: '#/components/schemas/CustomerSpecialOfferCreate'
+
+    PageCustomerSpecialOffer:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerSpecialOffer'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    # -----------------------------
+    # Purchase Orders & Items
+    # -----------------------------
+    PurchaseOrderStatus:
+      type: string
+      enum: [PLACED, IN_TRANSIT, RECEIVED, CANCELLED]
+
+    PurchaseOrder:
+      type: object
+      required: [purchaseOrderId, supplierId, orderDate, status]
+      properties:
+        purchaseOrderId: {type: integer, format: int64}
+        supplierId: {type: integer, format: int64}
+        orderDate: {type: string, format: date}
+        expectedDelivery: {type: string, format: date, nullable: true}
+        actualDelivery: {type: string, format: date-time, nullable: true, readOnly: true}
+        status: {$ref: '#/components/schemas/PurchaseOrderStatus'}
+        createdAt: {type: string, format: date-time, readOnly: true}
+        updatedAt: {type: string, format: date-time, readOnly: true}
+
+    PurchaseOrderCreate:
+      type: object
+      required: [supplierId]
+      properties:
+        supplierId: {type: integer, format: int64}
+        orderDate: {type: string, format: date, nullable: true}
+        expectedDelivery: {type: string, format: date, nullable: true}
+
+    PurchaseOrderUpdate:
+      type: object
+      properties:
+        expectedDelivery: {type: string, format: date, nullable: true}
+        status: {$ref: '#/components/schemas/PurchaseOrderStatus'}
+
+    PagePurchaseOrder:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrder'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    PurchaseOrderItem:
+      type: object
+      required: [purchaseOrderItemId, purchaseOrderId, productId, quantityOrdered, quantityReceived, unitPrice]
+      properties:
+        purchaseOrderItemId: {type: integer, format: int64}
+        purchaseOrderId: {type: integer, format: int64}
+        productId: {type: integer, format: int64}
+        quantityOrdered: {type: number, format: double}
+        quantityReceived: {type: number, format: double}
+        unitPrice: {type: number, format: double}
+        lineTotal: {type: number, format: double, readOnly: true}
+        lineTotalReceived: {type: number, format: double, readOnly: true}
+        createdAt: {type: string, format: date-time, readOnly: true}
+
+    PurchaseOrderItemCreate:
+      type: object
+      required: [productId, quantityOrdered, unitPrice]
+      properties:
+        productId: {type: integer, format: int64}
+        quantityOrdered: {type: number, format: double, minimum: 0.001}
+        unitPrice: {type: number, format: double, minimum: 0}
+
+    PurchaseOrderItemUpdate:
+      type: object
+      properties:
+        quantityReceived: {type: number, format: double, minimum: 0}
+        unitPrice: {type: number, format: double, minimum: 0}
+
+    PagePurchaseOrderItem:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderItem'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
 paths:
   # -----------------
   # Product-Suppliers
@@ -510,6 +881,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
     post:
       tags: [ProductSuppliers]
       summary: Create a product-supplier link
@@ -657,6 +1031,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
         '404':
           description: Product not found
           content:
@@ -698,6 +1075,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
         '404':
           description: Supplier not found
           content:
@@ -781,6 +1161,8 @@ paths:
                     message: "price_gte cannot be greater than price_lte"
                     path: "/api/v1/products"
                     timestamp: "2025-08-28T10:00:00Z"
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
     
     post:
       tags: [Products]
@@ -924,6 +1306,9 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
     
     post:
       tags: [Suppliers]
@@ -1080,41 +1465,791 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
-    
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
     post:
       tags: [Customers]
       summary: Register a new customer with required fields
       requestBody:
         required: true
-        content: 
-          application/json: 
-            schema: 
+        content:
+          application/json:
+            schema:
               $ref: '#/components/schemas/CustomerCreate'
       responses:
         '201':
           description: Created
           headers:
-            Location: 
+            Location:
               description: "URL of the created customer"
-              schema: 
+              schema:
                 type: string
                 format: uri
                 example: "/api/v1/customers/789"
           content:
-            application/json: 
-              schema: 
+            application/json:
+              schema:
                 $ref: '#/components/schemas/Customer'
-        '400': 
+        '400':
           description: Invalid input
-          content: 
-            application/json: 
-              schema: 
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '409': 
+        '409':
           description: Duplicate email
-          content: 
-            application/json: 
-              schema: 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # -----------------
+  # Campaigns
+  # -----------------
+  /api/v1/campaigns:
+    get:
+      tags: [Campaigns]
+      summary: Retrieve paginated list of campaigns with filtering and sorting
+      description: >-
+        Returns a paginated list of campaigns. Unknown query parameters will result in HTTP 400.
+        Default sort is updatedAt,desc. Whitelisted sort fields: campaignName, campaignType, startDate, endDate, updatedAt.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/QueryParam'
+        - $ref: '#/components/parameters/CampaignTypeParam'
+        - $ref: '#/components/parameters/CampaignStartGteParam'
+        - $ref: '#/components/parameters/CampaignStartLteParam'
+        - $ref: '#/components/parameters/CampaignEndGteParam'
+        - $ref: '#/components/parameters/CampaignEndLteParam'
+        - $ref: '#/components/parameters/CampaignActiveOnParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged campaigns matching filter criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCampaign'
+        '400':
+          description: Invalid filter parameters or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
+    post:
+      tags: [Campaigns]
+      summary: Create a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created campaign
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/campaigns/123"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (e.g., overlapping assignments if provided)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/campaigns/{campaignId}:
+    get:
+      tags: [Campaigns]
+      summary: Retrieve a specific campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [Campaigns]
+      summary: Update a campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (e.g., overlapping window with assignments)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Campaigns]
+      summary: Delete a campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (e.g., deletion blocked by service rules)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/campaigns/{campaignId}/products:
+    get:
+      tags: [Campaigns]
+      summary: List products assigned to a campaign (paged)
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paged products for the campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageProductSummary'
+        '404':
+          description: Campaign not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags: [Campaigns]
+      summary: Assign products to a campaign (batch)
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignAssignProductsRequest'
+      responses:
+        '204': {description: Assigned}
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Campaign or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Overlapping campaign window for one or more products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/campaigns/{campaignId}/products/{productId}:
+    post:
+      tags: [Campaigns]
+      summary: Assign a product to a campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+        - in: path
+          name: productId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Assigned}
+        '404':
+          description: Campaign or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Overlapping campaign window
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Campaigns]
+      summary: Remove a product from a campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: {type: integer, format: int64}
+        - in: path
+          name: productId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Removed}
+        '404':
+          description: Campaign or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # -----------------
+  # Customer Special Offers
+  # -----------------
+  /api/v1/customer-special-offers:
+    get:
+      tags: [CustomerSpecialOffers]
+      summary: Retrieve paginated list of customer special offers with filtering and sorting
+      description: >-
+        Unknown query parameters will result in HTTP 400. Default sort is updatedAt,desc.
+        Whitelisted sort fields: customerId, percentOff, startDate, endDate, updatedAt.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/CSOCustomerIdParam'
+        - $ref: '#/components/parameters/CSOPercentGteParam'
+        - $ref: '#/components/parameters/CSOPercentLteParam'
+        - $ref: '#/components/parameters/CSOStartGteParam'
+        - $ref: '#/components/parameters/CSOStartLteParam'
+        - $ref: '#/components/parameters/CSOEndGteParam'
+        - $ref: '#/components/parameters/CSOEndLteParam'
+        - $ref: '#/components/parameters/CSOActiveOnParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged offers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCustomerSpecialOffer'
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
+    post:
+      tags: [CustomerSpecialOffers]
+      summary: Create a customer special offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSpecialOfferCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created offer
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/customer-special-offers/123"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSpecialOffer'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Offer conflict (one active per customer)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customer-special-offers/{specialOfferId}:
+    get:
+      tags: [CustomerSpecialOffers]
+      summary: Retrieve a specific offer
+      parameters:
+        - in: path
+          name: specialOfferId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSpecialOffer'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [CustomerSpecialOffers]
+      summary: Update a customer special offer
+      parameters:
+        - in: path
+          name: specialOfferId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSpecialOfferUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSpecialOffer'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Offer conflict (one active per customer)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [CustomerSpecialOffers]
+      summary: Delete an offer
+      parameters:
+        - in: path
+          name: specialOfferId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}/special-offers:
+    get:
+      tags: [CustomerSpecialOffers]
+      summary: List offers for a customer (paged)
+      parameters:
+        - in: path
+          name: customerId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged offers for the customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCustomerSpecialOffer'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # -----------------
+  # Purchase Orders
+  # -----------------
+  /api/v1/purchase-orders:
+    get:
+      tags: [PurchaseOrders]
+      summary: Retrieve paginated list of purchase orders with filtering and sorting
+      description: >-
+        Unknown query parameters will result in HTTP 400. Default sort is updatedAt,desc.
+        Whitelisted sort fields: orderDate, expectedDelivery, status, updatedAt.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/PurchaseOrderSupplierIdParam'
+        - $ref: '#/components/parameters/PurchaseOrderStatusParam'
+        - $ref: '#/components/parameters/PurchaseOrderOrderDateGteParam'
+        - $ref: '#/components/parameters/PurchaseOrderOrderDateLteParam'
+        - $ref: '#/components/parameters/PurchaseOrderEtaGteParam'
+        - $ref: '#/components/parameters/PurchaseOrderEtaLteParam'
+        - $ref: '#/components/parameters/PurchaseOrderReceivedSinceParam'
+        - $ref: '#/components/parameters/UpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged purchase orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePurchaseOrder'
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                paginationWindowExceeded:
+                  $ref: '#/components/examples/PaginationWindowExceeded'
+    post:
+      tags: [PurchaseOrders]
+      summary: Create a purchase order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created purchase order
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/purchase-orders/123"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/purchase-orders/{purchaseOrderId}:
+    get:
+      tags: [PurchaseOrders]
+      summary: Retrieve a specific purchase order
+      parameters:
+        - in: path
+          name: purchaseOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [PurchaseOrders]
+      summary: Update a purchase order
+      parameters:
+        - in: path
+          name: purchaseOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '400':
+          description: Invalid input or invalid state transitions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (e.g., cancelling with received quantity)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [PurchaseOrders]
+      summary: Delete a purchase order
+      parameters:
+        - in: path
+          name: purchaseOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (blocked by service rules)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/purchase-orders/{purchaseOrderId}/items:
+    get:
+      tags: [PurchaseOrderItems]
+      summary: List items for a purchase order (paged)
+      parameters:
+        - in: path
+          name: purchaseOrderId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paged items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePurchaseOrderItem'
+        '404':
+          description: Purchase order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags: [PurchaseOrderItems]
+      summary: Add an item to a purchase order
+      parameters:
+        - in: path
+          name: purchaseOrderId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderItemCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created item
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/purchase-order-items/456"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Purchase order or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate item (same product per purchase order)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/purchase-order-items/{purchaseOrderItemId}:
+    get:
+      tags: [PurchaseOrderItems]
+      summary: Retrieve a purchase order item
+      parameters:
+        - in: path
+          name: purchaseOrderItemId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [PurchaseOrderItems]
+      summary: Update a purchase order item
+      parameters:
+        - in: path
+          name: purchaseOrderItemId
+          required: true
+          schema: {type: integer, format: int64}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderItemUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (cannot change unitPrice after any quantityReceived > 0)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [PurchaseOrderItems]
+      summary: Delete a purchase order item
+      parameters:
+        - in: path
+          name: purchaseOrderItemId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '204': {description: Deleted}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
   
   /api/v1/customers/{customerId}:
