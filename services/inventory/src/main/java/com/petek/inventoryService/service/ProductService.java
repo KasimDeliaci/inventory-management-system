@@ -34,14 +34,15 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
+
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "productId", "productName", "category", "currentPrice", "updatedAt"
     );
-
+    
     /**
      * Utils
      */
-    private void validateRequest(ProductFilterRequest request) {
+    private void validateSortRequest(ProductFilterRequest request) {
         // Validate price range
         if (request.priceGte() != null && request.priceLte() != null && 
             request.priceGte().compareTo(request.priceLte()) > 0) {
@@ -61,20 +62,7 @@ public class ProductService {
         }
     }
     
-    private Pageable createPageable(ProductFilterRequest request) {
-        int page = request.page() != null ? request.page() : 0;
-        int size = request.size() != null ? request.size() : 20;
-        
-        Sort sort = createSort(request.sort());
-        
-        return PageRequest.of(page, size, sort);
-    }
-    
     private Sort createSort(List<String> sortParams) {
-        if (sortParams == null || sortParams.isEmpty()) {
-            return Sort.by(Sort.Direction.ASC, "productId");
-        }
-        
         List<Sort.Order> orders = new ArrayList<>();
         
         for (String sortParam : sortParams) {
@@ -100,9 +88,9 @@ public class ProductService {
      * Get all products.
      */
     public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
-        validateRequest(request);
+        validateSortRequest(request);
         
-        Pageable pageable = createPageable(request);
+        Pageable pageable = PageRequest.of(request.page(), request.size(), createSort(request.sort()));
         Specification<Product> spec = ProductSpecifications.withFilters(request);
         
         Page<Product> productPage = repository.findAll(spec, pageable);
@@ -119,7 +107,7 @@ public class ProductService {
             productPage.getTotalPages()
         );
         
-        return new PageResponse<>(productResponses, pageInfo);
+        return new PageResponse<ProductResponse>(productResponses, pageInfo);
     }
 
     /**
