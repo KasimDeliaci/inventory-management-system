@@ -26,7 +26,8 @@ PUT http://localhost:8000/api/v1/customers/1
 content-type: application/json
 
 {
-    
+    "phone": "+905551234567",
+    "city": "Ankara"
 }
 
 ### Delete Customer
