@@ -1,0 +1,34 @@
+
+### Get All Customers
+
+GET http://localhost:8000/api/v1/customers?page=1&size=10
+
+### Create Customer
+
+POST http://localhost:8000/api/v1/customers
+content-type: application/json
+
+{
+    "customerName": "Eren",
+    "customerSegment": "OTHER", 
+    "email": "eren@example.com",
+    "phone": "+905551234567",
+    "city": "İstanbul"
+}
+
+### Get Customer By ID
+
+GET http://localhost:8000/api/v1/customers/1
+
+### Update Customer
+
+PUT http://localhost:8000/api/v1/customers/1
+content-type: application/json
+
+{
+    
+}
+
+### Delete Customer
+
+DELETE http://localhost:8000/api/v1/customers/1
