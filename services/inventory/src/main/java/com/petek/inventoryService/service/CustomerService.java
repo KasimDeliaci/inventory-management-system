@@ -70,4 +70,13 @@ public class CustomerService {
         return mapper.toResponse(repository.save(existingCustomer));
     }
 
+    /**
+     * Delete a customer.
+     */
+    public void deleteCustomer(Long customerId) {
+        Customer existingCustomer = repository.findById(customerId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
+        repository.delete(existingCustomer);
+    }
+
 }
