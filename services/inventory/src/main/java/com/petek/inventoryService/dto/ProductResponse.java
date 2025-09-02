@@ -1,7 +1,7 @@
 package com.petek.inventoryService.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ProductResponse(
     Long productId,
@@ -12,6 +12,6 @@ public record ProductResponse(
     BigDecimal safetyStock,
     BigDecimal reorderPoint,
     BigDecimal currentPrice,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    Instant createdAt,
+    Instant updatedAt
 ) {}

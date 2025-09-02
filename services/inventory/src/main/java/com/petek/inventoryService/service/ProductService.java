@@ -1,6 +1,6 @@
 package com.petek.inventoryService.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,13 +51,13 @@ public class ProductService {
         
         // Validate safety stock range
         if (request.safetyGte() != null && request.safetyLte() != null && 
-            request.safetyGte() > request.safetyLte()) {
+            request.safetyGte().compareTo(request.safetyLte()) > 0) {
             throw new IllegalArgumentException("safety_gte cannot be greater than safety_lte");
         }
         
         // Validate reorder point range
         if (request.reorderGte() != null && request.reorderLte() != null && 
-            request.reorderGte() > request.reorderLte()) {
+            request.reorderGte().compareTo(request.reorderLte()) > 0) {
             throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
         }
     }
@@ -115,8 +115,8 @@ public class ProductService {
      */
     public ProductResponse createProduct(ProductCreateRequest request) {
         Product product = mapper.toProduct(request);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
+        product.setCreatedAt(Instant.now());
+        product.setUpdatedAt(Instant.now());
         return mapper.toProductResponse(repository.save(product));
     }
 
@@ -161,7 +161,7 @@ public class ProductService {
         Optional.ofNullable(request.currentPrice())
             .ifPresent(existingProduct::setCurrentPrice);
         
-        existingProduct.setUpdatedAt(LocalDateTime.now());
+        existingProduct.setUpdatedAt(Instant.now());
 
         return mapper.toProductResponse(repository.save(existingProduct));
     }

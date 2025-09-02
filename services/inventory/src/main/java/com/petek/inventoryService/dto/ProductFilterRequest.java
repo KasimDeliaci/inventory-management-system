@@ -1,8 +1,10 @@
 package com.petek.inventoryService.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -20,13 +22,26 @@ public record ProductFilterRequest(
     String q,
     List<String> category,
     List<String> uom,
+
+    @JsonProperty("price_gte")
     BigDecimal priceGte,
+
+    @JsonProperty("price_lte")
     BigDecimal priceLte,
-    Integer safetyGte,
-    Integer safetyLte,
-    Integer reorderGte,
-    Integer reorderLte,
-    LocalDateTime updatedAfter
+
+    @JsonProperty("safety_gte")
+    BigDecimal safetyGte,
+
+    @JsonProperty("safety_lte")
+    BigDecimal safetyLte,
+
+    @JsonProperty("reorder_gte")
+    BigDecimal reorderGte,
+
+    @JsonProperty("reorder_lte")
+    BigDecimal reorderLte,
+
+    Instant updatedAfter
 ) {
     public ProductFilterRequest {
         if (page == null) page = 0;
