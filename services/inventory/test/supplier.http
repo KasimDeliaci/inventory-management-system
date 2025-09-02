@@ -1,0 +1,34 @@
+
+### Get All Suppliers
+
+GET http://localhost:8000/api/v1/suppliers?page=1&size=10
+
+### Create Supplier
+
+POST http://localhost:8000/api/v1/suppliers
+content-type: application/json
+
+{
+    "supplierName": "Supplier 1",
+    "email": "supplier1@example.com",
+    "phone": "+905551234567",
+    "city": "City A"
+}
+
+### Get Supplier By ID
+
+GET http://localhost:8000/api/v1/suppliers/1
+
+### Update Supplier
+
+PUT http://localhost:8000/api/v1/suppliers/1
+content-type: application/json
+
+{
+    "phone": "+905551234567",
+    "city": "City B"
+}
+
+### Delete Supplier
+
+DELETE http://localhost:8000/api/v1/suppliers/1
