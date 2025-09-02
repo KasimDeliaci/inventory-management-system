@@ -25,7 +25,8 @@ PUT http://localhost:8000/api/v1/suppliers/1
 content-type: application/json
 
 {
-    
+    "phone": "+905551234567",
+    "city": "City B"
 }
 
 ### Delete Supplier
