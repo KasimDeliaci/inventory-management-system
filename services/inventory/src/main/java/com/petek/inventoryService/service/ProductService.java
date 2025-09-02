@@ -1,6 +1,6 @@
 package com.petek.inventoryService.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,14 +34,15 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
+
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "productId", "productName", "category", "currentPrice", "updatedAt"
     );
-
+    
     /**
      * Utils
      */
-    private void validateRequest(ProductFilterRequest request) {
+    private void validateSortRequest(ProductFilterRequest request) {
         // Validate price range
         if (request.priceGte() != null && request.priceLte() != null && 
             request.priceGte().compareTo(request.priceLte()) > 0) {
@@ -50,31 +51,18 @@ public class ProductService {
         
         // Validate safety stock range
         if (request.safetyGte() != null && request.safetyLte() != null && 
-            request.safetyGte() > request.safetyLte()) {
+            request.safetyGte().compareTo(request.safetyLte()) > 0) {
             throw new IllegalArgumentException("safety_gte cannot be greater than safety_lte");
         }
         
         // Validate reorder point range
         if (request.reorderGte() != null && request.reorderLte() != null && 
-            request.reorderGte() > request.reorderLte()) {
+            request.reorderGte().compareTo(request.reorderLte()) > 0) {
             throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
         }
     }
     
-    private Pageable createPageable(ProductFilterRequest request) {
-        int page = request.page() != null ? request.page() : 0;
-        int size = request.size() != null ? request.size() : 20;
-        
-        Sort sort = createSort(request.sort());
-        
-        return PageRequest.of(page, size, sort);
-    }
-    
     private Sort createSort(List<String> sortParams) {
-        if (sortParams == null || sortParams.isEmpty()) {
-            return Sort.by(Sort.Direction.ASC, "productId");
-        }
-        
         List<Sort.Order> orders = new ArrayList<>();
         
         for (String sortParam : sortParams) {
@@ -100,9 +88,9 @@ public class ProductService {
      * Get all products.
      */
     public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
-        validateRequest(request);
+        validateSortRequest(request);
         
-        Pageable pageable = createPageable(request);
+        Pageable pageable = PageRequest.of(request.page(), request.size(), createSort(request.sort()));
         Specification<Product> spec = ProductSpecifications.withFilters(request);
         
         Page<Product> productPage = repository.findAll(spec, pageable);
@@ -119,7 +107,7 @@ public class ProductService {
             productPage.getTotalPages()
         );
         
-        return new PageResponse<>(productResponses, pageInfo);
+        return new PageResponse<ProductResponse>(productResponses, pageInfo);
     }
 
     /**
@@ -127,8 +115,8 @@ public class ProductService {
      */
     public ProductResponse createProduct(ProductCreateRequest request) {
         Product product = mapper.toProduct(request);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
+        product.setCreatedAt(Instant.now());
+        product.setUpdatedAt(Instant.now());
         return mapper.toProductResponse(repository.save(product));
     }
 
@@ -173,7 +161,7 @@ public class ProductService {
         Optional.ofNullable(request.currentPrice())
             .ifPresent(existingProduct::setCurrentPrice);
         
-        existingProduct.setUpdatedAt(LocalDateTime.now());
+        existingProduct.setUpdatedAt(Instant.now());
 
         return mapper.toProductResponse(repository.save(existingProduct));
     }
