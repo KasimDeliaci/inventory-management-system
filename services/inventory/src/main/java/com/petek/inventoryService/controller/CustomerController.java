@@ -1,6 +1,8 @@
 package com.petek.inventoryService.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,13 @@ public class CustomerController {
         @RequestBody @Valid CustomerCreateRequest request
     ) {
         return ResponseEntity.status(201).body(service.createCustomer(request));
+    }
+
+    @GetMapping("/{customerId}")
+    public ResponseEntity<CustomerResponse> getCustomerById(
+        @PathVariable Long customerId
+    ) {
+        return ResponseEntity.ok(service.getCustomerById(customerId));
     }
 
 }
