@@ -10,17 +10,17 @@ import com.petek.inventoryService.entity.Product;
 public class ProductMapper {
 
     /**
-     * Map ProductRequest to Product entity.
+     * Map ProductCreateRequest to Product entity.
      */
     public Product toProduct(ProductCreateRequest request) {
         return Product.builder()
-            .productName(request.productName())
-            .description(request.description())
-            .category(request.category())
-            .unitOfMeasure(request.unitOfMeasure())
-            .safetyStock(request.safetyStock())
-            .reorderPoint(request.reorderPoint())
-            .currentPrice(request.currentPrice())
+            .productName(request.getProductName())
+            .description(request.getDescription())
+            .category(request.getCategory())
+            .unitOfMeasure(request.getUnitOfMeasure())
+            .safetyStock(request.getSafetyStock())
+            .reorderPoint(request.getReorderPoint())
+            .currentPrice(request.getCurrentPrice())
             .build();
     }
 
@@ -28,18 +28,18 @@ public class ProductMapper {
      * Map Product entity to ProductResponse.
      */
     public ProductResponse toProductResponse(Product product) {
-        return new ProductResponse(
-            product.getProductId(),
-            product.getProductName(),
-            product.getDescription(),
-            product.getCategory(),
-            product.getUnitOfMeasure(),
-            product.getSafetyStock(),
-            product.getReorderPoint(),
-            product.getCurrentPrice(),
-            product.getCreatedAt(),
-            product.getUpdatedAt()
-        );
+        return ProductResponse.builder()
+            .productId(product.getProductId())
+            .productName(product.getProductName())
+            .description(product.getDescription())
+            .category(product.getCategory())
+            .unitOfMeasure(product.getUnitOfMeasure())
+            .safetyStock(product.getSafetyStock())
+            .reorderPoint(product.getReorderPoint())
+            .currentPrice(product.getCurrentPrice())
+            .createdAt(product.getCreatedAt())
+            .updatedAt(product.getUpdatedAt())
+            .build();
     }
 
 }

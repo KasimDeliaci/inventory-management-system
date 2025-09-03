@@ -8,44 +8,51 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record ProductFilterRequest(
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductFilterRequest {
     @NotNull
     @Min(0)
-    Integer page,
+    @Builder.Default
+    private Integer page = 0;
 
     @NotNull
     @Min(1)
-    Integer size,
+    @Builder.Default
+    private Integer size = 20;
 
-    List<String> sort,
-    String q,
-    List<String> category,
-    List<String> uom,
+    @Builder.Default
+    private List<String> sort = List.of("productId");
+    
+    private String q;
+    private List<String> category;
+    private List<String> uom;
 
     @JsonProperty("price_gte")
-    BigDecimal priceGte,
+    private BigDecimal priceGte;
 
     @JsonProperty("price_lte")
-    BigDecimal priceLte,
+    private BigDecimal priceLte;
 
     @JsonProperty("safety_gte")
-    BigDecimal safetyGte,
+    private BigDecimal safetyGte;
 
     @JsonProperty("safety_lte")
-    BigDecimal safetyLte,
+    private BigDecimal safetyLte;
 
     @JsonProperty("reorder_gte")
-    BigDecimal reorderGte,
+    private BigDecimal reorderGte;
 
     @JsonProperty("reorder_lte")
-    BigDecimal reorderLte,
+    private BigDecimal reorderLte;
 
-    Instant updatedAfter
-) {
-    public ProductFilterRequest {
-        if (page == null) page = 0;
-        if (size == null) size = 20;
-        if (sort == null) sort = List.of("productId");
-    }
+    @JsonProperty("updated_after")
+    private Instant updatedAfter;
 }

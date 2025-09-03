@@ -2,14 +2,23 @@ package com.petek.inventoryService.dto;
 
 import java.time.Instant;
 
-import com.petek.inventoryService.entity.CustomerSegment;
+import com.petek.inventoryService.entity.Customer.CustomerSegment;
 
-public record CustomerResponse(
-    Long customerId,
-    String customerName,
-    CustomerSegment customerSegment,
-    String email,
-    String phone,
-    String city,
-    Instant createdAt
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomerResponse {
+    private Long customerId;
+    private String customerName;
+    private CustomerSegment customerSegment;
+    private String email;
+    private String phone;
+    private String city;
+    private Instant createdAt;
+}

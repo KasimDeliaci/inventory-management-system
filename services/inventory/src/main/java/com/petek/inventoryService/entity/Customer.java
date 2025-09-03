@@ -52,4 +52,8 @@ public class Customer {
     
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    public enum CustomerSegment {
+        INDIVIDUAL, SME, CORPORATE, ENTERPRISE, OTHER
+    }
 }

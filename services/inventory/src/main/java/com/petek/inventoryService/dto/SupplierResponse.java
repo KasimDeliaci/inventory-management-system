@@ -2,11 +2,20 @@ package com.petek.inventoryService.dto;
 
 import java.time.Instant;
 
-public record SupplierResponse(
-    Long supplierId,
-    String supplierName,
-    String email,
-    String phone,
-    String city,
-    Instant createdAt
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SupplierResponse {
+    private Long supplierId;
+    private String supplierName;
+    private String email;
+    private String phone;
+    private String city;
+    private Instant createdAt;
+}
