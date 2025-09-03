@@ -18,13 +18,5 @@ public class ErrorResponse {
     private String message;
     private String path;
     private Instant timestamp;
-    private ErrorDetails details;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ErrorDetails {
-        private Map<String, String> validationErrors;
-    }
+    private Map<String, String> details;
 }

@@ -50,39 +50,20 @@ public class GlobalExceptionHandler {
                 .message("Validation failed")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(Instant.now())
-                .details(ErrorResponse.ErrorDetails.builder()
-                        .validationErrors(validationErrors)
-                        .build())
+                .details(validationErrors)
                 .build();
 
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
-    // 500: Handle custom exceptions
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRuntimeException(
-        RuntimeException ex,
-        WebRequest request
-    ) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .timestamp(Instant.now())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-    }
-
-    // 500: Handle any uncaught exceptions (fallback)
+    // 500: Handle uncaught exceptions (fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
         Exception ex,
         WebRequest request
     ) {
-        Map<String, String> validationErrors = new HashMap<>();
-        validationErrors.put(ex.getClass().getSimpleName(), ex.getMessage() != null ? ex.getMessage() : "");
+        Map<String, String> errorDetails = new HashMap<>();
+        errorDetails.put(ex.getClass().getSimpleName(), ex.getMessage() != null ? ex.getMessage() : "");
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -90,12 +71,10 @@ public class GlobalExceptionHandler {
                 .message("An unexpected error occurred")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(Instant.now())
-                .details(ErrorResponse.ErrorDetails.builder()
-                        .validationErrors(validationErrors)
-                        .build())
+                .details(errorDetails)
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
-    
 }
+
