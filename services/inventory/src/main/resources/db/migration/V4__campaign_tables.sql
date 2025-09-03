@@ -47,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_campaigns_window ON campaigns (start_date, end_da
 CREATE INDEX IF NOT EXISTS idx_campaigns_type   ON campaigns (campaign_type);
 
 COMMENT ON TABLE campaigns IS
-  'Product-scoped promos. Types: PERCENT_OFF (percent[, min_qty]), BXGY_SAME_PRODUCT (buy_qty, get_qty[, min_qty]). Dates inclusive.';
+  'Product-scoped promos. Types: DISCOUNT (percent[, min_qty]), BXGY_SAME_PRODUCT (buy_qty, get_qty[, min_qty]). Dates inclusive.';
 
 -- --------------------------------------------
 -- 1b) Campaign → Products assignment (many-to-many)

@@ -43,7 +43,6 @@ CREATE TYPE sales_order_status AS ENUM (
 
 -- -------------------------------------------------------
 -- Where the movement originated (business workflow)
--- (No 'SIMULATION' here; keep provenance neutral)
 -- -------------------------------------------------------
 CREATE TYPE movement_source AS ENUM (
   'PURCHASE_ORDER',   -- movement created from a PO flow
