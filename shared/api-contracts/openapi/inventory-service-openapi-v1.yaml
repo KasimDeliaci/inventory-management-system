@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Inventory Service API
-  version: 0.9.0
+  version: 1.0.0
   description: >-
     CRUD for master data (Products, Suppliers, Customers) with comprehensive filtering support.
     Integer IDs, no auth. Timestamps are read-only and maintained in app code (e.g., JPA auditing).
@@ -45,6 +45,12 @@ components:
       name: sort
       description: "Sort clause with format: field,direction (asc|desc). Invalid fields return 400."
       schema: {type: string, pattern: '^[A-Za-z]+,([Aa][Ss][Cc]|[Dd][Ee][Ss][Cc])$', example: "productName,asc"}
+
+    IncludeDeletedParam:
+      in: query
+      name: include_deleted
+      description: "Include soft-deleted records (default false). Applies to master data: products, suppliers, customers."
+      schema: {type: boolean, default: false}
     
     # ---- Common Filter Parameters ----
     QueryParam:
@@ -416,6 +422,101 @@ components:
         Filter by deliveredAt timestamp >= this value (inclusive). Must be UTC with Z or +00:00.
       schema: {type: string, format: date-time}
 
+    # ---- Stock Parameters (V7) ----
+    StockProductIdParam:
+      in: query
+      name: product_id
+      description: >-
+        Filter by product IDs. Repeatable for OR logic within the same parameter.
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+      example: [101, 102]
+
+    MovementSourceParam:
+      in: query
+      name: movement_source
+      description: >-
+        Filter by movement source. Repeatable for OR logic within the same parameter.
+      schema:
+        type: array
+        items: { $ref: '#/components/schemas/MovementSource' }
+        minItems: 1
+      style: form
+      explode: true
+      example: [PURCHASE_ORDER, SALES_ORDER]
+
+    MovementKindParam:
+      in: query
+      name: movement_kind
+      description: >-
+        Filter by movement kind. Repeatable for OR logic within the same parameter.
+      schema:
+        type: array
+        items: { $ref: '#/components/schemas/MovementKind' }
+        minItems: 1
+      style: form
+      explode: true
+      example: [PURCHASE_RECEIPT, SALE_SHIPMENT]
+
+    MovementDateGteParam:
+      in: query
+      name: movement_date_gte
+      description: "Movement date greater than or equal (inclusive). Must be UTC with Z or +00:00. Maps to movementDate."
+      schema: {type: string, format: date-time}
+
+    MovementDateLteParam:
+      in: query
+      name: movement_date_lte
+      description: "Movement date less than or equal (inclusive). Must be UTC with Z or +00:00. Maps to movementDate."
+      schema: {type: string, format: date-time}
+
+    SourceIdParam:
+      in: query
+      name: source_id
+      description: "Filter by source header ID (e.g., purchaseOrderId or salesOrderId)."
+      schema: {type: integer, format: int64}
+
+    SourceItemIdParam:
+      in: query
+      name: source_item_id
+      description: "Filter by source line ID (e.g., purchaseOrderItemId or salesOrderItemId)."
+      schema: {type: integer, format: int64}
+
+    StockUpdatedAfterParam:
+      in: query
+      name: updated_after
+      description: >-
+        Filter records updated after this timestamp (inclusive). For stock-movements this maps to createdAt; for current-stock this maps to lastUpdated. Must be UTC with Z or +00:00.
+      schema: {type: string, format: date-time}
+
+    CurrentStockAvailableGteParam:
+      in: query
+      name: available_gte
+      description: "Minimum available quantity (inclusive). Maps to quantityAvailable."
+      schema: {type: number, format: double}
+
+    CurrentStockAvailableLteParam:
+      in: query
+      name: available_lte
+      description: "Maximum available quantity (inclusive). Maps to quantityAvailable."
+      schema: {type: number, format: double}
+
+    CurrentStockOnHandGteParam:
+      in: query
+      name: on_hand_gte
+      description: "Minimum on-hand quantity (inclusive). Maps to quantityOnHand."
+      schema: {type: number, format: double}
+
+    CurrentStockOnHandLteParam:
+      in: query
+      name: on_hand_lte
+      description: "Maximum on-hand quantity (inclusive). Maps to quantityOnHand."
+      schema: {type: number, format: double}
+
   examples:
     PaginationWindowExceeded:
       summary: "Pagination window exceeded"
@@ -426,6 +527,87 @@ components:
         path: "/api/v1/resource"
         timestamp: "2025-08-28T10:00:00Z"
   schemas:
+    # -----------------------------
+    # Stock (V7)
+    # -----------------------------
+    MovementSource:
+      type: string
+      description: "Source of stock movement"
+      enum: [PURCHASE_ORDER, SALES_ORDER, ADJUSTMENT]
+
+    MovementKind:
+      type: string
+      description: "Kind of stock movement"
+      enum: [PURCHASE_RECEIPT, SALE_SHIPMENT, ADJUSTMENT_IN, ADJUSTMENT_OUT]
+
+    StockMovement:
+      type: object
+      description: "Append-only audit row of a physical stock change."
+      properties:
+        movementId: {type: integer, format: int64}
+        productId: {type: integer, format: int64}
+        movementSource: { $ref: '#/components/schemas/MovementSource' }
+        movementKind: { $ref: '#/components/schemas/MovementKind' }
+        sourceId: {type: integer, format: int64, nullable: true}
+        sourceItemId: {type: integer, format: int64, nullable: true}
+        quantity:
+          type: number
+          format: double
+          description: "Stored as NUMERIC(12,3)"
+        movementDate: {type: string, format: date-time}
+        createdAt: {type: string, format: date-time}
+
+    CurrentStock:
+      type: object
+      description: "Per-product snapshot of current quantities (not directly created via API)."
+      properties:
+        productId: {type: integer, format: int64}
+        quantityOnHand: {type: number, format: double}
+        quantityReserved: {type: number, format: double}
+        quantityAvailable:
+          type: number
+          format: double
+          readOnly: true
+          description: "Derived: quantityOnHand - quantityReserved"
+        lastMovementId: {type: integer, format: int64, nullable: true}
+        lastUpdated: {type: string, format: date-time}
+
+    StockAdjustmentCreate:
+      type: object
+      description: "Create an adjustment movement (only ADJUSTMENT_IN or ADJUSTMENT_OUT)."
+      required: [productId, movementKind, quantity]
+      properties:
+        productId: {type: integer, format: int64}
+        movementKind:
+          $ref: '#/components/schemas/MovementKind'
+        quantity:
+          type: number
+          format: double
+          minimum: 0.001
+          multipleOf: 0.001
+        movementDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: "Optional; defaults to now if omitted."
+
+    PageStockMovement:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/StockMovement' }
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    PageCurrentStock:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/CurrentStock' }
+        page:
+          $ref: '#/components/schemas/PageMeta'
     # -----------------------------
     # ENUMS (from V1__types.sql)
     # -----------------------------
@@ -449,30 +631,29 @@ components:
     ErrorResponse:
       type: object
       properties:
-        status: 
+        status:
           type: integer
           example: 400
-        error: 
+        error:
           type: string
           example: "Bad Request"
-        message: 
+        code:
           type: string
-          example: "Validation failed: reorderPoint must be greater than or equal to safetyStock."
-        path: 
+          description: Machine-readable error code (e.g., PRODUCT_IN_USE, PREFERRED_CONFLICT)
+          example: "PREFERRED_CONFLICT"
+        message:
           type: string
-          example: "/api/v1/products"
-        timestamp: 
+          example: "Invalid query parameters."
+        path:
+          type: string
+          example: "/api/v1/current-stock"
+        timestamp:
           type: string
           format: date-time
         details:
           type: object
-          description: "Additional error details for filter validation"
+          description: "Additional error details for validation failures."
           properties:
-            invalidParams:
-              type: array
-              items:
-                type: string
-              example: ["categor_y", "pricee"]
             validationErrors:
               type: object
               additionalProperties:
@@ -498,6 +679,7 @@ components:
         currentPrice: {type: number, format: double, minimum: 0, example: 1299.99, description: "Current selling price of the product"}
         createdAt: {type: string, format: date-time, readOnly: true, description: "Timestamp when the product was created"}
         updatedAt: {type: string, format: date-time, readOnly: true, description: "Timestamp when the product was last updated"}
+        deletedAt: {type: string, format: date-time, nullable: true, readOnly: true, description: "Soft-delete timestamp; null means active"}
     
     ProductCreate:
       type: object
@@ -534,18 +716,19 @@ components:
       properties:
         supplierId: {type: integer, format: int64, example: 11, description: "Unique identifier for the supplier"}
         supplierName: {type: string, maxLength: 200, example: "Acme Foods Ltd", description: "Name of the supplier company (max 200 characters)"}
-        email: {type: string, format: email, maxLength: 100, example: "contact@acmefoods.com", description: "Unique email address for the supplier (max 100 characters)"}
+        email: {type: string, format: email, maxLength: 100, example: "contact@acmefoods.com", description: "Unique among non-deleted suppliers (max 100 characters)"}
         phone: {type: string, maxLength: 30, pattern: "^[+]?[0-9\\s\\-\\(\\)]+$", example: "+90 212 555 0123", description: "Contact phone number (max 30 characters)"}
         city: {type: string, maxLength: 50, example: "Istanbul", description: "City where the supplier is located (max 50 characters)"}
         createdAt: {type: string, format: date-time, readOnly: true, description: "Timestamp when the supplier was created"}
         updatedAt: {type: string, format: date-time, readOnly: true, description: "Timestamp when the supplier was last updated"}
+        deletedAt: {type: string, format: date-time, nullable: true, readOnly: true, description: "Soft-delete timestamp; null means active"}
     
     SupplierCreate:
       type: object
       required: [supplierName, email, phone, city]
       properties:
         supplierName: {type: string, minLength: 1, maxLength: 200, description: "Name of the supplier company (1-200 characters)"}
-        email: {type: string, format: email, maxLength: 100, description: "Unique email address for the supplier (max 100 characters)"}
+        email: {type: string, format: email, maxLength: 100, description: "Unique among non-deleted suppliers (max 100 characters)"}
         phone: {type: string, maxLength: 30, pattern: "^[+]?[0-9\\s\\-\\(\\)]+$", description: "Contact phone number (max 30 characters)"}
         city: {type: string, minLength: 1, maxLength: 50, description: "City where the supplier is located (1-50 characters)"}
     
@@ -573,11 +756,12 @@ components:
         customerId: {type: integer, format: int64, example: 501, description: "Unique identifier for the customer"}
         customerName: {type: string, maxLength: 200, example: "Blue Mart Electronics", description: "Name of the customer or company (max 200 characters)"}
         customerSegment: {$ref: '#/components/schemas/CustomerSegment', description: "Business segment classification of the customer"}
-        email: {type: string, format: email, maxLength: 100, example: "orders@bluemart.com", description: "Unique email address for the customer (max 100 characters)"}
+        email: {type: string, format: email, maxLength: 100, example: "orders@bluemart.com", description: "Unique among non-deleted customers (max 100 characters)"}
         phone: {type: string, maxLength: 30, pattern: "^[+]?[0-9\\s\\-\\(\\)]+$", example: "+90 532 123 4567", description: "Contact phone number (max 30 characters)"}
         city: {type: string, maxLength: 50, example: "Ankara", description: "City where the customer is located (max 50 characters)"}
         createdAt: {type: string, format: date-time, readOnly: true, description: "Timestamp when the customer was created"}
         updatedAt: {type: string, format: date-time, readOnly: true, description: "Timestamp when the customer was last updated"}
+        deletedAt: {type: string, format: date-time, nullable: true, readOnly: true, description: "Soft-delete timestamp; null means active"}
     
     CustomerCreate:
       type: object
@@ -585,7 +769,7 @@ components:
       properties:
         customerName: {type: string, minLength: 1, maxLength: 200, description: "Name of the customer or company (1-200 characters)"}
         customerSegment: {$ref: '#/components/schemas/CustomerSegment', description: "Business segment classification of the customer"}
-        email: {type: string, format: email, maxLength: 100, description: "Unique email address for the customer (max 100 characters)"}
+        email: {type: string, format: email, maxLength: 100, description: "Unique among non-deleted customers (max 100 characters)"}
         phone: {type: string, maxLength: 30, pattern: "^[+]?[0-9\\s\\-\\(\\)]+$", description: "Contact phone number (max 30 characters)"}
         city: {type: string, minLength: 1, maxLength: 50, description: "City where the customer is located (1-50 characters)"}
         
@@ -987,6 +1171,300 @@ components:
 
 paths:
   # -----------------
+  # Stock (V7)
+  # -----------------
+  /api/v1/stock-movements:
+    get:
+      tags: [Stock]
+      summary: Retrieve paginated stock movements with filtering and sorting
+      description: >-
+        Returns a paginated list of stock movement audit rows. Supports multiple filter parameters that combine with AND logic.
+        Repeatable parameters (product_id, movement_source, movement_kind) use OR logic within the same parameter type.
+        Unknown query parameters result in HTTP 400. Default sort is movementDate,desc. Whitelisted sort fields: movementDate, createdAt, productId, movementSource, movementKind.
+        Note: updated_after maps to createdAt.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/StockProductIdParam'
+        - $ref: '#/components/parameters/MovementSourceParam'
+        - $ref: '#/components/parameters/MovementKindParam'
+        - $ref: '#/components/parameters/MovementDateGteParam'
+        - $ref: '#/components/parameters/MovementDateLteParam'
+        - $ref: '#/components/parameters/SourceIdParam'
+        - $ref: '#/components/parameters/SourceItemIdParam'
+        - $ref: '#/components/parameters/StockUpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged stock movements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageStockMovement'
+              examples:
+                recent:
+                  summary: "Recent movements"
+                  value:
+                    content:
+                      - movementId: 9001
+                        productId: 101
+                        movementSource: PURCHASE_ORDER
+                        movementKind: PURCHASE_RECEIPT
+                        sourceId: 5001
+                        sourceItemId: 70001
+                        quantity: 10.000
+                        movementDate: "2025-08-28T09:00:00Z"
+                        createdAt: "2025-08-28T09:00:01Z"
+                      - movementId: 9002
+                        productId: 101
+                        movementSource: SALES_ORDER
+                        movementKind: SALE_SHIPMENT
+                        sourceId: 6001
+                        sourceItemId: 80001
+                        quantity: 2.000
+                        movementDate: "2025-08-28T10:30:00Z"
+                        createdAt: "2025-08-28T10:30:02Z"
+                    page:
+                      page: 0
+                      size: 20
+                      totalElements: 2
+                      totalPages: 1
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/products/{productId}/stock-movements:
+    get:
+      tags: [Stock]
+      summary: List stock movements for a product (paged)
+      description: >-
+        Returns stock movements for the specified product together with filtering and sorting. Do not pass product_id in query (conflicts with path). Unknown parameters result in 400.
+        Default sort is movementDate,desc. Sorting whitelist: movementDate, createdAt, productId, movementSource, movementKind.
+        Note: updated_after maps to createdAt.
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: {type: integer, format: int64}
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/MovementSourceParam'
+        - $ref: '#/components/parameters/MovementKindParam'
+        - $ref: '#/components/parameters/MovementDateGteParam'
+        - $ref: '#/components/parameters/MovementDateLteParam'
+        - $ref: '#/components/parameters/SourceIdParam'
+        - $ref: '#/components/parameters/SourceItemIdParam'
+        - $ref: '#/components/parameters/StockUpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged stock movements for the product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageStockMovement'
+              examples:
+                productTimeline:
+                  summary: "Movements for a single product"
+                  value:
+                    content:
+                      - movementId: 9201
+                        productId: 101
+                        movementSource: PURCHASE_ORDER
+                        movementKind: PURCHASE_RECEIPT
+                        sourceId: 5002
+                        sourceItemId: 70002
+                        quantity: 5.000
+                        movementDate: "2025-08-27T12:00:00Z"
+                        createdAt: "2025-08-27T12:00:01Z"
+                    page:
+                      page: 0
+                      size: 20
+                      totalElements: 1
+                      totalPages: 1
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/current-stock:
+    get:
+      tags: [Stock]
+      summary: Retrieve paginated current stock snapshot with filtering and sorting
+      description: >-
+        Returns a paginated list of current stock rows. Supports multiple filters with AND logic, repeatable product_id with OR logic.
+        Unknown parameters result in 400. Default sort is quantityAvailable,asc. Whitelisted sort fields: quantityAvailable, quantityOnHand, lastUpdated, productId.
+        Note: updated_after maps to lastUpdated.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/StockProductIdParam'
+        - $ref: '#/components/parameters/CurrentStockAvailableGteParam'
+        - $ref: '#/components/parameters/CurrentStockAvailableLteParam'
+        - $ref: '#/components/parameters/CurrentStockOnHandGteParam'
+        - $ref: '#/components/parameters/CurrentStockOnHandLteParam'
+        - $ref: '#/components/parameters/StockUpdatedAfterParam'
+      responses:
+        '200':
+          description: Paged current stock rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCurrentStock'
+              examples:
+                lowStockFirst:
+                  summary: "Low stock shown first"
+                  value:
+                    content:
+                      - productId: 101
+                        quantityOnHand: 3.000
+                        quantityReserved: 3.000
+                        quantityAvailable: 0.000
+                        lastMovementId: 9003
+                        lastUpdated: "2025-08-28T10:00:00Z"
+                    page:
+                      page: 0
+                      size: 20
+                      totalElements: 1
+                      totalPages: 1
+        '400':
+          description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/products/{productId}/stock:
+    get:
+      tags: [Stock]
+      summary: Retrieve current stock snapshot for a product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: {type: integer, format: int64}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentStock'
+              examples:
+                snapshot:
+                  summary: "Snapshot for a product"
+                  value:
+                    productId: 101
+                    quantityOnHand: 12.000
+                    quantityReserved: 3.000
+                    quantityAvailable: 9.000
+                    lastMovementId: 9300
+                    lastUpdated: "2025-08-28T12:00:00Z"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/stock-movements/adjustments:
+    post:
+      tags: [Stock]
+      summary: Create an adjustment stock movement
+      description: >-
+        Creates a stock adjustment movement. Only ADJUSTMENT_IN and ADJUSTMENT_OUT are allowed. Server posts the movement and updates the snapshot in one transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockAdjustmentCreate'
+            examples:
+              adjustmentOut:
+                summary: "Decrease on-hand via adjustment"
+                value:
+                  productId: 101
+                  movementKind: ADJUSTMENT_OUT
+                  quantity: 1.000
+                  movementDate: "2025-08-28T11:00:00Z"
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the created stock movement
+              schema:
+                type: string
+                format: uri
+                example: "/api/v1/stock-movements/123"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMovement'
+              examples:
+                created:
+                  summary: "Adjustment created"
+                  value:
+                    movementId: 9100
+                    productId: 101
+                    movementSource: ADJUSTMENT
+                    movementKind: ADJUSTMENT_OUT
+                    sourceId: null
+                    sourceItemId: null
+                    quantity: 1.000
+                    movementDate: "2025-08-28T11:00:00Z"
+                    createdAt: "2025-08-28T11:00:01Z"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: State conflict (e.g., INSUFFICIENT_AVAILABLE or MOVEMENT_ALREADY_POSTED)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficientAvailable:
+                  summary: "Insufficient available quantity"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "INSUFFICIENT_AVAILABLE"
+                    message: "Insufficient available quantity to adjust"
+                    path: "/api/v1/stock-movements/adjustments"
+                    timestamp: "2025-08-28T11:05:00Z"
+                    details:
+                      productId: 101
+                      available: 2.000
+                      requested: 5.000
+                movementAlreadyPosted:
+                  summary: "Duplicate movement for source line"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "MOVEMENT_ALREADY_POSTED"
+                    message: "Movement already posted for this source line"
+                    path: "/api/v1/stock-movements/adjustments"
+                    timestamp: "2025-08-28T11:06:00Z"
+                    details:
+                      movementSource: "PURCHASE_ORDER"
+                      sourceItemId: 70002
+  # -----------------
   # Product-Suppliers
   # -----------------
   /api/v1/product-suppliers:
@@ -1059,6 +1537,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicateLink:
+                  summary: "Duplicate product-supplier pair"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "DUPLICATE_LINK"
+                    message: "Product-supplier link already exists"
+                    path: "/api/v1/product-suppliers"
+                    timestamp: "2025-08-28T10:10:00Z"
+                    details:
+                      productId: 101
+                      supplierId: 11
+                preferredConflictOnCreate:
+                  summary: "Another preferred supplier exists for product"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "PREFERRED_CONFLICT"
+                    message: "Only one preferred supplier allowed per product"
+                    path: "/api/v1/product-suppliers"
+                    timestamp: "2025-08-28T10:12:00Z"
+                    details:
+                      productId: 101
+                      existingPreferredSupplierId: 12
   /api/v1/product-suppliers/{productSupplierId}:
     get:
       tags: [ProductSuppliers]
@@ -1120,6 +1623,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                preferredConflictOnUpdate:
+                  summary: "Cannot set preferred; another preferred exists"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "PREFERRED_CONFLICT"
+                    message: "Only one preferred supplier allowed per product"
+                    path: "/api/v1/product-suppliers/{productSupplierId}"
+                    timestamp: "2025-08-28T10:15:00Z"
+                    details:
+                      productId: 101
+                      existingPreferredSupplierId: 12
     delete:
       tags: [ProductSuppliers]
       summary: Permanently remove a product-supplier link
@@ -1232,7 +1748,8 @@ paths:
       tags: [Products]
       summary: Retrieve paginated list of products with filtering and sorting
       description: >-
-        Returns a paginated list of products. Supports multiple filter parameters that combine with AND logic.
+        Returns a paginated list of products (soft-deleted rows are excluded by default; use include_deleted=true to include).
+        Supports multiple filter parameters that combine with AND logic.
         Repeatable parameters (category, uom) use OR logic within the same parameter type.
         Unknown query parameters will result in HTTP 400.
         Default sort is by productName ascending. Whitelisted sort fields: productName, category, currentPrice, updatedAt.
@@ -1250,6 +1767,7 @@ paths:
         - $ref: '#/components/parameters/ReorderGteParam'
         - $ref: '#/components/parameters/ReorderLteParam'
         - $ref: '#/components/parameters/UpdatedAfterParam'
+        - $ref: '#/components/parameters/IncludeDeletedParam'
       responses:
         '200':
           description: Paged products matching filter criteria
@@ -1291,8 +1809,7 @@ paths:
                     message: "Unknown query parameters: categor_y"
                     path: "/api/v1/products"
                     timestamp: "2025-08-28T10:00:00Z"
-                    details:
-                      invalidParams: ["categor_y"]
+                    details: {}
                 rangeError:
                   summary: "Invalid range error"
                   value:
@@ -1338,6 +1855,7 @@ paths:
     get:
       tags: [Products]
       summary: Retrieve detailed information for a specific product
+      description: Returns 404 if the product is soft-deleted.
       parameters: 
         - in: path
           name: productId
@@ -1397,7 +1915,11 @@ paths:
     
     delete:
       tags: [Products]
-      summary: Permanently remove a product from the inventory system
+      summary: Delete a product (soft delete by default; hard delete if never used)
+      description: >-
+        Performs a soft delete by setting deletedAt. If the product has never been referenced
+        (no stock movements and no PO/SO items), the service may hard-delete it. Subsequent reads
+        exclude soft-deleted products unless include_deleted=true is provided on list endpoints.
       parameters: 
         - in: path
           name: productId
@@ -1423,7 +1945,8 @@ paths:
       tags: [Suppliers]
       summary: Retrieve paginated list of suppliers with filtering and sorting
       description: >-
-        Returns a paginated list of suppliers. Supports multiple filter parameters that combine with AND logic.
+        Returns a paginated list of suppliers (soft-deleted rows are excluded by default; use include_deleted=true to include).
+        Supports multiple filter parameters that combine with AND logic.
         City parameter can be repeated for OR logic. Unknown query parameters will result in HTTP 400.
         Default sort is by supplierName ascending. Whitelisted sort fields: supplierName, updatedAt.
       parameters:
@@ -1433,6 +1956,7 @@ paths:
         - $ref: '#/components/parameters/QueryParam'
         - $ref: '#/components/parameters/CityParam'
         - $ref: '#/components/parameters/UpdatedAfterParam'
+        - $ref: '#/components/parameters/IncludeDeletedParam'
       responses:
         '200':
           description: Paged suppliers matching filter criteria
@@ -1485,11 +2009,24 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicateSupplierEmail:
+                  summary: "Supplier email already in use"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "DUPLICATE_EMAIL"
+                    message: "Email is already used by another active supplier"
+                    path: "/api/v1/suppliers"
+                    timestamp: "2025-08-28T10:45:00Z"
+                    details:
+                      email: "contact@acmefoods.com"
   
   /api/v1/suppliers/{supplierId}:
     get:
       tags: [Suppliers]
       summary: Retrieve detailed information for a specific supplier
+      description: Returns 404 if the supplier is soft-deleted.
       parameters: 
         - in: path
           name: supplierId
@@ -1552,10 +2089,26 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicateSupplierEmailOnUpdate:
+                  summary: "Email collides with another supplier"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "DUPLICATE_EMAIL"
+                    message: "Email is already used by another active supplier"
+                    path: "/api/v1/suppliers/{supplierId}"
+                    timestamp: "2025-08-28T10:46:00Z"
+                    details:
+                      email: "contact@acmefoods.com"
     
     delete:
       tags: [Suppliers]
-      summary: Permanently remove a supplier from the system
+      summary: Delete a supplier (soft delete by default; hard delete if never used)
+      description: >-
+        Performs a soft delete by setting deletedAt. If the supplier has never been referenced
+        (no purchase orders), the service may hard-delete it. Subsequent reads exclude soft-deleted
+        suppliers unless include_deleted=true is provided on list endpoints.
       parameters: 
         - in: path
           name: supplierId
@@ -1581,7 +2134,8 @@ paths:
       tags: [Customers]
       summary: Retrieve paginated list of customers with filtering and sorting
       description: >-
-        Returns a paginated list of customers. Supports multiple filter parameters that combine with AND logic.
+        Returns a paginated list of customers (soft-deleted rows are excluded by default; use include_deleted=true to include).
+        Supports multiple filter parameters that combine with AND logic.
         City and segment parameters can be repeated for OR logic. Unknown query parameters will result in HTTP 400.
         Default sort is by customerName ascending. Whitelisted sort fields: customerName, updatedAt.
       parameters:
@@ -1592,6 +2146,7 @@ paths:
         - $ref: '#/components/parameters/SegmentParam'
         - $ref: '#/components/parameters/CityParam'
         - $ref: '#/components/parameters/UpdatedAfterParam'
+        - $ref: '#/components/parameters/IncludeDeletedParam'
       responses:
         '200':
           description: Paged customers matching filter criteria
@@ -1643,6 +2198,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicateCustomerEmail:
+                  summary: "Customer email already in use"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "DUPLICATE_EMAIL"
+                    message: "Email is already used by another active customer"
+                    path: "/api/v1/customers"
+                    timestamp: "2025-08-28T10:47:00Z"
+                    details:
+                      email: "orders@bluemart.com"
 
   # -----------------
   # Campaigns
@@ -1717,6 +2284,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                overlapConflictOnCreate:
+                  summary: "Campaign window overlaps"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "OVERLAP_CONFLICT"
+                    message: "Campaign window overlaps with existing campaign(s)"
+                    path: "/api/v1/campaigns"
+                    timestamp: "2025-08-28T10:20:00Z"
+                    details:
+                      overlappingCampaignIds: [1990, 1995]
 
   /api/v1/campaigns/{campaignId}:
     get:
@@ -1779,6 +2358,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                overlapConflictOnUpdate:
+                  summary: "Updated window overlaps with assignments"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "OVERLAP_CONFLICT"
+                    message: "Campaign window overlaps with existing campaign(s)"
+                    path: "/api/v1/campaigns/{campaignId}"
+                    timestamp: "2025-08-28T10:22:00Z"
+                    details:
+                      overlappingCampaignIds: [1990]
     delete:
       tags: [Campaigns]
       summary: Delete a campaign
@@ -1861,6 +2452,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                overlapConflictOnAssignBatch:
+                  summary: "Some products already in overlapping campaigns"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "OVERLAP_CONFLICT"
+                    message: "Assignment overlaps with existing campaign(s)"
+                    path: "/api/v1/campaigns/{campaignId}/products"
+                    timestamp: "2025-08-28T10:24:00Z"
+                    details:
+                      productIds: [101, 102]
 
   /api/v1/campaigns/{campaignId}/products/{productId}:
     post:
@@ -1889,6 +2492,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                overlapConflictOnAssignSingle:
+                  summary: "Product already in overlapping campaign"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "OVERLAP_CONFLICT"
+                    message: "Assignment overlaps with existing campaign(s)"
+                    path: "/api/v1/campaigns/{campaignId}/products/{productId}"
+                    timestamp: "2025-08-28T10:25:00Z"
+                    details:
+                      productId: 101
     delete:
       tags: [Campaigns]
       summary: Remove a product from a campaign
@@ -1984,6 +2599,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                offerConflictOnCreate:
+                  summary: "Customer already has an active offer"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "OFFER_CONFLICT"
+                    message: "One active offer allowed per customer"
+                    path: "/api/v1/customer-special-offers"
+                    timestamp: "2025-08-28T10:30:00Z"
+                    details:
+                      customerId: 501
 
   /api/v1/customer-special-offers/{specialOfferId}:
     get:
@@ -2046,6 +2673,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                offerConflictOnUpdate:
+                  summary: "Updated window overlaps with an active offer"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "OFFER_CONFLICT"
+                    message: "One active offer allowed per customer"
+                    path: "/api/v1/customer-special-offers/{specialOfferId}"
+                    timestamp: "2025-08-28T10:32:00Z"
+                    details:
+                      customerId: 501
     delete:
       tags: [CustomerSpecialOffers]
       summary: Delete an offer
@@ -2219,6 +2858,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                poStateConflict:
+                  summary: "Cannot cancel; items already received"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "PO_STATE_CONFLICT"
+                    message: "Invalid transition for current received quantities"
+                    path: "/api/v1/purchase-orders/{purchaseOrderId}"
+                    timestamp: "2025-08-28T10:35:00Z"
+                    details:
+                      purchaseOrderId: 5002
+                      receivedItemsCount: 2
     delete:
       tags: [PurchaseOrders]
       summary: Delete a purchase order
@@ -2241,6 +2893,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                poDeleteConflict:
+                  summary: "Cannot delete; items already received"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "PO_STATE_CONFLICT"
+                    message: "Cannot delete purchase order with received items"
+                    path: "/api/v1/purchase-orders/{purchaseOrderId}"
+                    timestamp: "2025-08-28T10:36:00Z"
+                    details:
+                      purchaseOrderId: 5002
+                      receivedItemsCount: 2
 
   /api/v1/purchase-orders/{purchaseOrderId}/items:
     get:
@@ -2523,6 +3188,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                soStateConflict:
+                  summary: "Cannot cancel; order delivered"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "SO_STATE_CONFLICT"
+                    message: "Invalid transition for a delivered order"
+                    path: "/api/v1/sales-orders/{salesOrderId}"
+                    timestamp: "2025-08-28T10:40:00Z"
+                    details:
+                      salesOrderId: 6005
+                      deliveredAt: "2025-08-28T08:00:00Z"
     delete:
       tags: [SalesOrders]
       summary: Delete a sales order
@@ -2545,6 +3223,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                soDeleteConflict:
+                  summary: "Cannot delete; order delivered"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "SO_STATE_CONFLICT"
+                    message: "Cannot delete a delivered order"
+                    path: "/api/v1/sales-orders/{salesOrderId}"
+                    timestamp: "2025-08-28T10:41:00Z"
+                    details:
+                      salesOrderId: 6005
+                      deliveredAt: "2025-08-28T08:00:00Z"
 
   /api/v1/sales-orders/{salesOrderId}/items:
     get:
@@ -2718,6 +3409,7 @@ paths:
     get:
       tags: [Customers]
       summary: Retrieve detailed information for a specific customer
+      description: Returns 404 if the customer is soft-deleted.
       parameters: 
         - in: path
           name: customerId
@@ -2780,10 +3472,26 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicateCustomerEmailOnUpdate:
+                  summary: "Email collides with another customer"
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    code: "DUPLICATE_EMAIL"
+                    message: "Email is already used by another active customer"
+                    path: "/api/v1/customers/{customerId}"
+                    timestamp: "2025-08-28T10:48:00Z"
+                    details:
+                      email: "orders@bluemart.com"
     
     delete:
       tags: [Customers]
-      summary: Permanently remove a customer from the system
+      summary: Delete a customer (soft delete by default; hard delete if never used)
+      description: >-
+        Performs a soft delete by setting deletedAt. If the customer has never been referenced
+        (no sales orders), the service may hard-delete it. Subsequent reads exclude soft-deleted
+        customers unless include_deleted=true is provided on list endpoints.
       parameters: 
         - in: path
           name: customerId
