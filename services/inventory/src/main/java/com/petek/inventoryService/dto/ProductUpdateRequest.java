@@ -4,25 +4,33 @@ import java.math.BigDecimal;
 
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record ProductUpdateRequest (
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductUpdateRequest {
     @Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters")
-    String productName,
+    private String productName;
 
-    String description,
+    private String description;
 
     @Size(min = 2, max = 100, message = "Category must be between 2 and 100 characters")
-    String category,
+    private String category;
 
     @Size(min = 2, max = 100, message = "Unit of measure must be between 2 and 100 characters")
-    String unitOfMeasure,
+    private String unitOfMeasure;
 
     @Positive(message = "Safety stock should be positive")
-    BigDecimal safetyStock,
+    private BigDecimal safetyStock;
 
     @Positive(message = "Reorder point should be positive")
-    BigDecimal reorderPoint,
+    private BigDecimal reorderPoint;
 
     @Positive(message = "Current price should be positive")
-    BigDecimal currentPrice
-) {}
+    private BigDecimal currentPrice;
+}

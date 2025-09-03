@@ -48,22 +48,22 @@ public class CustomerService {
         Customer existingCustomer = repository.findById(customerId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
 
-        Optional.ofNullable(request.customerName())
+        Optional.ofNullable(request.getCustomerName())
             .filter(name -> !name.trim().isEmpty())
             .ifPresent(existingCustomer::setCustomerName);
-        
-        Optional.ofNullable(request.customerSegment())
+
+        Optional.ofNullable(request.getCustomerSegment())
             .ifPresent(existingCustomer::setCustomerSegment);
 
-        Optional.ofNullable(request.email())
+        Optional.ofNullable(request.getEmail())
             .filter(email -> !email.trim().isEmpty())
             .ifPresent(existingCustomer::setEmail);
 
-        Optional.ofNullable(request.phone())
+        Optional.ofNullable(request.getPhone())
             .filter(phone -> !phone.trim().isEmpty())
             .ifPresent(existingCustomer::setPhone);
 
-        Optional.ofNullable(request.city())
+        Optional.ofNullable(request.getCity())
             .filter(city -> !city.trim().isEmpty())
             .ifPresent(existingCustomer::setCity);
 

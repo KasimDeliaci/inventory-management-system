@@ -19,48 +19,48 @@ public class ProductSpecifications {
             List<Predicate> predicates = new ArrayList<>();
             
             // Query filter (product name contains)
-            if (request.q() != null && !request.q().trim().isEmpty()) {
+            if (request.getQ() != null && !request.getQ().trim().isEmpty()) {
                 predicates.add(cb.like(cb.lower(root.get("productName")), 
-                    "%" + request.q().toLowerCase() + "%"));
+                    "%" + request.getQ().toLowerCase() + "%"));
             }
             
             // Category filter (OR logic within categories)
-            if (request.category() != null && !request.category().isEmpty()) {
-                predicates.add(root.get("category").in(request.category()));
+            if (request.getCategory() != null && !request.getCategory().isEmpty()) {
+                predicates.add(root.get("category").in(request.getCategory()));
             }
             
             // Unit of measure filter (OR logic within UOMs)
-            if (request.uom() != null && !request.uom().isEmpty()) {
-                predicates.add(root.get("unitOfMeasure").in(request.uom()));
+            if (request.getUom() != null && !request.getUom().isEmpty()) {
+                predicates.add(root.get("unitOfMeasure").in(request.getUom()));
             }
             
             // Price range filters
-            if (request.priceGte() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("currentPrice"), request.priceGte()));
+            if (request.getPriceGte() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("currentPrice"), request.getPriceGte()));
             }
-            if (request.priceLte() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("currentPrice"), request.priceLte()));
+            if (request.getPriceLte() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("currentPrice"), request.getPriceLte()));
             }
             
             // Safety stock range filters
-            if (request.safetyGte() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("safetyStock"), request.safetyGte()));
+            if (request.getSafetyGte() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("safetyStock"), request.getSafetyGte()));
             }
-            if (request.safetyLte() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("safetyStock"), request.safetyLte()));
+            if (request.getSafetyLte() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("safetyStock"), request.getSafetyLte()));
             }
             
             // Reorder point range filters
-            if (request.reorderGte() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("reorderPoint"), request.reorderGte()));
+            if (request.getReorderGte() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("reorderPoint"), request.getReorderGte()));
             }
-            if (request.reorderLte() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("reorderPoint"), request.reorderLte()));
+            if (request.getReorderLte() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("reorderPoint"), request.getReorderLte()));
             }
             
             // Updated after filter
-            if (request.updatedAfter() != null) {
-                predicates.add(cb.greaterThan(root.get("updatedAt"), request.updatedAfter()));
+            if (request.getUpdatedAfter() != null) {
+                predicates.add(cb.greaterThan(root.get("updatedAt"), request.getUpdatedAfter()));
             }
             
             return cb.and(predicates.toArray(new Predicate[0]));

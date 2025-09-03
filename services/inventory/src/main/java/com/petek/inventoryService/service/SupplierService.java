@@ -48,19 +48,19 @@ public class SupplierService {
         Supplier existingSupplier = repository.findById(supplierId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
 
-        Optional.ofNullable(request.supplierName())
+        Optional.ofNullable(request.getSupplierName())
             .filter(name -> !name.trim().isEmpty())
             .ifPresent(existingSupplier::setSupplierName);
 
-        Optional.ofNullable(request.email())
+        Optional.ofNullable(request.getEmail())
             .filter(email -> !email.trim().isEmpty())
             .ifPresent(existingSupplier::setEmail);
 
-        Optional.ofNullable(request.phone())
+        Optional.ofNullable(request.getPhone())
             .filter(phone -> !phone.trim().isEmpty())
             .ifPresent(existingSupplier::setPhone);
 
-        Optional.ofNullable(request.city())
+        Optional.ofNullable(request.getCity())
             .filter(city -> !city.trim().isEmpty())
             .ifPresent(existingSupplier::setCity);
 

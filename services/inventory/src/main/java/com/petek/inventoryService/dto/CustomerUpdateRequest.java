@@ -5,19 +5,27 @@ import com.petek.inventoryService.entity.CustomerSegment;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record CustomerUpdateRequest (
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomerUpdateRequest {
     @Size(min = 2, max = 100, message = "Customer name must be between 2 and 100 characters")
-    String customerName,
+    private String customerName;
 
-    CustomerSegment customerSegment,
+    private CustomerSegment customerSegment;
 
     @Email(message = "Email must be valid")
-    String email,
+    private String email;
 
     @Pattern(regexp = "^(\\+90|0)?[1-9][0-9]{9}$", message = "Phone number must be valid")
-    String phone,
+    private String phone;
 
     @Size(min = 2, max = 100, message = "City must be between 2 and 100 characters")
-    String city
-) {}
+    private String city;
+}

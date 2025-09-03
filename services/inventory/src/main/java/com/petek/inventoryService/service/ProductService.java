@@ -44,20 +44,20 @@ public class ProductService {
      */
     private void validateSortRequest(ProductFilterRequest request) {
         // Validate price range
-        if (request.priceGte() != null && request.priceLte() != null && 
-            request.priceGte().compareTo(request.priceLte()) > 0) {
+        if (request.getPriceGte() != null && request.getPriceLte() != null && 
+            request.getPriceGte().compareTo(request.getPriceLte()) > 0) {
             throw new IllegalArgumentException("price_gte cannot be greater than price_lte");
         }
         
         // Validate safety stock range
-        if (request.safetyGte() != null && request.safetyLte() != null && 
-            request.safetyGte().compareTo(request.safetyLte()) > 0) {
+        if (request.getSafetyGte() != null && request.getSafetyLte() != null && 
+            request.getSafetyGte().compareTo(request.getSafetyLte()) > 0) {
             throw new IllegalArgumentException("safety_gte cannot be greater than safety_lte");
         }
         
         // Validate reorder point range
-        if (request.reorderGte() != null && request.reorderLte() != null && 
-            request.reorderGte().compareTo(request.reorderLte()) > 0) {
+        if (request.getReorderGte() != null && request.getReorderLte() != null && 
+            request.getReorderGte().compareTo(request.getReorderLte()) > 0) {
             throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
         }
     }
@@ -89,8 +89,8 @@ public class ProductService {
      */
     public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
         validateSortRequest(request);
-        
-        Pageable pageable = PageRequest.of(request.page(), request.size(), createSort(request.sort()));
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
         Specification<Product> spec = ProductSpecifications.withFilters(request);
         
         Page<Product> productPage = repository.findAll(spec, pageable);
@@ -135,30 +135,30 @@ public class ProductService {
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-        
-        Optional.ofNullable(request.productName())
+
+        Optional.ofNullable(request.getProductName())
             .filter(name -> !name.trim().isEmpty())
             .ifPresent(existingProduct::setProductName);
             
-        Optional.ofNullable(request.description())
+        Optional.ofNullable(request.getDescription())
             .filter(desc -> !desc.trim().isEmpty())
             .ifPresent(existingProduct::setDescription);
             
-        Optional.ofNullable(request.category())
+        Optional.ofNullable(request.getCategory())
             .filter(cat -> !cat.trim().isEmpty())
             .ifPresent(existingProduct::setCategory);
             
-        Optional.ofNullable(request.unitOfMeasure())
+        Optional.ofNullable(request.getUnitOfMeasure())
             .filter(unit -> !unit.trim().isEmpty())
             .ifPresent(existingProduct::setUnitOfMeasure);
             
-        Optional.ofNullable(request.safetyStock())
+        Optional.ofNullable(request.getSafetyStock())
             .ifPresent(existingProduct::setSafetyStock);
             
-        Optional.ofNullable(request.reorderPoint())
+        Optional.ofNullable(request.getReorderPoint())
             .ifPresent(existingProduct::setReorderPoint);
             
-        Optional.ofNullable(request.currentPrice())
+        Optional.ofNullable(request.getCurrentPrice())
             .ifPresent(existingProduct::setCurrentPrice);
         
         existingProduct.setUpdatedAt(Instant.now());

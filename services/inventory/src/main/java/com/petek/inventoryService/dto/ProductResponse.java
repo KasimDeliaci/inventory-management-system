@@ -3,15 +3,24 @@ package com.petek.inventoryService.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record ProductResponse(
-    Long productId,
-    String productName,
-    String description,
-    String category,
-    String unitOfMeasure,
-    BigDecimal safetyStock,
-    BigDecimal reorderPoint,
-    BigDecimal currentPrice,
-    Instant createdAt,
-    Instant updatedAt
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductResponse {
+    private Long productId;
+    private String productName;
+    private String description;
+    private String category;
+    private String unitOfMeasure;
+    private BigDecimal safetyStock;
+    private BigDecimal reorderPoint;
+    private BigDecimal currentPrice;
+    private Instant createdAt;
+    private Instant updatedAt;
+}
