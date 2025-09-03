@@ -1,5 +1,5 @@
 -- ======================================================================
--- V4__purchase_orders.sql   (PostgreSQL 17.6)  -- partial receipts enabled
+-- V4__purchasing_tables.sql   (PostgreSQL 17.6)  -- partial receipts enabled
 -- Depends on: V1__types.sql (purchase_order_status), V2 core tables
 -- ======================================================================
 

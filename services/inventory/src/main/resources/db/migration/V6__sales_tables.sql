@@ -16,7 +16,7 @@
 --  1) Product campaign percent (productPct) for a line (productId, qty):
 --     • No active campaign on order_date                -> productPct = 0
 --     • Type = 'DISCOUNT':
---           if (min_qty IS NULL OR qty >= min_qty)      productPct = discount_percent
+--           if (min_qty IS NULL OR qty >= min_qty)      productPct = discount_percentage
 --           else                                        productPct = 0
 --     • Type = 'BXGY_SAME_PRODUCT' (countable UoMs only: adet, koli, paket, çuval, şişe):
 --           group = buy_qty + get_qty
