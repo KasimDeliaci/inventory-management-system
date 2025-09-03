@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductFilterRequest {
-    
     @NotNull
     @Min(0)
     @Builder.Default

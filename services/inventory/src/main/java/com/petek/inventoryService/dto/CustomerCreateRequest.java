@@ -1,6 +1,6 @@
 package com.petek.inventoryService.dto;
 
-import com.petek.inventoryService.entity.CustomerSegment;
+import com.petek.inventoryService.entity.Customer.CustomerSegment;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
