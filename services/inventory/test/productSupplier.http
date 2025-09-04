@@ -1,0 +1,34 @@
+
+### Get All ProductSupplier
+
+GET http://localhost:8000/api/v1/product-suppliers
+
+### Create Product
+
+POST http://localhost:8000/api/v1/product-suppliers
+content-type: application/json
+
+{
+    "productId": 28,
+    "supplierId": 75,
+    "minOrderQuantity": 0.001,
+    "isPreferred": false,
+    "active": true
+}
+
+### Get Product By ID
+
+GET http://localhost:8000/api/v1/product-suppliers/1
+
+### Update Product
+
+PUT http://localhost:8000/api/v1/product-suppliers/1
+content-type: application/json
+
+{
+    "minOrderQuantity": 0.1,
+}
+
+### Delete Product
+
+DELETE http://localhost:8000/api/v1/product-suppliers/1
