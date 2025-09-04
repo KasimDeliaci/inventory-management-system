@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -56,14 +57,44 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
+    // 409: Handle database constraint violations
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+        DataIntegrityViolationException ex,
+        WebRequest request
+    ) {
+        String rootMessage = ex.getRootCause() != null
+            ? ex.getRootCause().getMessage()
+            : ex.getMessage();
+
+        Map<String, String> details = new HashMap<>();
+
+        if (rootMessage != null) {
+            if (rootMessage.contains("chk_reorder_vs_safety")) details.put("chk_reorder_vs_safety", "Reorder must be >= Safety Stock");
+            if (rootMessage.contains("chk_uom_allowed")) details.put("chk_uom_allowed", "Unit of Measure is not allowed");
+            else details.put("database", rootMessage); // fallback to raw DB message
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message("Database constraint violation")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .timestamp(Instant.now())
+                .details(details)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
     // 500: Handle uncaught exceptions (fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
         Exception ex,
         WebRequest request
     ) {
-        Map<String, String> errorDetails = new HashMap<>();
-        errorDetails.put(ex.getClass().getSimpleName(), ex.getMessage() != null ? ex.getMessage() : "");
+        Map<String, String> details = new HashMap<>();
+        details.put(ex.getClass().getSimpleName(), ex.getMessage() != null ? ex.getMessage() : "");
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -71,7 +102,7 @@ public class GlobalExceptionHandler {
                 .message("An unexpected error occurred")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(Instant.now())
-                .details(errorDetails)
+                .details(details)
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
