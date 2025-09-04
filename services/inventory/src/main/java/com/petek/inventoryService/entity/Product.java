@@ -33,28 +33,30 @@ public class Product {
     @Column(name = "product_id")
     private Long productId;
     
-    @Column(name = "product_name")
+    @Column(name = "product_name", nullable = false, length = 200)
     private String productName;
     
     private String description;
+
+    @Column(nullable = false, length = 100)
     private String category;
     
-    @Column(name = "unit_of_measure")
+    @Column(name = "unit_of_measure", nullable = false, length = 20)
     private String unitOfMeasure;
     
-    @Column(name = "safety_stock")
+    @Column(name = "safety_stock", nullable = false)
     private BigDecimal safetyStock;
     
-    @Column(name = "reorder_point") 
+    @Column(name = "reorder_point", nullable = false)
     private BigDecimal reorderPoint;
     
-    @Column(name = "current_price")
+    @Column(name = "current_price", nullable = false)
     private BigDecimal currentPrice;
     
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
     
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     @Column(name = "deleted_at")
