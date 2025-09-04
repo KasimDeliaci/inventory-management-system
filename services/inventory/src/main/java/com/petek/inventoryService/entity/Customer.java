@@ -12,6 +12,8 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
 import lombok.AllArgsConstructor;
@@ -27,6 +29,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "customers")
+@SQLDelete(sql = "UPDATE customers SET deleted_at = NOW() WHERE customer_id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,6 +56,12 @@ public class Customer {
     
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     public enum CustomerSegment {
         INDIVIDUAL, SME, CORPORATE, ENTERPRISE, OTHER

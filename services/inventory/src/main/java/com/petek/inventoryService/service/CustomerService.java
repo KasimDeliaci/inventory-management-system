@@ -29,6 +29,7 @@ public class CustomerService {
     public CustomerResponse createCustomer(CustomerCreateRequest request) {
         Customer customer = mapper.toCustomer(request);
         customer.setCreatedAt(Instant.now());
+        customer.setUpdatedAt(Instant.now());
         return mapper.toResponse(repository.save(customer));
     }
 

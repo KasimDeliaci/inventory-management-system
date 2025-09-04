@@ -29,6 +29,7 @@ public class SupplierService {
     public SupplierResponse createSupplier(SupplierCreateRequest request) {
         Supplier supplier = mapper.toSupplier(request);
         supplier.setCreatedAt(Instant.now());
+        supplier.setUpdatedAt(Instant.now());
         return mapper.toResponse(repository.save(supplier));
     }
 
