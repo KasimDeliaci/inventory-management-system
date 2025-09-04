@@ -707,6 +707,54 @@ components:
         page: 
           $ref: '#/components/schemas/PageMeta'
 
+    # Lightweight list item structures for /api/v1/products
+    SupplierRef:
+      type: object
+      description: "Minimal supplier reference (id + name) used in list rows"
+      properties:
+        supplierId: {type: integer, format: int64}
+        supplierName: {type: string}
+
+    ProductListItem:
+      type: object
+      description: >-
+        Lightweight product row for list screens. Includes inventory snapshot
+        and supplier hints. Status is a simple string computed from thresholds
+        (no enum on purpose).
+      properties:
+        productId: {type: integer, format: int64}
+        productName: {type: string}
+        category: {type: string}
+        unitOfMeasure: {type: string}
+        quantityAvailable:
+          type: number
+          format: double
+          description: "From current_stock.quantity_available; defaults to 0 if missing"
+        activeSuppliers:
+          type: array
+          description: "All active suppliers for the product (id+name)"
+          items: { $ref: '#/components/schemas/SupplierRef' }
+        preferredSupplier:
+          allOf:
+            - $ref: '#/components/schemas/SupplierRef'
+          nullable: true
+          description: "Preferred supplier if set; null otherwise"
+        inventoryStatus:
+          type: string
+          description: >-
+            Computed in service: RED if available < safetyStock; YELLOW if
+            safetyStock <= available <= reorderPoint; GREEN if available > reorderPoint.
+
+    PageProductListItem:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductListItem'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
     # -----------------------------
     # Supplier
     # -----------------------------
@@ -1748,11 +1796,14 @@ paths:
       tags: [Products]
       summary: Retrieve paginated list of products with filtering and sorting
       description: >-
-        Returns a paginated list of products (soft-deleted rows are excluded by default; use include_deleted=true to include).
-        Supports multiple filter parameters that combine with AND logic.
-        Repeatable parameters (category, uom) use OR logic within the same parameter type.
-        Unknown query parameters will result in HTTP 400.
-        Default sort is by productName ascending. Whitelisted sort fields: productName, category, currentPrice, updatedAt.
+        Returns a paginated list of lightweight product rows for the list view
+        (soft-deleted rows are excluded by default; use include_deleted=true to include).
+        Each row includes inventory snapshot and supplier info suitable for the grid
+        (active suppliers and the preferred supplier if any). Supports multiple
+        filter parameters that combine with AND logic. Repeatable parameters
+        (category, uom) use OR logic within the same parameter type. Unknown query
+        parameters will result in HTTP 400. Default sort is by productName ascending.
+        Whitelisted sort fields: productName, category, currentPrice, updatedAt.
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
@@ -1770,29 +1821,44 @@ paths:
         - $ref: '#/components/parameters/IncludeDeletedParam'
       responses:
         '200':
-          description: Paged products matching filter criteria
+          description: Paged product list items matching filter criteria
           content: 
             application/json: 
               schema: 
-                $ref: '#/components/schemas/PageProduct'
+                $ref: '#/components/schemas/PageProductListItem'
               examples:
                 filtered:
-                  summary: "Filtered products example"
+                  summary: "Filtered list items example"
                   value:
                     content:
                       - productId: 101
                         productName: "Bananas"
                         category: "Fruits"
                         unitOfMeasure: "kg"
-                        safetyStock: 50
-                        reorderPoint: 100
-                        currentPrice: 2.99
-                        createdAt: "2025-01-15T10:00:00Z"
-                        updatedAt: "2025-08-20T14:30:00Z"
+                        quantityAvailable: 12.000
+                        activeSuppliers:
+                          - supplierId: 11
+                            supplierName: "Acme Foods Ltd"
+                          - supplierId: 12
+                            supplierName: "Green Valley"
+                        preferredSupplier:
+                          supplierId: 11
+                          supplierName: "Acme Foods Ltd"
+                        inventoryStatus: "GREEN"
+                      - productId: 102
+                        productName: "Strawberries"
+                        category: "Fruits"
+                        unitOfMeasure: "kg"
+                        quantityAvailable: 5.000
+                        activeSuppliers:
+                          - supplierId: 13
+                            supplierName: "Berry Co"
+                        preferredSupplier: null
+                        inventoryStatus: "YELLOW"
                     page:
                       page: 0
                       size: 20
-                      totalElements: 1
+                      totalElements: 2
                       totalPages: 1
         '400':
           description: Invalid filter parameters or validation error
