@@ -10,7 +10,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
 import com.petek.inventoryService.dto.ProductSupplierResponse;
 import com.petek.inventoryService.dto.ProductSupplierUpdateRequest;
-import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.mapper.ProductSupplierMapper;
 import com.petek.inventoryService.repository.ProductSupplierRepository;
@@ -64,6 +63,15 @@ public class ProductSupplierService {
         existingProductSupplier.setUpdatedAt(Instant.now());
 
         return mapper.toProductSupplierResponse(repository.save(existingProductSupplier));
+    }
+
+    /**
+     * Delete a productSupplier.
+     */
+    public void deleteProductSupplier(Long productSupplierId) {
+        ProductSupplier existingProductSupplier = repository.findById(productSupplierId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ProductSupplier not found"));
+        repository.delete(existingProductSupplier);
     }
 
 }

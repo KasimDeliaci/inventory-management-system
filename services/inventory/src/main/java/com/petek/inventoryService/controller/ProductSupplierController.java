@@ -1,6 +1,7 @@
 package com.petek.inventoryService.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -53,5 +54,17 @@ public class ProductSupplierController {
     ) {
         return ResponseEntity.ok(service.updateProductSupplier(productSupplierId, request));
     }
+
+    /**
+     * Delete a productSupplier.
+     */
+    @DeleteMapping("/{productSupplierId}")
+    public ResponseEntity<Void> deleteProductSupplier(
+        @PathVariable Long productSupplierId
+    ) {
+        service.deleteProductSupplier(productSupplierId);
+        return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
 
 }
