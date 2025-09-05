@@ -948,7 +948,6 @@ components:
         campaignName: {type: string}
         campaignType: {$ref: '#/components/schemas/CampaignType'}
         discountPercentage: {type: number, format: double, minimum: 0, maximum: 100, nullable: true}
-        minQty: {type: integer, minimum: 1, nullable: true}
         buyQty: {type: integer, minimum: 1, nullable: true}
         getQty: {type: integer, minimum: 1, nullable: true}
         startDate: {type: string, format: date}
@@ -964,7 +963,6 @@ components:
         campaignType:
           $ref: '#/components/schemas/CampaignType'
         discountPercentage: {type: number, format: double, minimum: 0, maximum: 100}
-        minQty: {type: integer, minimum: 1, nullable: true}
         startDate: {type: string, format: date}
         endDate: {type: string, format: date}
 
@@ -977,7 +975,6 @@ components:
           $ref: '#/components/schemas/CampaignType'
         buyQty: {type: integer, minimum: 1}
         getQty: {type: integer, minimum: 1}
-        minQty: {type: integer, minimum: 1, nullable: true}
         startDate: {type: string, format: date}
         endDate: {type: string, format: date}
 
