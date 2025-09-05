@@ -6,6 +6,6 @@
 # It will cleanly shut down PostgreSQL database, pgAdmin, and remove the 
 # associated Docker network to free up system resources.
 #
-# Usage: ./scripts/devdown.sh
+# Usage: ./scripts/boot/devdown.sh
 #
 docker compose -f docker-compose.dev.yml down
