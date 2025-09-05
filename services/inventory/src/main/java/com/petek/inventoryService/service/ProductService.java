@@ -136,6 +136,7 @@ public class ProductService {
     /**
      * Update a product.
      */
+    @Transactional
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
