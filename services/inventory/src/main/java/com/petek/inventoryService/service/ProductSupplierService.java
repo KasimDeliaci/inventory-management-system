@@ -29,11 +29,30 @@ public class ProductSupplierService {
      */
     public ProductSupplierResponse createProductSupplier(ProductSupplierCreateRequest request) {
         ProductSupplier productSupplier = mapper.toProductSupplier(request);
+
+        ProductSupplier existsPreferred = repository.findPreferredSupplierByProductId(request.getProductId());
+        if (existsPreferred != null) {
+            if (Boolean.TRUE.equals(request.getIsPreferred())) {
+                existsPreferred.setIsPreferred(false);
+            }
+        }
+        else {
+            productSupplier.setIsPreferred(true);
+        }
+        if (Boolean.FALSE.equals(productSupplier.getActive())) productSupplier.setIsPreferred(false);
+
         productSupplier.setTotalOrdersCount(0);
         productSupplier.setDelayedOrdersCount(0);
         productSupplier.setCreatedAt(Instant.now());
         productSupplier.setUpdatedAt(Instant.now());
-        return mapper.toProductSupplierResponse(repository.save(productSupplier));
+
+        ProductSupplier saved = repository.save(productSupplier);
+
+        if (existsPreferred != null && Boolean.TRUE.equals(saved.getIsPreferred())) {
+            repository.save(existsPreferred);
+        }
+
+        return mapper.toProductSupplierResponse(saved);
     }
 
     /**
