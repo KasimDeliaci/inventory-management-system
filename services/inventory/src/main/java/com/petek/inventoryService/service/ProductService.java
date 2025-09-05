@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
@@ -87,6 +88,7 @@ public class ProductService {
     /**
      * Get all products.
      */
+    @Transactional(readOnly = true)
     public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
         validateSortRequest(request);
 
@@ -123,6 +125,7 @@ public class ProductService {
     /**
      * Get a product by ID.
      */
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)

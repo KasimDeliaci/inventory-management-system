@@ -2,6 +2,7 @@ package com.petek.inventoryService.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class ProductResponse {
     private BigDecimal safetyStock;
     private BigDecimal reorderPoint;
     private BigDecimal currentPrice;
+    private List<SupplierResponse> suppliers;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -1,13 +1,20 @@
 package com.petek.inventoryService.mapper;
 
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
 
 import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.entity.Product;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class ProductMapper {
+
+
+    private SupplierMapper supplierMapper = new SupplierMapper();
 
     /**
      * Map ProductCreateRequest to Product entity.
@@ -37,6 +44,17 @@ public class ProductMapper {
             .safetyStock(product.getSafetyStock())
             .reorderPoint(product.getReorderPoint())
             .currentPrice(product.getCurrentPrice())
+            .suppliers(product.getProductSuppliers() != null ? 
+                product.getProductSuppliers().stream()
+                    .map(ps -> {
+                        try {
+                        return supplierMapper.toResponse(ps.getSupplier());
+                        } catch (EntityNotFoundException e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .toList() : null)
             .createdAt(product.getCreatedAt())
             .updatedAt(product.getUpdatedAt())
             .build();
