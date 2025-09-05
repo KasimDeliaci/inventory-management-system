@@ -44,11 +44,11 @@ public class ProductMapper {
             .safetyStock(product.getSafetyStock())
             .reorderPoint(product.getReorderPoint())
             .currentPrice(product.getCurrentPrice())
-            .suppliers(product.getProductSuppliers() != null ? 
+            .activeSuppliers(product.getProductSuppliers() != null ? 
                 product.getProductSuppliers().stream()
+                    .filter(ps -> ps.getActive())
                     .map(ps -> {
                         try {
-                            if (!ps.getActive()) return null;
                             return supplierMapper.toResponse(ps.getSupplier());
                         } catch (EntityNotFoundException e) {
                             return null;
@@ -56,6 +56,18 @@ public class ProductMapper {
                     })
                     .filter(Objects::nonNull)
                     .toList() : null)
+            .preferredSupplier(product.getProductSuppliers() != null ?
+                product.getProductSuppliers().stream()
+                    .filter(ps -> ps.getIsPreferred() && ps.getActive())
+                    .findFirst()
+                    .map(ps -> {
+                        try {
+                            return supplierMapper.toResponse(ps.getSupplier());
+                        } catch (EntityNotFoundException e) {
+                            return null;
+                        }
+                    })
+                    .orElse(null) : null)
             .createdAt(product.getCreatedAt())
             .updatedAt(product.getUpdatedAt())
             .build();

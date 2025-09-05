@@ -22,7 +22,8 @@ public class ProductResponse {
     private BigDecimal safetyStock;
     private BigDecimal reorderPoint;
     private BigDecimal currentPrice;
-    private List<SupplierResponse> suppliers;
+    private List<SupplierResponse> activeSuppliers;
+    private SupplierResponse preferredSupplier;
     private Instant createdAt;
     private Instant updatedAt;
 }
