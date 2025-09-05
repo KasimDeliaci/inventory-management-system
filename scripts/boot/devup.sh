@@ -6,6 +6,6 @@
 # It will start all required services (PostgreSQL database, pgAdmin) 
 # in detached mode, allowing you to continue working in the terminal.
 #
-# Usage: ./scripts/devup.sh
+# Usage: ./scripts/boot/devup.sh
 #
 docker compose -f docker-compose.dev.yml up -d
