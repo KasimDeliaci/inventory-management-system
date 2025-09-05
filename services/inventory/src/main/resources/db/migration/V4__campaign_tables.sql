@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS campaigns (
   -- Type parameters (nullable depending on type)
   discount_percentage        NUMERIC(5,2)
                   CHECK (discount_percentage IS NULL OR (discount_percentage >= 0 AND discount_percentage <= 100)),
-  min_qty INTEGER CHECK (min_qty IS NULL OR min_qty > 0),
   buy_qty        INTEGER CHECK (buy_qty IS NULL OR buy_qty > 0),
   get_qty        INTEGER CHECK (get_qty IS NULL OR get_qty > 0),
 
@@ -47,7 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_campaigns_window ON campaigns (start_date, end_da
 CREATE INDEX IF NOT EXISTS idx_campaigns_type   ON campaigns (campaign_type);
 
 COMMENT ON TABLE campaigns IS
-  'Product-scoped promos. Types: DISCOUNT (percent[, min_qty]), BXGY_SAME_PRODUCT (buy_qty, get_qty[, min_qty]). Dates inclusive.';
+  'Product-scoped promos. Types: DISCOUNT (percent), BXGY_SAME_PRODUCT (buy_qty, get_qty). Dates inclusive.';
 
 -- --------------------------------------------
 -- 1b) Campaign → Products assignment (many-to-many)

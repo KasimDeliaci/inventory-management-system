@@ -15,14 +15,11 @@
 --
 --  1) Product campaign percent (productPct) for a line (productId, qty):
 --     • No active campaign on order_date                -> productPct = 0
---     • Type = 'DISCOUNT':
---           if (min_qty IS NULL OR qty >= min_qty)      productPct = discount_percentage
---           else                                        productPct = 0
+--     • Type = 'DISCOUNT':                              productPct = discount_percentage (no min-qty gate in PoC)
 --     • Type = 'BXGY_SAME_PRODUCT' (countable UoMs only: adet, koli, paket, çuval, şişe):
 --           group = buy_qty + get_qty
 --           free  = floor(qty / group) * get_qty
 --           productPct = round( (free::numeric / qty) * 100, 2 )
---           (Optionally: if qty < min_qty then productPct = 0)
 --
 --  2) Customer offer percent (customerPct) from header snapshot:
 --     • If one active offer exists on order_date        -> customerPct = percent_off
