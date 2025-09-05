@@ -2,7 +2,9 @@ package com.petek.inventoryService.service;
 
 import java.time.Instant;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
 import com.petek.inventoryService.dto.ProductSupplierResponse;
@@ -29,6 +31,15 @@ public class ProductSupplierService {
         productSupplier.setCreatedAt(Instant.now());
         productSupplier.setUpdatedAt(Instant.now());
         return mapper.toProductSupplierResponse(repository.save(productSupplier));
+    }
+
+    /**
+     * Get a productSupplier by ID.
+     */
+    public ProductSupplierResponse getProductSupplierById(Long productSupplierId) {
+        return repository.findById(productSupplierId)
+            .map(mapper::toProductSupplierResponse)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productSupplierId));
     }
 
 }
