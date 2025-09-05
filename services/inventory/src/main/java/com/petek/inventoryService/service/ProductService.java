@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.dto.ProductItemResponse;
 import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.dto.ProductUpdateRequest;
@@ -89,7 +90,7 @@ public class ProductService {
      * Get all products.
      */
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
+    public PageResponse<ProductItemResponse> getAllProducts(ProductFilterRequest request) {
         validateSortRequest(request);
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
@@ -97,9 +98,9 @@ public class ProductService {
         
         Page<Product> productPage = repository.findAll(spec, pageable);
         
-        List<ProductResponse> productResponses = productPage.getContent()
+        List<ProductItemResponse> productResponses = productPage.getContent()
             .stream()
-            .map(mapper::toProductResponse)
+            .map(mapper::toProductItemResponse)
             .toList();
         
         PageInfo pageInfo = new PageInfo(
@@ -109,7 +110,7 @@ public class ProductService {
             productPage.getTotalPages()
         );
         
-        return new PageResponse<ProductResponse>(productResponses, pageInfo);
+        return new PageResponse<ProductItemResponse>(productResponses, pageInfo);
     }
 
     /**

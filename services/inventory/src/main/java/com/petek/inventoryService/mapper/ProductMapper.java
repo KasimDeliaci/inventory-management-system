@@ -1,10 +1,12 @@
 package com.petek.inventoryService.mapper;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
 import com.petek.inventoryService.dto.ProductCreateRequest;
+import com.petek.inventoryService.dto.ProductItemResponse;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.entity.Product;
 
@@ -70,6 +72,49 @@ public class ProductMapper {
                     .orElse(null) : null)
             .createdAt(product.getCreatedAt())
             .updatedAt(product.getUpdatedAt())
+            .build();
+    }
+
+    public ProductItemResponse toProductItemResponse(Product product) {
+        return ProductItemResponse.builder()
+            .productId(product.getProductId())
+            .productName(product.getProductName())
+            .category(product.getCategory())
+            .unitOfMeasure(product.getUnitOfMeasure())
+            .quantityAvailable(BigDecimal.ZERO) // Placeholder, replace with actual available quantity
+            .activeSuppliers(product.getProductSuppliers() != null ? 
+                product.getProductSuppliers().stream()
+                    .filter(ps -> ps.getActive())
+                    .map(ps -> {
+                        try {
+                            var supplier = ps.getSupplier();
+                            return ProductItemResponse.SupplierItem.builder()
+                                .supplierId(supplier.getSupplierId())
+                                .supplierName(supplier.getSupplierName())
+                                .build();
+                        } catch (EntityNotFoundException e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .toList() : null)
+            .preferredSupplier(product.getProductSuppliers() != null ?
+                product.getProductSuppliers().stream()
+                    .filter(ps -> ps.getIsPreferred() && ps.getActive())
+                    .findFirst()
+                    .map(ps -> {
+                        try {
+                            var supplier = ps.getSupplier();
+                            return ProductItemResponse.SupplierItem.builder()
+                                .supplierId(supplier.getSupplierId())
+                                .supplierName(supplier.getSupplierName())
+                                .build();
+                        } catch (EntityNotFoundException e) {
+                            return null;
+                        }
+                    })
+                    .orElse(null) : null)
+            .inventoryStatus(ProductItemResponse.InventoryStatus.GREEN) // Placeholder, replace with actual logic
             .build();
     }
 

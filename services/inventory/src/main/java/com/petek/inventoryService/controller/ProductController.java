@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.dto.ProductItemResponse;
 import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.dto.ProductUpdateRequest;
@@ -32,7 +33,7 @@ public class ProductController {
      * Get all products.
      */
     @GetMapping
-    public ResponseEntity<PageResponse<ProductResponse>> getProducts(
+    public ResponseEntity<PageResponse<ProductItemResponse>> getProducts(
         @ModelAttribute @Valid ProductFilterRequest request
     ) {
         return ResponseEntity.ok(service.getAllProducts(request));
