@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.SupplierCreateRequest;
@@ -36,6 +37,7 @@ public class SupplierService {
     /**
      * Get a supplier by ID.
      */
+    @Transactional(readOnly = true)
     public SupplierResponse getSupplierById(Long supplierId) {
         return repository.findById(supplierId)
                 .map(mapper::toResponse)

@@ -16,8 +16,8 @@ public class ProductSupplierMapper {
      */
     public ProductSupplier toProductSupplier(ProductSupplierCreateRequest request) {
         return ProductSupplier.builder()
-            .productId(Product.builder().productId(request.getProductId()).build())
-            .supplierId(Supplier.builder().supplierId(request.getSupplierId()).build())
+            .product(Product.builder().productId(request.getProductId()).build())
+            .supplier(Supplier.builder().supplierId(request.getSupplierId()).build())
             .minOrderQuantity(request.getMinOrderQuantity())
             .isPreferred(request.getIsPreferred())
             .active(request.getActive())
@@ -30,8 +30,8 @@ public class ProductSupplierMapper {
     public ProductSupplierResponse toProductSupplierResponse(ProductSupplier productSupplier) {
         return ProductSupplierResponse.builder()
             .productSupplierId(productSupplier.getProductSupplierId())
-            .productId(productSupplier.getProductId().getProductId())
-            .supplierId(productSupplier.getSupplierId().getSupplierId())
+            .productId(productSupplier.getProduct().getProductId())
+            .supplierId(productSupplier.getSupplier().getSupplierId())
             .minOrderQuantity(productSupplier.getMinOrderQuantity())
             .isPreferred(productSupplier.getIsPreferred())
             .active(productSupplier.getActive())

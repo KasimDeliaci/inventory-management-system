@@ -13,11 +13,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.dto.ProductItemResponse;
 import com.petek.inventoryService.dto.ProductCreateRequest;
 import com.petek.inventoryService.dto.ProductResponse;
 import com.petek.inventoryService.dto.ProductUpdateRequest;
@@ -87,7 +89,8 @@ public class ProductService {
     /**
      * Get all products.
      */
-    public PageResponse<ProductResponse> getAllProducts(ProductFilterRequest request) {
+    @Transactional(readOnly = true)
+    public PageResponse<ProductItemResponse> getAllProducts(ProductFilterRequest request) {
         validateSortRequest(request);
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
@@ -95,9 +98,9 @@ public class ProductService {
         
         Page<Product> productPage = repository.findAll(spec, pageable);
         
-        List<ProductResponse> productResponses = productPage.getContent()
+        List<ProductItemResponse> productResponses = productPage.getContent()
             .stream()
-            .map(mapper::toProductResponse)
+            .map(mapper::toProductItemResponse)
             .toList();
         
         PageInfo pageInfo = new PageInfo(
@@ -107,7 +110,7 @@ public class ProductService {
             productPage.getTotalPages()
         );
         
-        return new PageResponse<ProductResponse>(productResponses, pageInfo);
+        return new PageResponse<ProductItemResponse>(productResponses, pageInfo);
     }
 
     /**
@@ -123,6 +126,7 @@ public class ProductService {
     /**
      * Get a product by ID.
      */
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)
@@ -132,6 +136,7 @@ public class ProductService {
     /**
      * Update a product.
      */
+    @Transactional
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));

@@ -34,11 +34,11 @@ public class ProductSupplier {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "supplier_id", nullable = false)
-    private Supplier supplierId;
+    private Supplier supplier;
 
     @Column(name = "min_order_quantity", nullable = false)
     private BigDecimal minOrderQuantity;
