@@ -48,7 +48,8 @@ public class ProductMapper {
                 product.getProductSuppliers().stream()
                     .map(ps -> {
                         try {
-                        return supplierMapper.toResponse(ps.getSupplier());
+                            if (!ps.getActive()) return null;
+                            return supplierMapper.toResponse(ps.getSupplier());
                         } catch (EntityNotFoundException e) {
                             return null;
                         }
