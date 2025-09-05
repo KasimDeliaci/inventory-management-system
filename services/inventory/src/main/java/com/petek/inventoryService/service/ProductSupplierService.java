@@ -1,6 +1,7 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
 import com.petek.inventoryService.dto.ProductSupplierResponse;
+import com.petek.inventoryService.dto.ProductSupplierUpdateRequest;
+import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.mapper.ProductSupplierMapper;
 import com.petek.inventoryService.repository.ProductSupplierRepository;
@@ -39,7 +42,28 @@ public class ProductSupplierService {
     public ProductSupplierResponse getProductSupplierById(Long productSupplierId) {
         return repository.findById(productSupplierId)
             .map(mapper::toProductSupplierResponse)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productSupplierId));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ProductSupplier not found with id: " + productSupplierId));
+    }
+
+    /**
+     * Update a productSupplier.
+     */
+    public ProductSupplierResponse updateProductSupplier(Long productSupplierId, ProductSupplierUpdateRequest request) {
+        ProductSupplier existingProductSupplier = repository.findById(productSupplierId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ProductSupplier not found"));
+
+        Optional.ofNullable(request.getMinOrderQuantity())
+            .ifPresent(existingProductSupplier::setMinOrderQuantity);
+
+        Optional.ofNullable(request.getIsPreferred())
+            .ifPresent(existingProductSupplier::setIsPreferred);
+
+        Optional.ofNullable(request.getActive())
+            .ifPresent(existingProductSupplier::setActive);
+
+        existingProductSupplier.setUpdatedAt(Instant.now());
+
+        return mapper.toProductSupplierResponse(repository.save(existingProductSupplier));
     }
 
 }

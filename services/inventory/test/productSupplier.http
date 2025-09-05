@@ -27,6 +27,7 @@ content-type: application/json
 
 {
     "minOrderQuantity": 0.1,
+    "isPreferred": true
 }
 
 ### Delete Product
