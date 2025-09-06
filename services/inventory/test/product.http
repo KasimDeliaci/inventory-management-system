@@ -36,3 +36,7 @@ content-type: application/json
 ### Delete Product
 
 DELETE http://localhost:8000/api/v1/products/1
+
+### Get Suppliers of Product
+
+GET http://localhost:8000/api/v1/products/1/suppliers

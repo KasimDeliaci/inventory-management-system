@@ -5,9 +5,9 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.ProductCreateRequest;
-import com.petek.inventoryService.dto.ProductItemResponse;
-import com.petek.inventoryService.dto.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductCreateRequest;
+import com.petek.inventoryService.dto.product.ProductItemResponse;
+import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.entity.Product;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -75,6 +75,9 @@ public class ProductMapper {
             .build();
     }
 
+    /**
+     * Map Product entity to ProductItemResponse.
+     */
     public ProductItemResponse toProductItemResponse(Product product) {
         return ProductItemResponse.builder()
             .productId(product.getProductId())
