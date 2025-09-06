@@ -3,7 +3,16 @@ meta:
   country: TR
   seed: 42
   start_date: 2023-01-01
-  end_date: 2025-08-31
+  end_date: 2025-12-31
+  # Optional: globally scale demand levels (1.0 = baseline). Example: 10.0 to roughly 10x volumes
+  demand_scale: 10.0
+  # Smoothing to reduce day-to-day jitter (EMA): lower alpha = smoother (0.3 default)
+  smooth_alpha: 0.2
+  # Increase dispersion_scale (>1) to reduce variance (NB shape k is multiplied)
+  dispersion_scale: 1.5
+  # Correlated latent factor (AR(1)) controlling runs/persistence in daily demand
+  latent_rho: 0.7    # persistence (0..1)
+  latent_sigma: 0.15  # innovation std (typical 0.1–0.3)
 
 products:
   # 12 archetypes with integer IDs and allowed UoMs
@@ -296,4 +305,3 @@ policy:
     12: 4
     13: 6
     14: 3
-

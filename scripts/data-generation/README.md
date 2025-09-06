@@ -11,7 +11,7 @@ It is parameterized via a YAML config (`world.yaml`) and designed to honor the i
 1) Create a virtualenv and install deps:
    `pip install -r scripts/data-generation/requirements.txt`
 
-2) Generate master seed SQL with defaults (no CLI args):
+2) Generate master seed SQL + calendar + campaigns (defaults, no CLI args):
    `python scripts/data-generation/generate.py`
 
    - Config default: `scripts/data-generation/world.yaml`
@@ -25,6 +25,33 @@ This writes:
 - `out/calendar/daily_calendar.csv` (official holidays, Ramadan window, weekends, special days)
 - `out/sql/10_campaigns.sql` (campaigns, assignments, customer special offers)
 - `out/campaigns/product_campaigns.csv` and `out/campaigns/customer_offers.csv` (for analysis)
+
+3) Generate demand (choose product):
+   - All products (default): `python scripts/data-generation/generate.py --product all`
+   - Single product:        `python scripts/data-generation/generate.py --product 1009`
+
+   Outputs:
+   - `out/datasets/demand/product_<id>.csv`
+   - `out/datasets/demand/all_products.csv` (when selecting all)
+
+   Tuning volumes:
+   - Edit `meta.demand_scale` in `world.yaml` (default 1.0). For ~10× higher volumes, set `demand_scale: 10.0` and rerun.
+
+4) Plot demand
+   - Monthly (x=1..31):
+     `python scripts/data-generation/plot_demand.py --product 1009 --monthly --month 2024-07`
+     (omit --month to use the latest month in the data)
+   - Yearly (x=1..12 months):
+     `python scripts/data-generation/plot_demand.py --product 1009 --yearly --year 2024`
+     (omit --year to use the latest year in the data)
+   - All (quarters over years):
+     `python scripts/data-generation/plot_demand.py --product 1009 --all`
+
+   You can also pass a CSV filename instead of an id:
+     `python scripts/data-generation/plot_demand.py --product all_products.csv --yearly`
+
+   Outputs:
+   - `out/plots/monthly/*.png`, `out/plots/yearly/*.png`, `out/plots/all/*.png`
 
 ## Roadmap
 

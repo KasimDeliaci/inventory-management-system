@@ -122,6 +122,7 @@ def main():
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument('--config', default=None, help='Path to world.yaml (optional)')
     parser.add_argument('--outdir', default=None, help='Output directory (optional)')
+    parser.add_argument('--product', default='all', help='Product selector: integer productId or "all"')
     args = parser.parse_args()
 
     config_path = Path(args.config) if args.config else DEFAULT_CONFIG
@@ -185,8 +186,15 @@ def main():
     camp_dir = outdir / 'campaigns'
     camp_dir.mkdir(parents=True, exist_ok=True)
     import pandas as pd
-    pd.DataFrame([
-        {
+    # Join campaigns with assignments so each row has productId and campaign fields
+    camp_map = {c.campaign_id: c for c in campaigns}
+    camp_rows = []
+    for a in assigns:
+        c = camp_map.get(a.campaign_id)
+        if not c:
+            continue
+        camp_rows.append({
+            'productId': a.product_id,
             'campaignId': c.campaign_id,
             'campaignName': c.campaign_name,
             'campaignType': c.campaign_type,
@@ -195,8 +203,8 @@ def main():
             'discountPercentage': c.discount_percentage,
             'buyQty': c.buy_qty,
             'getQty': c.get_qty,
-        } for c in campaigns
-    ]).to_csv(camp_dir / 'product_campaigns.csv', index=False, date_format='%Y-%m-%d')
+        })
+    pd.DataFrame(camp_rows).to_csv(camp_dir / 'product_campaigns.csv', index=False, date_format='%Y-%m-%d')
 
     pd.DataFrame([
         {
@@ -208,6 +216,26 @@ def main():
         } for o in offers
     ]).to_csv(camp_dir / 'customer_offers.csv', index=False, date_format='%Y-%m-%d')
     print(f"Wrote {(camp_dir / 'product_campaigns.csv')} and {(camp_dir / 'customer_offers.csv')}")
+
+    # Demand generation (phase v3): --product 101 or --product all
+    from demand import generate_demand
+    # Build product id selection
+    if str(args.product).lower() == 'all':
+        product_ids = [int(p['id']) for p in world.get('products', [])]
+    else:
+        try:
+            product_ids = [int(args.product)]
+        except ValueError:
+            raise SystemExit(f"Invalid --product value: {args.product}. Use an integer productId or 'all'.")
+
+    # Read campaign CSV to compute promo per day per product
+    import pandas as pd
+    camp_csv = camp_dir / 'product_campaigns.csv'
+    camp_df = pd.read_csv(camp_csv, parse_dates=['startDate', 'endDate']) if camp_csv.exists() else None
+
+    out_paths = generate_demand(world, cal_df, camp_df, product_ids, outdir)
+    for p in out_paths:
+        print(f"Wrote {p}")
 
 
 if __name__ == '__main__':
