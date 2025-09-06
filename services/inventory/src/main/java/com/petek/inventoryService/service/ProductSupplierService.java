@@ -1,7 +1,6 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -9,21 +8,21 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.petek.inventoryService.dto.PageResponse;
-import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
-import com.petek.inventoryService.dto.ProductSupplierFilterRequest;
-import com.petek.inventoryService.dto.ProductSupplierResponse;
-import com.petek.inventoryService.dto.ProductSupplierUpdateRequest;
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierCreateRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierFilterRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierResponse;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierUpdateRequest;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.mapper.ProductSupplierMapper;
 import com.petek.inventoryService.repository.ProductSupplierRepository;
 import com.petek.inventoryService.spec.ProductSupplierSpecifications;
+import com.petek.inventoryService.utils.SortUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -42,43 +41,18 @@ public class ProductSupplierService {
     );
 
     /**
-     * Utils
-     */
-    private Sort createSort(List<String> sortParams) {
-        List<Sort.Order> orders = new ArrayList<>();
-        
-        for (String sortParam : sortParams) {
-            Sort.Direction direction = Sort.Direction.ASC;
-            String field = sortParam;
-                
-            if (sortParam.startsWith("-")) {
-                direction = Sort.Direction.DESC;
-                field = sortParam.substring(1);
-            }
-            
-            if (!ALLOWED_SORT_FIELDS.contains(field)) {
-                throw new IllegalArgumentException("Invalid sort field: " + field);
-            }
-            
-            orders.add(new Sort.Order(direction, field));
-        }
-        
-        return Sort.by(orders);
-    }
-
-    /**
      * Get all products.
      */
     @Transactional(readOnly = true)
     public PageResponse<ProductSupplierResponse> getAllProductSuppliers(ProductSupplierFilterRequest request) {
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
         Specification<ProductSupplier> spec = ProductSupplierSpecifications.withFilters(request);
 
         Page<ProductSupplier> productSupplierPage = repository.findAll(spec, pageable);
 
         List<ProductSupplierResponse> productSupplierResponses = productSupplierPage.getContent()
             .stream()
-            .map(mapper::toProductSupplierResponse)
+            .map(mapper::toResponse)
             .toList();
 
         PageInfo pageInfo = new PageInfo(
@@ -104,7 +78,7 @@ public class ProductSupplierService {
             throw new EntityNotFoundException("Supplier not found with id: " + request.getSupplierId());
         }
         
-        ProductSupplier productSupplier = mapper.toProductSupplier(request);
+        ProductSupplier productSupplier = mapper.toEntity(request);
         productSupplier.setTotalOrdersCount(0);
         productSupplier.setDelayedOrdersCount(0);
         productSupplier.setCreatedAt(Instant.now());
@@ -126,7 +100,7 @@ public class ProductSupplierService {
             productSupplier.setIsPreferred(false);
         }
         
-        return mapper.toProductSupplierResponse(repository.save(productSupplier));
+        return mapper.toResponse(repository.save(productSupplier));
     }
 
     /**
@@ -135,7 +109,7 @@ public class ProductSupplierService {
     @Transactional(readOnly = true)
     public ProductSupplierResponse getProductSupplierById(Long productSupplierId) {
         return repository.findById(productSupplierId)
-            .map(mapper::toProductSupplierResponse)
+            .map(mapper::toResponse)
             .orElseThrow(() -> new EntityNotFoundException("ProductSupplier not found with id: " + productSupplierId));
     }
 
@@ -182,7 +156,7 @@ public class ProductSupplierService {
 
         repository.save(existingPreferred);
 
-        return mapper.toProductSupplierResponse(repository.save(existingProductSupplier));
+        return mapper.toResponse(repository.save(existingProductSupplier));
     }
 
     /**

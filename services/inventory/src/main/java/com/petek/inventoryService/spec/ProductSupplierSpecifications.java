@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.petek.inventoryService.dto.ProductSupplierFilterRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierFilterRequest;
 import com.petek.inventoryService.entity.ProductSupplier;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
