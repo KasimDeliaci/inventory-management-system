@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.PageResponse;
-import com.petek.inventoryService.dto.ProductFilterRequest;
-import com.petek.inventoryService.dto.ProductItemResponse;
-import com.petek.inventoryService.dto.ProductCreateRequest;
-import com.petek.inventoryService.dto.ProductResponse;
-import com.petek.inventoryService.dto.ProductUpdateRequest;
+import com.petek.inventoryService.dto.product.ProductCreateRequest;
+import com.petek.inventoryService.dto.product.ProductFilterRequest;
+import com.petek.inventoryService.dto.product.ProductItemResponse;
+import com.petek.inventoryService.dto.product.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductUpdateRequest;
 import com.petek.inventoryService.service.ProductService;
 
 import jakarta.validation.Valid;

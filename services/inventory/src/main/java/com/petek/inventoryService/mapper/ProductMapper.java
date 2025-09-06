@@ -5,9 +5,9 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.ProductCreateRequest;
-import com.petek.inventoryService.dto.ProductItemResponse;
-import com.petek.inventoryService.dto.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductCreateRequest;
+import com.petek.inventoryService.dto.product.ProductItemResponse;
+import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.entity.Product;
 
 import jakarta.persistence.EntityNotFoundException;

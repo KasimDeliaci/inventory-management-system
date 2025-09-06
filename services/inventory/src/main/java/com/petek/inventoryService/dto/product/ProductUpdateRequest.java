@@ -1,4 +1,4 @@
-package com.petek.inventoryService.dto;
+package com.petek.inventoryService.dto.product;
 
 import java.math.BigDecimal;
 

@@ -17,12 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
+import com.petek.inventoryService.dto.product.ProductCreateRequest;
+import com.petek.inventoryService.dto.product.ProductFilterRequest;
+import com.petek.inventoryService.dto.product.ProductItemResponse;
+import com.petek.inventoryService.dto.product.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductUpdateRequest;
 import com.petek.inventoryService.dto.PageResponse;
-import com.petek.inventoryService.dto.ProductFilterRequest;
-import com.petek.inventoryService.dto.ProductItemResponse;
-import com.petek.inventoryService.dto.ProductCreateRequest;
-import com.petek.inventoryService.dto.ProductResponse;
-import com.petek.inventoryService.dto.ProductUpdateRequest;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.mapper.ProductMapper;
 import com.petek.inventoryService.repository.ProductRepository;
