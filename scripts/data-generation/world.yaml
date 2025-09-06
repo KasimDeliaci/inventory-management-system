@@ -1,0 +1,307 @@
+meta:
+  name: demo-world-tr
+  country: TR
+  seed: 42
+  start_date: 2023-01-01
+  end_date: 2025-12-31
+  # Optional: globally scale demand levels (1.0 = baseline). Example: 10.0 to roughly 10x volumes
+  demand_scale: 10.0
+  # Smoothing to reduce day-to-day jitter (EMA): lower alpha = smoother (0.3 default)
+  smooth_alpha: 0.2
+  # Increase dispersion_scale (>1) to reduce variance (NB shape k is multiplied)
+  dispersion_scale: 1.5
+  # Correlated latent factor (AR(1)) controlling runs/persistence in daily demand
+  latent_rho: 0.7    # persistence (0..1)
+  latent_sigma: 0.15  # innovation std (typical 0.1–0.3)
+
+products:
+  # 12 archetypes with integer IDs and allowed UoMs
+  - id: 1001
+    name: Sunscreen SPF50 200ml
+    category: Personal Care
+    uom: şişe
+    safety_stock: 20
+    reorder_point: 50
+    current_price: 119.90
+  - id: 1002
+    name: Air Conditioner 12000 BTU
+    category: Appliances
+    uom: adet
+    safety_stock: 2
+    reorder_point: 10
+    current_price: 8499.00
+  - id: 1003
+    name: Ski Board All-Mountain
+    category: Sports
+    uom: adet
+    safety_stock: 2
+    reorder_point: 8
+    current_price: 3999.00
+  - id: 1004
+    name: Thermo Flask 500ml
+    category: Home & Kitchen
+    uom: adet
+    safety_stock: 10
+    reorder_point: 30
+    current_price: 249.00
+  - id: 1005
+    name: Dates (Medjool) 1kg
+    category: Grocery
+    uom: kg
+    safety_stock: 15
+    reorder_point: 40
+    current_price: 149.00
+  - id: 1006
+    name: Assorted Chocolates 250g
+    category: Confectionery
+    uom: paket
+    safety_stock: 20
+    reorder_point: 60
+    current_price: 39.90
+  - id: 1007
+    name: Eau de Parfum 50ml
+    category: Fragrance
+    uom: şişe
+    safety_stock: 5
+    reorder_point: 20
+    current_price: 899.00
+  - id: 1008
+    name: Potato Chips 50g
+    category: Snacks
+    uom: paket
+    safety_stock: 80
+    reorder_point: 200
+    current_price: 12.50
+  - id: 1009
+    name: Energy Drink 250ml Can
+    category: Beverages
+    uom: şişe
+    safety_stock: 60
+    reorder_point: 150
+    current_price: 25.00
+  - id: 1010
+    name: School Notebook A4 80 pages
+    category: Stationery
+    uom: adet
+    safety_stock: 40
+    reorder_point: 120
+    current_price: 18.00
+  - id: 1011
+    name: Turkish Flag 70x105 cm
+    category: Occasions
+    uom: adet
+    safety_stock: 10
+    reorder_point: 30
+    current_price: 75.00
+  - id: 1012
+    name: Black Tea 1kg
+    category: Grocery
+    uom: paket
+    safety_stock: 30
+    reorder_point: 80
+    current_price: 89.00
+
+suppliers:
+  - id: 11
+    name: Anadolu Wholesale
+    email: contact@anadoluwholesale.example
+    phone: "+90 212 555 0001"
+    city: Istanbul
+  - id: 12
+    name: Marmara Supply
+    email: sales@marmarasupply.example
+    phone: "+90 216 555 0002"
+    city: Istanbul
+  - id: 13
+    name: Aegean Foods
+    email: hello@aegeanfoods.example
+    phone: "+90 232 555 0003"
+    city: Izmir
+  - id: 14
+    name: Uludag Beverages
+    email: ops@uludagbev.example
+    phone: "+90 224 555 0004"
+    city: Bursa
+
+customers:
+  - id: 501
+    name: Blue Mart Electronics
+    segment: CORPORATE
+    email: orders@bluemart.example
+    phone: "+90 532 123 4501"
+    city: Ankara
+  - id: 502
+    name: Green Valley Grocery
+    segment: SME
+    email: sales@greenvalley.example
+    phone: "+90 532 123 4502"
+    city: Istanbul
+  - id: 503
+    name: Yildiz Home Goods
+    segment: SME
+    email: hello@yildizhome.example
+    phone: "+90 532 123 4503"
+    city: Izmir
+  - id: 504
+    name: TechHub Ankara
+    segment: ENTERPRISE
+    email: purchasing@techhub.example
+    phone: "+90 532 123 4504"
+    city: Ankara
+  - id: 505
+    name: Retail Coop Istanbul
+    segment: CORPORATE
+    email: coop@istanbulretail.example
+    phone: "+90 532 123 4505"
+    city: Istanbul
+  - id: 506
+    name: Anadolu Corner Store
+    segment: INDIVIDUAL
+    email: owner@anadolucorner.example
+    phone: "+90 532 123 4506"
+    city: Bursa
+
+product_suppliers:
+  # min_order_quantity in product UoM; choose one preferred per product
+  - product_id: 1001
+    supplier_id: 11
+    min_order_quantity: 24
+    is_preferred: true
+    active: true
+  - product_id: 1001
+    supplier_id: 12
+    min_order_quantity: 24
+    is_preferred: false
+    active: true
+
+  - product_id: 1002
+    supplier_id: 12
+    min_order_quantity: 2
+    is_preferred: true
+    active: true
+  - product_id: 1002
+    supplier_id: 11
+    min_order_quantity: 2
+    is_preferred: false
+    active: true
+
+  - product_id: 1003
+    supplier_id: 12
+    min_order_quantity: 2
+    is_preferred: true
+    active: true
+  - product_id: 1003
+    supplier_id: 11
+    min_order_quantity: 2
+    is_preferred: false
+    active: true
+
+  - product_id: 1004
+    supplier_id: 11
+    min_order_quantity: 12
+    is_preferred: true
+    active: true
+  - product_id: 1004
+    supplier_id: 13
+    min_order_quantity: 12
+    is_preferred: false
+    active: true
+
+  - product_id: 1005
+    supplier_id: 13
+    min_order_quantity: 20
+    is_preferred: true
+    active: true
+  - product_id: 1005
+    supplier_id: 11
+    min_order_quantity: 20
+    is_preferred: false
+    active: true
+
+  - product_id: 1006
+    supplier_id: 13
+    min_order_quantity: 48
+    is_preferred: true
+    active: true
+  - product_id: 1006
+    supplier_id: 12
+    min_order_quantity: 48
+    is_preferred: false
+    active: true
+
+  - product_id: 1007
+    supplier_id: 11
+    min_order_quantity: 6
+    is_preferred: true
+    active: true
+  - product_id: 1007
+    supplier_id: 12
+    min_order_quantity: 6
+    is_preferred: false
+    active: true
+
+  - product_id: 1008
+    supplier_id: 13
+    min_order_quantity: 120
+    is_preferred: true
+    active: true
+  - product_id: 1008
+    supplier_id: 11
+    min_order_quantity: 120
+    is_preferred: false
+    active: true
+
+  - product_id: 1009
+    supplier_id: 14
+    min_order_quantity: 96
+    is_preferred: true
+    active: true
+  - product_id: 1009
+    supplier_id: 11
+    min_order_quantity: 96
+    is_preferred: false
+    active: true
+
+  - product_id: 1010
+    supplier_id: 12
+    min_order_quantity: 100
+    is_preferred: true
+    active: true
+  - product_id: 1010
+    supplier_id: 11
+    min_order_quantity: 100
+    is_preferred: false
+    active: true
+
+  - product_id: 1011
+    supplier_id: 11
+    min_order_quantity: 20
+    is_preferred: true
+    active: true
+  - product_id: 1011
+    supplier_id: 12
+    min_order_quantity: 20
+    is_preferred: false
+    active: true
+
+  - product_id: 1012
+    supplier_id: 13
+    min_order_quantity: 40
+    is_preferred: true
+    active: true
+  - product_id: 1012
+    supplier_id: 11
+    min_order_quantity: 40
+    is_preferred: false
+    active: true
+
+policy:
+  reorder_strategy:
+    target_days_of_cover: 21
+    min_reorder_multiplier: 1.0
+  lead_times:
+    # mean lead time in days per supplier (stochastic later)
+    11: 5
+    12: 4
+    13: 6
+    14: 3
