@@ -27,6 +27,7 @@ import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.mapper.ProductMapper;
 import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.spec.ProductSpecifications;
+import com.petek.inventoryService.utils.SortUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,28 +64,6 @@ public class ProductService {
             throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
         }
     }
-    
-    private Sort createSort(List<String> sortParams) {
-        List<Sort.Order> orders = new ArrayList<>();
-        
-        for (String sortParam : sortParams) {
-            Sort.Direction direction = Sort.Direction.ASC;
-            String field = sortParam;
-                
-            if (sortParam.startsWith("-")) {
-                direction = Sort.Direction.DESC;
-                field = sortParam.substring(1);
-            }
-            
-            if (!ALLOWED_SORT_FIELDS.contains(field)) {
-                throw new IllegalArgumentException("Invalid sort field: " + field);
-            }
-            
-            orders.add(new Sort.Order(direction, field));
-        }
-        
-        return Sort.by(orders);
-    }
 
     /**
      * Get all products.
@@ -93,7 +72,7 @@ public class ProductService {
     public PageResponse<ProductItemResponse> getAllProducts(ProductFilterRequest request) {
         validateSortRequest(request);
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
         Specification<Product> spec = ProductSpecifications.withFilters(request);
         
         Page<Product> productPage = repository.findAll(spec, pageable);
