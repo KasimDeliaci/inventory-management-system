@@ -1,7 +1,6 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -9,7 +8,6 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -29,6 +27,7 @@ import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.spec.ProductSpecifications;
 import com.petek.inventoryService.utils.SortUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -109,7 +108,7 @@ public class ProductService {
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productId));    
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));    
     }
 
     /**
@@ -118,7 +117,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
 
         Optional.ofNullable(request.getProductName())
             .filter(name -> !name.trim().isEmpty())
@@ -155,7 +154,7 @@ public class ProductService {
      */
     public void deleteProduct(Long productId) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
         repository.delete(existingProduct);
     }
 
