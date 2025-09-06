@@ -75,6 +75,9 @@ public class ProductMapper {
             .build();
     }
 
+    /**
+     * Map Product entity to ProductItemResponse.
+     */
     public ProductItemResponse toProductItemResponse(Product product) {
         return ProductItemResponse.builder()
             .productId(product.getProductId())

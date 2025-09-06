@@ -17,7 +17,10 @@ import com.petek.inventoryService.dto.product.ProductFilterRequest;
 import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.dto.product.ProductUpdateRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductGetSuppliersFilterRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierItemResponse;
 import com.petek.inventoryService.service.ProductService;
+import com.petek.inventoryService.service.ProductSupplierService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductController {
 
     private final ProductService service;
+    private final ProductSupplierService productSupplierService;
 
     /**
      * Get all products.
@@ -79,6 +83,17 @@ public class ProductController {
     ) {
         service.deleteProduct(productId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Get suppliers.
+     */
+    @GetMapping("/{productId}/suppliers")
+    public ResponseEntity<PageResponse<ProductSupplierItemResponse>> getSuppliers(
+        @PathVariable Long productId,
+        @ModelAttribute @Valid ProductGetSuppliersFilterRequest request
+    ) {
+        return ResponseEntity.ok(productSupplierService.getSuppliers(productId, request));
     }
 
 }
