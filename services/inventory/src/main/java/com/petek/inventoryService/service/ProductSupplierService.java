@@ -1,17 +1,29 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
+import com.petek.inventoryService.dto.ProductSupplierFilterRequest;
 import com.petek.inventoryService.dto.ProductSupplierResponse;
 import com.petek.inventoryService.dto.ProductSupplierUpdateRequest;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.mapper.ProductSupplierMapper;
 import com.petek.inventoryService.repository.ProductSupplierRepository;
+import com.petek.inventoryService.spec.ProductSupplierSpecifications;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +36,60 @@ public class ProductSupplierService {
     private final ProductService productService;
     private final SupplierService supplierService;
     private final ProductSupplierMapper mapper;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "productSupplierId", "product", "supplier", "minOrderQuantity", "avgLeadTimeDays", "avgDelayDays", "totalOrdersCount", "delayedOrdersCount", "lastDeliveryDate", "updatedAt"
+    );
+
+    /**
+     * Utils
+     */
+    private Sort createSort(List<String> sortParams) {
+        List<Sort.Order> orders = new ArrayList<>();
+        
+        for (String sortParam : sortParams) {
+            Sort.Direction direction = Sort.Direction.ASC;
+            String field = sortParam;
+                
+            if (sortParam.startsWith("-")) {
+                direction = Sort.Direction.DESC;
+                field = sortParam.substring(1);
+            }
+            
+            if (!ALLOWED_SORT_FIELDS.contains(field)) {
+                throw new IllegalArgumentException("Invalid sort field: " + field);
+            }
+            
+            orders.add(new Sort.Order(direction, field));
+        }
+        
+        return Sort.by(orders);
+    }
+
+    /**
+     * Get all products.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ProductSupplierResponse> getAllProductSuppliers(ProductSupplierFilterRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
+        Specification<ProductSupplier> spec = ProductSupplierSpecifications.withFilters(request);
+
+        Page<ProductSupplier> productSupplierPage = repository.findAll(spec, pageable);
+
+        List<ProductSupplierResponse> productSupplierResponses = productSupplierPage.getContent()
+            .stream()
+            .map(mapper::toProductSupplierResponse)
+            .toList();
+
+        PageInfo pageInfo = new PageInfo(
+            productSupplierPage.getNumber(),
+            productSupplierPage.getSize(),
+            productSupplierPage.getTotalElements(),
+            productSupplierPage.getTotalPages()
+        );
+
+        return new PageResponse<ProductSupplierResponse>(productSupplierResponses, pageInfo);
+    }
 
     /**
      * Create a new productSupplier.
@@ -76,6 +142,7 @@ public class ProductSupplierService {
     /**
      * Update a productSupplier.
      */
+    @Transactional
     public ProductSupplierResponse updateProductSupplier(Long productSupplierId, ProductSupplierUpdateRequest request) {
         ProductSupplier existingProductSupplier = repository.findById(productSupplierId)
             .orElseThrow(() -> new EntityNotFoundException("ProductSupplier not found with id: " + productSupplierId));
