@@ -2,8 +2,8 @@ package com.petek.inventoryService.mapper;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
-import com.petek.inventoryService.dto.ProductSupplierResponse;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierCreateRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierResponse;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.entity.Supplier;
@@ -14,7 +14,7 @@ public class ProductSupplierMapper {
     /**
      * Map ProductSupplierCreateRequest to ProductSupplier entity.
      */
-    public ProductSupplier toProductSupplier(ProductSupplierCreateRequest request) {
+    public ProductSupplier toEntity(ProductSupplierCreateRequest request) {
         return ProductSupplier.builder()
             .product(Product.builder().productId(request.getProductId()).build())
             .supplier(Supplier.builder().supplierId(request.getSupplierId()).build())
@@ -27,7 +27,7 @@ public class ProductSupplierMapper {
     /**
      * Map ProductSupplier entity to ProductSupplierResponse.
      */
-    public ProductSupplierResponse toProductSupplierResponse(ProductSupplier productSupplier) {
+    public ProductSupplierResponse toResponse(ProductSupplier productSupplier) {
         return ProductSupplierResponse.builder()
             .productSupplierId(productSupplier.getProductSupplierId())
             .productId(productSupplier.getProduct().getProductId())
