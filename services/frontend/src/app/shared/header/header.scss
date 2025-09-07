@@ -1,0 +1,17 @@
+.page-header { display: grid; grid-template-columns: 1fr auto; align-items: center;
+  gap: 1rem; padding: 1.25rem 1.5rem .75rem; }
+.page-header h1 { margin: 0; font-size: 2rem; font-weight: 800; color: #13294b; }
+.actions { display: flex; gap: .75rem; align-items: center; }
+
+.search { display: flex; align-items: center; gap: .4rem; min-width: 22rem;
+  border: 1px solid #cfd4dc; border-radius: 6px; background: #fff; padding: .4rem .5rem; }
+.search input { border: 0; outline: 0; flex: 1; font-size: .95rem; }
+
+button { border: 0; border-radius: 8px; padding: .55rem .9rem; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem; }
+button.ghost { background: transparent; }
+button.filter { background: #eef2f7; }
+button.primary { background: #123a8a; color: #fff; }
+button.danger { background: #8e1c28; color: #fff; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+.i { width: 18px; height: 18px; }
