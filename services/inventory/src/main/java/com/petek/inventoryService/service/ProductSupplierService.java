@@ -14,12 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
-import com.petek.inventoryService.dto.productSupplier.ProductGetSuppliersFilterRequest;
+import com.petek.inventoryService.dto.product.ProductGetSuppliersFilterRequest;
+import com.petek.inventoryService.dto.product.ProductSupplierItemResponse;
 import com.petek.inventoryService.dto.productSupplier.ProductSupplierCreateRequest;
 import com.petek.inventoryService.dto.productSupplier.ProductSupplierFilterRequest;
-import com.petek.inventoryService.dto.productSupplier.ProductSupplierItemResponse;
 import com.petek.inventoryService.dto.productSupplier.ProductSupplierResponse;
 import com.petek.inventoryService.dto.productSupplier.ProductSupplierUpdateRequest;
+import com.petek.inventoryService.dto.supplier.SupplierGetProductsFilterRequest;
+import com.petek.inventoryService.dto.supplier.SupplierProductItemResponse;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.mapper.ProductSupplierMapper;
 import com.petek.inventoryService.repository.ProductSupplierRepository;
@@ -195,4 +197,29 @@ public class ProductSupplierService {
         return new PageResponse<ProductSupplierItemResponse>(productSupplierItemResponses, pageInfo);
     }
 
+    /**
+     * Get products of supplier.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<SupplierProductItemResponse> getProducts(Long supplierId, SupplierGetProductsFilterRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+        Specification<ProductSupplier> spec = ProductSupplierSpecifications.withFilters(supplierId, request);
+
+        Page<ProductSupplier> productSupplierPage = repository.findAll(spec, pageable);
+
+        List<SupplierProductItemResponse> supplierProductItemResponses = productSupplierPage.getContent()
+            .stream()
+            .map(mapper::toSupplierProductItemResponse)
+            .toList();
+
+        PageInfo pageInfo = new PageInfo(
+            productSupplierPage.getNumber(),
+            productSupplierPage.getSize(),
+            productSupplierPage.getTotalElements(),
+            productSupplierPage.getTotalPages()
+        );
+
+        return new PageResponse<SupplierProductItemResponse>(supplierProductItemResponses, pageInfo);   
+    }
+    
 }

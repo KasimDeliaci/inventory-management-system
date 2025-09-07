@@ -1,4 +1,4 @@
-package com.petek.inventoryService.dto;
+package com.petek.inventoryService.dto.supplier;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

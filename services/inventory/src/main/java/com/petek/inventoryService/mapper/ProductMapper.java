@@ -51,7 +51,7 @@ public class ProductMapper {
                     .filter(ps -> ps.getActive())
                     .map(ps -> {
                         try {
-                            return supplierMapper.toResponse(ps.getSupplier());
+                            return supplierMapper.toSupplierResponse(ps.getSupplier());
                         } catch (EntityNotFoundException e) {
                             return null;
                         }
@@ -64,7 +64,7 @@ public class ProductMapper {
                     .findFirst()
                     .map(ps -> {
                         try {
-                            return supplierMapper.toResponse(ps.getSupplier());
+                            return supplierMapper.toSupplierResponse(ps.getSupplier());
                         } catch (EntityNotFoundException e) {
                             return null;
                         }
