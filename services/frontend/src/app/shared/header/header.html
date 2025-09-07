@@ -1,0 +1,30 @@
+<header class="page-header">
+  <h1>{{ title }}</h1>
+
+  <div class="actions">
+    <div class="search">
+      <span class="icon">🔍</span>
+      <input
+        type="text"
+        [value]="query"
+        (input)="onInput($any($event.target).value)"
+        placeholder="Search" />
+      <button class="ghost" *ngIf="query" (click)="clearSearch.emit()">✖</button>
+    </div>
+
+    <button class="danger"
+            type="button"
+            [disabled]="deletableCount === 0"
+            (click)="deleteSelected.emit()">
+      <img class="i" src="assets/icons/trash.png" alt="delete" />
+      Delete <span *ngIf="deletableCount">({{ deletableCount }})</span>
+    </button>
+
+    <button class="filter" type="button" (click)="openFilters.emit()">
+      <img class="i" src="assets/icons/filter.png" alt="filters" />
+      Filters
+    </button>
+
+    <button class="primary" type="button" (click)="addProduct.emit()">+ Add product</button>
+  </div>
+</header>
