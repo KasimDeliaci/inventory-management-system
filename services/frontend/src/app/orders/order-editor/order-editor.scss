@@ -1,0 +1,233 @@
+/* order-editor.scss */
+:host { 
+  position: fixed; 
+  inset: 0; 
+  display: grid; 
+  place-items: center; 
+  z-index: 1000; 
+}
+
+.backdrop { 
+  position: absolute; 
+  inset: 0; 
+  background: rgba(0,0,0,.35); 
+}
+
+.modal {
+  position: relative;
+  width: min(1080px, 96vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  padding: 24px 24px 18px;
+  border: 3px solid #163a5a;
+}
+
+.close {
+  position: absolute; 
+  top: 10px; 
+  right: 12px;
+  background: transparent; 
+  border: 0; 
+  font-size: 22px; 
+  cursor: pointer; 
+  color: #163a5a;
+}
+
+.grid { 
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 16px; 
+}
+
+.row1, .row2, .row3 { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px; 
+  width: calc(100% - 300px);
+}
+
+.box {
+  border: 3px solid #163a5a; 
+  border-radius: 4px; 
+  background: #d4d6d7; 
+  padding: 8px;
+  display: grid; 
+  gap: 6px;
+  position: relative;
+}
+
+.box.big { 
+  height: 120px;
+  width: calc(100% - 300px);
+}
+
+.date-picker {
+  position: relative;
+}
+
+.label { 
+  font-weight: 700; 
+  color: #163a5a; 
+  font-size: 14px; 
+}
+
+.input, .date-button { 
+  width: 100%; 
+  border: 0; 
+  outline: none; 
+  background: transparent; 
+  font-size: 16px; 
+  padding: 4px 0;
+}
+
+.date-button {
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: inherit;
+  color: inherit;
+}
+
+.dropdown-arrow {
+  font-size: 12px;
+  color: #163a5a;
+}
+
+.date-dropdown {
+  position: absolute;
+  top: 100%;
+  left: -3px;
+  right: -3px;
+  background: white;
+  border: 3px solid #163a5a;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 1001;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.date-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-option {
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.date-option:hover {
+  background: #f0f0f0;
+}
+
+.date-option.selected {
+  background: #163a5a;
+  color: white;
+}
+
+.date-option:last-child {
+  border-bottom: none;
+}
+
+.textarea { 
+  width: 100%; 
+  height: 100%; 
+  resize: none; 
+  border: 0; 
+  outline: none; 
+  background: transparent; 
+  font-size: 16px; 
+  line-height: 1.4; 
+}
+
+select.input {
+  cursor: pointer;
+}
+
+.sidebar {
+  position: absolute; 
+  top: 50px; 
+  right: 24px; 
+  width: 260px;
+  display: grid; 
+  gap: 16px;
+}
+
+@media (max-width: 1000px) {
+  .sidebar { 
+    position: static; 
+    width: 100%; 
+  }
+  .row1, .row2, .row3, .box.big { 
+    width: 100%; 
+  }
+}
+
+.actions { 
+  margin-top: 14px; 
+  display: flex; 
+  gap: 16px; 
+  justify-content: flex-end; 
+}
+
+.btn { 
+  border: 0; 
+  border-radius: 10px; 
+  padding: 12px 28px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  transition: all 0.2s ease;
+}
+
+.btn.primary { 
+  background: #123a8a; 
+  color: #fff; 
+}
+
+.btn.primary:hover {
+  background: #0f2f75;
+}
+
+.btn.danger { 
+  background: #8e1c28; 
+  color: #fff; 
+}
+
+.btn.danger:hover {
+  background: #7a1822;
+}
+
+.btn:disabled { 
+  opacity: .6; 
+  cursor: not-allowed; 
+}
+
+/* Custom scrollbar for date dropdown */
+.date-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.date-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.date-dropdown::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.date-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

@@ -1,0 +1,140 @@
+<!-- order-editor.html -->
+<div class="backdrop" (click)="close.emit()"></div>
+
+<section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+  <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
+  
+  <form [formGroup]="form" (ngSubmit)="onSave()">
+    <div class="grid">
+      <!-- Header Section -->
+      <div class="row1">
+        <label class="box">
+          <span class="label">ORDER ID</span>
+          <input type="text" class="input" formControlName="id" [readonly]="!isNewOrder">
+        </label>
+        
+        <label class="box">
+          <span class="label">ORDER TYPE</span>
+          <select class="input" formControlName="type" (change)="onTypeChange()" [disabled]="!isNewOrder">
+            <option value="purchase">Purchase Order</option>
+            <option value="sales">Sales Order</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Product and Supplier/Customer Section -->
+      <div class="row2">
+        <label class="box">
+          <span class="label">PRODUCT</span>
+          <select class="input" formControlName="productId">
+            <option value="">Select Product</option>
+            <option *ngFor="let product of products" [value]="product.id">
+              {{ product.name }} ({{ product.id }})
+            </option>
+          </select>
+        </label>
+        
+        <label class="box" *ngIf="isPurchaseOrder">
+          <span class="label">SUPPLIER</span>
+          <select class="input" formControlName="supplierId">
+            <option value="">Select Supplier</option>
+            <option *ngFor="let supplier of suppliers" [value]="supplier.id">
+              {{ supplier.name }}
+            </option>
+          </select>
+        </label>
+        
+        <label class="box" *ngIf="!isPurchaseOrder">
+          <span class="label">CUSTOMER</span>
+          <select class="input" formControlName="customerId">
+            <option value="">Select Customer</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">
+              {{ customer.name }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Date Section with Dropdown -->
+      <div class="row3">
+        <div class="box date-picker">
+          <span class="label">ORDER DATE</span>
+          <button type="button" class="date-button" (click)="toggleOrderDatePicker()">
+            {{ formatDateDisplay(form.value.orderDate || '') }}
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="date-dropdown" *ngIf="orderDateOpen">
+            <div class="date-options">
+              <button 
+                type="button" 
+                class="date-option"
+                *ngFor="let date of generateDateOptions()" 
+                [class.selected]="form.value.orderDate === date"
+                (click)="setOrderDate(date)">
+                {{ formatDateDisplay(date) }}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="box date-picker">
+          <span class="label">DELIVERY DATE</span>
+          <button type="button" class="date-button" (click)="toggleDeliveryDatePicker()">
+            {{ formatDateDisplay(form.value.deliveryDate || '') }}
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="date-dropdown" *ngIf="deliveryDateOpen">
+            <div class="date-options">
+              <button 
+                type="button" 
+                class="date-option"
+                *ngFor="let date of generateDateOptions()" 
+                [class.selected]="form.value.deliveryDate === date"
+                (click)="setDeliveryDate(date)">
+                {{ formatDateDisplay(date) }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantity, Price, Status Section -->
+      <div class="sidebar">
+        <label class="box">
+          <span class="label">QUANTITY</span>
+          <input type="number" class="input" formControlName="quantity" min="1">
+        </label>
+        
+        <label class="box">
+          <span class="label">TOTAL PRICE</span>
+          <input type="number" class="input" formControlName="totalPrice" min="0" step="0.01">
+        </label>
+        
+        <label class="box">
+          <span class="label">STATUS</span>
+          <select class="input" formControlName="status">
+            <option *ngFor="let status of currentStatuses" [value]="status">
+              {{ status.replace('_', ' ') | titlecase }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Notes Section -->
+      <label class="box big">
+        <span class="label">NOTES</span>
+        <textarea class="textarea" formControlName="notes" placeholder="Optional notes about this order..."></textarea>
+      </label>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn primary" type="submit" [disabled]="form.invalid">
+          SAVE ORDER
+        </button>
+        <button class="btn danger" type="button" (click)="onDelete()" [disabled]="isNewOrder">
+          DELETE ORDER
+        </button>
+      </div>
+    </div>
+  </form>
+</section>
