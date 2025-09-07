@@ -1,4 +1,6 @@
-package com.petek.inventoryService.dto.productSupplier;
+package com.petek.inventoryService.dto.product;
+
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

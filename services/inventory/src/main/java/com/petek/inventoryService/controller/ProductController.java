@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.product.ProductCreateRequest;
 import com.petek.inventoryService.dto.product.ProductFilterRequest;
+import com.petek.inventoryService.dto.product.ProductGetSuppliersFilterRequest;
 import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductSupplierItemResponse;
 import com.petek.inventoryService.dto.product.ProductUpdateRequest;
-import com.petek.inventoryService.dto.productSupplier.ProductGetSuppliersFilterRequest;
-import com.petek.inventoryService.dto.productSupplier.ProductSupplierItemResponse;
 import com.petek.inventoryService.service.ProductService;
 import com.petek.inventoryService.service.ProductSupplierService;
 

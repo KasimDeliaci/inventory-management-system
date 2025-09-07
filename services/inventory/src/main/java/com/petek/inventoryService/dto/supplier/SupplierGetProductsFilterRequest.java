@@ -1,4 +1,4 @@
-package com.petek.inventoryService.dto.productSupplier;
+package com.petek.inventoryService.dto.supplier;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductGetSuppliersFilterRequest {
+public class SupplierGetProductsFilterRequest {
     @NotNull
     @Min(0)
     @Builder.Default

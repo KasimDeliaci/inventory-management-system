@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.supplier.SupplierCreateRequest;
 import com.petek.inventoryService.dto.supplier.SupplierFilterRequest;
+import com.petek.inventoryService.dto.supplier.SupplierGetProductsFilterRequest;
+import com.petek.inventoryService.dto.supplier.SupplierProductItemResponse;
 import com.petek.inventoryService.dto.supplier.SupplierResponse;
 import com.petek.inventoryService.dto.supplier.SupplierUpdateRequest;
+import com.petek.inventoryService.service.ProductSupplierService;
 import com.petek.inventoryService.service.SupplierService;
 
 import jakarta.validation.Valid;
@@ -27,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class SupplierController {
 
     private final SupplierService service;
+    private final ProductSupplierService productSupplierService;
 
     /**
      * Get all suppliers.
@@ -78,6 +82,17 @@ public class SupplierController {
     ) {
         service.deleteSupplier(supplierId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Get products.
+     */
+    @GetMapping("/{supplierId}/products")
+    public ResponseEntity<PageResponse<SupplierProductItemResponse>> getProducts(
+        @PathVariable Long supplierId,
+        @ModelAttribute @Valid SupplierGetProductsFilterRequest request
+    ) {
+        return ResponseEntity.ok(productSupplierService.getProducts(supplierId, request));
     }
 
 }
