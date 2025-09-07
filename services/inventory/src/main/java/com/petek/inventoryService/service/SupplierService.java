@@ -3,10 +3,8 @@ package com.petek.inventoryService.service;
 import java.time.Instant;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.supplier.SupplierCreateRequest;
 import com.petek.inventoryService.dto.supplier.SupplierResponse;
@@ -15,6 +13,7 @@ import com.petek.inventoryService.entity.Supplier;
 import com.petek.inventoryService.mapper.SupplierMapper;
 import com.petek.inventoryService.repository.SupplierRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -41,7 +40,7 @@ public class SupplierService {
     public SupplierResponse getSupplierById(Long supplierId) {
         return repository.findById(supplierId)
                 .map(mapper::toSupplierResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found with id: " + supplierId));
+                .orElseThrow(() -> new EntityNotFoundException("Supplier not found with id: " + supplierId));
     }
 
     /**
@@ -49,7 +48,7 @@ public class SupplierService {
      */
     public SupplierResponse updateSupplier(Long supplierId, SupplierUpdateRequest request) {
         Supplier existingSupplier = repository.findById(supplierId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Supplier not found with id: " + supplierId));
 
         Optional.ofNullable(request.getSupplierName())
             .filter(name -> !name.trim().isEmpty())
@@ -75,7 +74,7 @@ public class SupplierService {
      */
     public void deleteSupplier(Long supplierId) {
         Supplier existingSupplier = repository.findById(supplierId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Supplier not found with id: " + supplierId));
         repository.delete(existingSupplier);
     }
 
