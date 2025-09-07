@@ -1,0 +1,102 @@
+<!-- Backdrop -->
+<div class="backdrop" (click)="close.emit()"></div>
+<!-- Modal -->
+<section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+  <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
+  <div class="grid">
+    <!-- Left/top fields -->
+    <div class="row1">
+      <label class="box">
+        <span class="label">ID</span>
+        <input type="text" class="input" [value]="form.value.id"
+               (input)="form.controls.id.setValue(($any($event.target).value || ''))">
+      </label>
+      <label class="box">
+        <span class="label">NAME</span>
+        <input type="text" class="input" [value]="form.value.name"
+               (input)="form.controls.name.setValue(($any($event.target).value || ''))">
+      </label>
+    </div>
+    
+    <label class="box big">
+      <span class="label">DESCRIPTION</span>
+      <textarea class="textarea" [value]="form.value.description || ''"
+                (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
+    </label>
+    
+    <!-- Right column small boxes -->
+    <div class="sidebar">
+      <label class="box">
+        <span class="label">PRICE</span>
+        <input type="number" class="input" [value]="form.value.price ?? ''"
+               (input)="form.controls.price.setValue($any($event.target).valueAsNumber || null)">
+      </label>
+      <label class="box">
+        <span class="label">CATEGORY</span>
+        <input type="text" class="input" [value]="form.value.category || ''"
+               (input)="form.controls.category.setValue($any($event.target).value)">
+      </label>
+      <label class="box">
+        <span class="label">UNIT</span>
+        <input type="text" class="input" [value]="form.value.unit || ''"
+               (input)="form.controls.unit.setValue($any($event.target).value)">
+      </label>
+      <label class="box">
+        <span class="label">SAFETY STOCK</span>
+        <input type="number" class="input" [value]="form.value.safetyStock ?? ''"
+               (input)="form.controls.safetyStock.setValue($any($event.target).valueAsNumber || null)">
+      </label>
+      <label class="box">
+        <span class="label">REORDER POINT</span>
+        <input type="number" class="input" [value]="form.value.reorderPoint ?? ''"
+               (input)="form.controls.reorderPoint.setValue($any($event.target).valueAsNumber || null)">
+      </label>
+      <label class="box">
+        <span class="label">CURRENT STOCK</span>
+        <input type="number" class="input" [value]="form.value.currentStock ?? ''"
+               (input)="form.controls.currentStock.setValue($any($event.target).valueAsNumber || null)">
+      </label>
+    </div>
+    
+    <!-- Supplier table -->
+    <div class="supplier">
+      <div class="supplier-head">SUPPLIERS</div>
+      <div class="table">
+        <div class="thead">
+          <div>SELECT</div>
+          <div>PREFERRED</div>
+          <div>NAME</div>
+          <div>E-MAIL</div>
+          <div>PHONE</div>
+          <div>CITY</div>
+        </div>
+        <div class="table-body">
+          <div class="row2" *ngFor="let s of sortedSuppliers">
+            <div>
+              <input type="checkbox"
+                     [checked]="isActiveSupplier(s.id)"
+                     (change)="toggleActiveSupplier(s.id, $event)">
+            </div>
+            <div>
+              <input type="radio"
+                     name="preferred"
+                     [value]="s.id"
+                     [checked]="s.id === form.value.preferredSupplierId"
+                     (change)="setPreferredSupplier(s.id)">
+            </div>
+            <div>{{ s.name }}</div>
+            <div>{{ s.email }}</div>
+            <div>{{ s.phone }}</div>
+            <div>{{ s.city }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn primary" type="button" (click)="onSave()">SAVE</button>
+      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!value?.id">DELETE</button>
+    </div>
+  </div>
+</section>
