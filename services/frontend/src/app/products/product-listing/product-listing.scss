@@ -1,0 +1,18 @@
+.list-wrapper {
+  background: #f7f9fc;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: .75rem 1.5rem 1.5rem;
+  border: 1px solid #e3e8ef;
+}
+table { width: 100%; border-collapse: collapse; background: #f1f3f6; }
+thead th {
+  text-align: left;
+  padding: .85rem .8rem;
+  background: #c9cdd3;
+  color: #222;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+thead th.chk { width: 42px; }
+thead th.status { width: 80px; text-align: center; }

@@ -1,0 +1,29 @@
+<section class="list-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th class="chk">
+          <input type="checkbox"
+                 [checked]="allSelected"
+                 (change)="toggleAll($any($event.target).checked)" />
+        </th>
+        <th>ID</th>
+        <th>NAME</th>
+        <th>CATEGORY</th>
+        <th>UNIT</th>
+        <th>INVENTORY</th>
+        <th>SUPPLIER</th>
+        <th class="status">STATUS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <app-product
+        *ngFor="let p of products"
+        [product]="p"
+        (rowClick)="edit.emit($event)"
+        (toggle)="selectionChange.emit()"
+        (statusChange)="statusChange.emit($event)">
+      </app-product>
+    </tbody>
+  </table>
+</section>
