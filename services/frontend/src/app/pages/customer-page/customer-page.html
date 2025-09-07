@@ -1,0 +1,31 @@
+<div class="layout">
+  <app-side-nav />
+  <main class="content">
+    <app-header
+      [title]="'Customer Listing'"
+      [query]="query()"
+      [deletableCount]="selectedCount()"
+      [filterOpen]="filterOpen()"
+      [segmentFilter]="segmentFilter()"
+      [addButtonText]="'+ Add customer'"
+      (queryChange)="query.set($event)"
+      (openFilters)="onOpenFilters()"
+      (segmentFilterSelect)="onFilterSelect($event)"
+      (addCustomer)="onAddCustomer()"
+      (deleteSelected)="deleteSelected()"
+      (clearSearch)="onClear()"
+    />
+    <app-customer-listing
+      [customers]="customers()"
+      (edit)="openEditorFor($event)"
+      (selectionChange)="bumpSelection()">
+    </app-customer-listing>
+  </main>
+</div>
+<app-customer-editor
+  *ngIf="editorOpen()"
+  [value]="editing()"
+  (close)="closeEditor()"
+  (save)="handleSave($event)"
+  (delete)="handleDelete($event)">
+</app-customer-editor>
