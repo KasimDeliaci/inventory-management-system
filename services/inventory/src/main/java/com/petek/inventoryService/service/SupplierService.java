@@ -31,7 +31,7 @@ public class SupplierService {
         Supplier supplier = mapper.toSupplier(request);
         supplier.setCreatedAt(Instant.now());
         supplier.setUpdatedAt(Instant.now());
-        return mapper.toResponse(repository.save(supplier));
+        return mapper.toSupplierResponse(repository.save(supplier));
     }
 
     /**
@@ -40,7 +40,7 @@ public class SupplierService {
     @Transactional(readOnly = true)
     public SupplierResponse getSupplierById(Long supplierId) {
         return repository.findById(supplierId)
-                .map(mapper::toResponse)
+                .map(mapper::toSupplierResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found with id: " + supplierId));
     }
 
@@ -67,7 +67,7 @@ public class SupplierService {
             .filter(city -> !city.trim().isEmpty())
             .ifPresent(existingSupplier::setCity);
 
-        return mapper.toResponse(repository.save(existingSupplier));
+        return mapper.toSupplierResponse(repository.save(existingSupplier));
     }
 
     /**

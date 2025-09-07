@@ -24,7 +24,7 @@ public class SupplierMapper {
     /**
      * Map Supplier entity to SupplierResponse.
      */
-    public SupplierResponse toResponse(Supplier supplier) {
+    public SupplierResponse toSupplierResponse(Supplier supplier) {
         return SupplierResponse.builder()
             .supplierId(supplier.getSupplierId())
             .supplierName(supplier.getSupplierName())
