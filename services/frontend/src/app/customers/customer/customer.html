@@ -1,0 +1,18 @@
+<tr (click)="rowClick.emit(customer)">
+  <td class="chk">
+    <input type="checkbox"
+           [(ngModel)]="customer.selected"
+           (change)="toggle.emit(!!customer.selected)"
+           (click)="$event.stopPropagation()" />
+  </td>
+  <td>{{ customer.id }}</td>
+  <td class="name">{{ customer.name }}</td>
+  <td>
+    <span class="segment-badge" [ngClass]="segmentClass">
+      {{ customer.segment.toUpperCase() }}
+    </span>
+  </td>
+  <td>{{ customer.email }}</td>
+  <td>{{ customer.phone }}</td>
+  <td>{{ customer.city }}</td>
+</tr>
