@@ -1,0 +1,34 @@
+<div class="layout">
+  <app-side-nav />
+
+  <main class="content">
+    <app-header
+      [title]="'Supplier Listing'"
+      [query]="query()"
+      [deletableCount]="selectedCount()"
+      [filterOpen]="filterOpen()"
+      [addButtonText]="'+ Add supplier'"
+      [showFilters]="false"
+      (queryChange)="query.set($event)"
+      (openFilters)="onOpenFilters()"
+      (addProduct)="onAddSupplier()"
+      (deleteSelected)="deleteSelected()"
+      (clearSearch)="onClear()"
+    />
+
+    <app-supplier-listing
+      [suppliers]="suppliers()"
+      (edit)="openEditorFor($event)"
+      (selectionChange)="bumpSelection()">
+    </app-supplier-listing>
+  </main>
+</div>
+
+<app-supplier-editor
+  *ngIf="editorOpen()"
+  [value]="editing()"
+  [associatedProducts]="editing() ? getSupplierProducts(editing()!.id) : []"
+  (close)="closeEditor()"
+  (save)="handleSave($event)"
+  (delete)="handleDelete($event)">
+</app-supplier-editor>

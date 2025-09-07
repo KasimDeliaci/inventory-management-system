@@ -20,7 +20,7 @@
       Delete <span *ngIf="deletableCount">({{ deletableCount }})</span>
     </button>
 
-    <div class="filter-container">
+    <div class="filter-container" *ngIf="showFilters">
       <button class="filter" type="button" (click)="openFilters.emit()">
         <img class="i" src="assets/icons/filter.png" alt="filters" />
         Filters
@@ -58,6 +58,6 @@
       </div>
     </div>
 
-    <button class="primary" type="button" (click)="addProduct.emit()">+ Add product</button>
+    <button class="primary" type="button" (click)="addProduct.emit()">{{ addButtonText }}</button>
   </div>
 </header>

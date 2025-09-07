@@ -1,0 +1,240 @@
+:host {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+}
+
+.backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+}
+
+.modal {
+    position: relative;
+    width: min(1000px, 95vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 32px;
+    border: 1px solid #e5e7eb;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    cursor: pointer;
+    color: #163a5a;
+    z-index: 10;
+}
+
+.close:hover {
+    color: #d64545;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+/* Main fields grid - 5 boxes in a row */
+.main-fields {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .main-fields {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .main-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+.box {
+    border: 3px solid #163a5a;
+    border-radius: 4px;
+    background: #d4d6d7;
+    padding: 8px;
+    display: grid;
+    gap: 6px;
+    position: relative;
+}
+
+.label {
+    font-weight: 700;
+    color: #163a5a;
+    font-size: 14px;
+}
+
+input {
+    width: 90%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 2px;
+    transition: box-shadow 0.2s ease;
+    color: #163a5a;
+}
+
+input:focus {
+    box-shadow: 0 0 0 2px #2563eb;
+    background: rgba(255, 255, 255, 0.1); 
+}
+
+input.invalid {
+    box-shadow: 0 0 0 2px #d64545;
+    background: rgba(214, 69, 69, 0.05);
+}
+
+input:readonly {
+    background: rgba(0, 0, 0, 0.05);
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+input::placeholder {
+    color: #6b7280;
+    opacity: 0.7;
+}
+
+/* Error message styling */
+.error {
+    color: #d64545;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* Product responsibilities section */
+.responsibilities {
+    border: 3px solid #163a5a;
+    border-radius: 4px;
+    background: #d4d6d7;
+    overflow: hidden;
+}
+
+.section-head {
+    background: #9a9c9f;
+    font-weight: 800;
+    color: #1f2430;
+    padding: 10px 12px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.tags-container {
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 50px;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+/* Product responsibility tags */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: help;
+    transition: all 0.2s ease;
+    position: relative;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tag.preferred {
+    background: #20bf55;
+    color: white;
+    box-shadow: 0 2px 4px rgba(32, 191, 85, 0.3);
+}
+
+.tag.preferred::before {
+    content: '★';
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.tag.active {
+    background: #cfa11f;
+    color: white;
+    box-shadow: 0 2px 4px rgba(207, 161, 31, 0.3);
+}
+
+.tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Actions */
+.actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.btn.primary {
+    background: #123a8a;
+    color: #fff;
+}
+
+.btn.primary:hover:not(:disabled) {
+    background: #0f2f75;
+}
+
+.btn.danger {
+    background: #8e1c28;
+    color: #fff;
+}
+
+.btn.danger:hover:not(:disabled) {
+    background: #7a1822;
+}
+
+.btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* Empty state for no products */
+.tags-container:empty::after {
+    content: 'No product responsibilities';
+    color: #666;
+    font-style: italic;
+    font-size: 14px;
+}

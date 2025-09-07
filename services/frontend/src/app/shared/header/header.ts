@@ -15,6 +15,8 @@ export class Header {
   @Input() deletableCount = 0;
   @Input() filterOpen = false;
   @Input() statusFilter: ProductStatus | 'all' = 'all';
+  @Input() addButtonText = '+ Add product'; // Allow customization of add button text
+  @Input() showFilters = true; // Allow hiding filters for supplier page
 
   @Output() queryChange = new EventEmitter<string>();
   @Output() openFilters = new EventEmitter<void>();
