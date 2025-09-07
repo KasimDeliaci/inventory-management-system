@@ -1,0 +1,15 @@
+:host { display: contents; }
+
+td, th {
+  padding: .9rem .8rem;
+  border-bottom: 1px solid #e7ebf1;
+  font-size: .92rem;
+  color: #2a2f36;
+}
+td.chk { width: 42px; }
+td.name { min-width: 200px; }
+
+tr:hover {
+  background: #f0f2f5;
+  cursor: pointer;
+}

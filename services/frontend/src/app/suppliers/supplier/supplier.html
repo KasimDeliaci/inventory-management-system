@@ -1,0 +1,13 @@
+<tr (click)="rowClick.emit(supplier)">
+  <td class="chk">
+    <input type="checkbox"
+           [(ngModel)]="supplier.selected"
+           (change)="toggle.emit(!!supplier.selected)"
+           (click)="$event.stopPropagation()" />
+  </td>
+  <td>{{ supplier.id }}</td>
+  <td class="name">{{ supplier.name }}</td>
+  <td>{{ supplier.email }}</td>
+  <td>{{ supplier.phone }}</td>
+  <td>{{ supplier.city }}</td>
+</tr>
