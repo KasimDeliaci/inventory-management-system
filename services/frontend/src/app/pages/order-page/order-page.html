@@ -1,0 +1,47 @@
+<div class="layout">
+  <app-side-nav />
+
+  <main class="content">
+    <app-header
+      title="Orders"
+      [query]="query()"
+      [deletableCount]="selectedCount()"
+      [filterOpen]="filterOpen()"
+      [typeFilter]="typeFilter()"
+      [orderStatusFilter]="statusFilter()"
+      [showFilters]="true"
+      [showAddButton]="false"
+      [customActionButtons]="getCustomActionButtons()"
+      (queryChange)="query.set($event)"
+      (clearSearch)="onClear()"
+      (deleteSelected)="deleteSelected()"
+      (openFilters)="onOpenFilters()"
+      (typeFilterSelect)="onTypeFilterSelect($event)"
+      (statusFilterSelect)="onStatusFilterSelect($event)"
+      (customAction)="onCustomAction($event)">
+    </app-header>
+
+    <div class="order-content">
+      <app-order-listing
+        [orders]="orders()"
+        [suppliers]="suppliers()"
+        [customers]="customers()"
+        [products]="products()"
+        (edit)="openEditorFor($event)"
+        (selectionChange)="bumpSelection()"
+        (statusChange)="onStatusChange($event)">
+      </app-order-listing>
+    </div>
+  </main>
+</div>
+
+<app-order-editor
+  *ngIf="editorOpen()"
+  [value]="editing()"
+  [suppliers]="suppliers()"
+  [customers]="customers()"
+  [products]="products()"
+  (close)="closeEditor()"
+  (save)="handleSave($event)"
+  (delete)="handleDelete($event)">
+</app-order-editor>

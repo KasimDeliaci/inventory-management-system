@@ -1,0 +1,34 @@
+<!-- order-listing.html -->
+<section class="list-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th class="chk">
+          <input type="checkbox"
+                 [checked]="allSelected"
+                 (change)="toggleAll($any($event.target).checked)" />
+        </th>
+        <th>TYPE</th>
+        <th>ID</th>
+        <th>SUPPLIER/CUSTOMER</th>
+        <th>ORDER DATE</th>
+        <th>DELIVERY DATE</th>
+        <th>QUANTITY</th>
+        <th>TOTAL PRICE</th>
+        <th class="status">STATUS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <app-order
+        *ngFor="let order of orders"
+        [order]="order"
+        [suppliers]="suppliers"
+        [customers]="customers"
+        [products]="products"
+        (rowClick)="edit.emit($event)"
+        (toggle)="selectionChange.emit()"
+        (statusChange)="statusChange.emit($event)">
+      </app-order>
+    </tbody>
+  </table>
+</section>
