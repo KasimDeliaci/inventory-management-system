@@ -25,7 +25,7 @@ public class CustomerMapper {
     /**
      * Map Customer entity to CustomerResponse.
      */
-    public CustomerResponse toResponse(Customer customer) {
+    public CustomerResponse toCustomerResponse(Customer customer) {
         return CustomerResponse.builder()
             .customerId(customer.getCustomerId())
             .customerName(customer.getCustomerName())
@@ -34,6 +34,7 @@ public class CustomerMapper {
             .phone(customer.getPhone())
             .city(customer.getCity())
             .createdAt(customer.getCreatedAt())
+            .updatedAt(customer.getUpdatedAt())
             .build();
     }
 

@@ -29,7 +29,7 @@ public class CustomerService {
         Customer customer = mapper.toCustomer(request);
         customer.setCreatedAt(Instant.now());
         customer.setUpdatedAt(Instant.now());
-        return mapper.toResponse(repository.save(customer));
+        return mapper.toCustomerResponse(repository.save(customer));
     }
 
     /**
@@ -37,7 +37,7 @@ public class CustomerService {
      */
     public CustomerResponse getCustomerById(Long customerId) {
         return repository.findById(customerId)
-                .map(mapper::toResponse)
+                .map(mapper::toCustomerResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
     }
 
@@ -67,7 +67,7 @@ public class CustomerService {
             .filter(city -> !city.trim().isEmpty())
             .ifPresent(existingCustomer::setCity);
 
-        return mapper.toResponse(repository.save(existingCustomer));
+        return mapper.toCustomerResponse(repository.save(existingCustomer));
     }
 
     /**

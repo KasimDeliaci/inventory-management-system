@@ -21,4 +21,5 @@ public class CustomerResponse {
     private String phone;
     private String city;
     private Instant createdAt;
+    private Instant updatedAt;
 }
