@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { Product } from '../models/product.model';
 import { Supplier } from '../models/supplier.model';
 import { Customer } from '../models/customer.model';
+import { Order, OrderType, PurchaseOrderStatus, SalesOrderStatus } from '../models/order.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MockDataService {
   getProducts(): Product[] {
@@ -411,6 +412,143 @@ export class MockDataService {
         email: 'jack.taylor@example.com',
         phone: '+90 510 000 11 22',
         city: 'Mersin',
+      },
+    ];
+  }
+
+  getOrders(): Order[] {
+    return [
+      {
+        id: 'PO-001',
+        type: 'purchase',
+        supplierId: 'SUP-001',
+        orderDate: '2024-09-01',
+        deliveryDate: '2024-09-15',
+        quantity: 500,
+        totalPrice: 25000,
+        status: 'received',
+        productId: 'ID-001',
+      },
+      {
+        id: 'PO-002',
+        type: 'purchase',
+        supplierId: 'SUP-002',
+        orderDate: '2024-09-03',
+        deliveryDate: '2024-09-20',
+        quantity: 100,
+        totalPrice: 8500,
+        status: 'in_transit',
+        productId: 'ID-002',
+      },
+      {
+        id: 'PO-003',
+        type: 'purchase',
+        supplierId: 'SUP-003',
+        orderDate: '2024-09-05',
+        deliveryDate: '2024-09-25',
+        quantity: 200,
+        totalPrice: 15000,
+        status: 'placed',
+        productId: 'ID-003',
+      },
+      {
+        id: 'PO-004',
+        type: 'purchase',
+        supplierId: 'SUP-004',
+        orderDate: '2024-08-28',
+        deliveryDate: '2024-09-10',
+        quantity: 50,
+        totalPrice: 3200,
+        status: 'canceled',
+        productId: 'ID-004',
+      },
+      {
+        id: 'SO-001',
+        type: 'sales',
+        customerId: 'CUST-001',
+        orderDate: '2024-09-02',
+        deliveryDate: '2024-09-16',
+        quantity: 10,
+        totalPrice: 2500,
+        status: 'delivered',
+        productId: 'ID-012',
+      },
+      {
+        id: 'SO-002',
+        type: 'sales',
+        customerId: 'CUST-002',
+        orderDate: '2024-09-04',
+        deliveryDate: '2024-09-18',
+        quantity: 5,
+        totalPrice: 4500,
+        status: 'in_transit',
+        productId: 'ID-016',
+      },
+      {
+        id: 'SO-003',
+        type: 'sales',
+        customerId: 'CUST-003',
+        orderDate: '2024-09-06',
+        deliveryDate: '2024-09-22',
+        quantity: 20,
+        totalPrice: 3000,
+        status: 'allocated',
+        productId: 'ID-014',
+      },
+      {
+        id: 'SO-004',
+        type: 'sales',
+        customerId: 'CUST-004',
+        orderDate: '2024-09-07',
+        deliveryDate: '2024-09-25',
+        quantity: 2,
+        totalPrice: 800,
+        status: 'pending',
+        productId: 'ID-017',
+      },
+      {
+        id: 'SO-005',
+        type: 'sales',
+        customerId: 'CUST-005',
+        orderDate: '2024-08-30',
+        deliveryDate: '2024-09-12',
+        quantity: 15,
+        totalPrice: 1800,
+        status: 'canceled',
+        productId: 'ID-018',
+      },
+      {
+        id: 'PO-005',
+        type: 'purchase',
+        supplierId: 'SUP-008',
+        orderDate: '2024-09-08',
+        deliveryDate: '2024-09-28',
+        quantity: 1000,
+        totalPrice: 75000,
+        status: 'placed',
+        productId: 'ID-001',
+      },
+      {
+        id: 'SO-006',
+        type: 'sales',
+        customerId: 'CUST-006',
+        orderDate: '2024-09-08',
+        deliveryDate: '2024-09-24',
+        quantity: 3,
+        totalPrice: 1200,
+        status: 'pending',
+        productId: 'ID-021',
+      },
+      {
+        id: 'PO-006',
+        type: 'purchase',
+        supplierId: 'SUP-013',
+        orderDate: '2024-09-09',
+        deliveryDate: '2024-09-30',
+        quantity: 500,
+        totalPrice: 12500,
+        status: 'placed',
+        productId: 'ID-013',
       },
     ];
   }
