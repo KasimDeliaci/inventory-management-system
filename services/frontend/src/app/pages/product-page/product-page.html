@@ -1,0 +1,35 @@
+<div class="layout">
+  <app-side-nav />
+
+  <main class="content">
+    <app-header
+      [title]="'Product Listing'"
+      [query]="query()"
+      [deletableCount]="selectedCount()"
+      [filterOpen]="filterOpen()"
+      [statusFilter]="statusFilter()"
+      (queryChange)="query.set($event)"
+      (openFilters)="onOpenFilters()"
+      (filterSelect)="onFilterSelect($event)"
+      (addProduct)="onAddProduct()"
+      (deleteSelected)="deleteSelected()"
+      (clearSearch)="onClear()"
+    />
+
+    <app-product-listing
+      [products]="products()"
+      (edit)="openEditorFor($event)"
+      (selectionChange)="bumpSelection()"
+      (statusChange)="onStatusChange($event)">
+    </app-product-listing>
+  </main>
+</div>
+
+<app-product-editor
+  *ngIf="editorOpen()"
+  [value]="editing()"
+  [suppliers]="suppliers()"
+  (close)="closeEditor()"
+  (save)="handleSave($event)"
+  (delete)="handleDelete($event)">
+</app-product-editor>
