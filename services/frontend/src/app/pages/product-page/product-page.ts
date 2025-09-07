@@ -6,7 +6,7 @@ import { ProductListingComponent } from '../../products/product-listing/product-
 import { ProductEditorComponent } from '../../products/product-editor/product-editor';
 import { Product, ProductStatus } from '../../models/product.model';
 import { Supplier } from '../../models/supplier.model';
-import { MockDataService } from './mock-data.service';
+import { MockDataService } from '../mock-data.service';
 
 @Component({
   selector: 'app-product-page',
