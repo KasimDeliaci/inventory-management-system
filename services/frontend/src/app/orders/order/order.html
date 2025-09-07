@@ -1,0 +1,26 @@
+<!-- order-row.html -->
+<tr [class.canceled]="order.status === 'canceled'" (click)="rowClick.emit(order)">
+  <td class="chk">
+    <input type="checkbox"
+           [(ngModel)]="order.selected"
+           (change)="toggle.emit(!!order.selected)"
+           (click)="$event.stopPropagation()" />
+  </td>
+  <td class="type">
+    <span class="type-badge" [ngClass]="typeClass">{{ typeDisplay }}</span>
+  </td>
+  <td class="order-id">{{ order.id }}</td>
+  <td class="supplier-customer">{{ supplierCustomerDisplay }}</td>
+  <td class="date">{{ formattedOrderDate }}</td>
+  <td class="date">{{ formattedDeliveryDate }}</td>
+  <td class="quantity">{{ order.quantity | number }}</td>
+  <td class="price">{{ formattedTotalPrice }}</td>
+  <td class="status">
+    <span class="status-dot clickable" 
+          [style.background-color]="statusColor"
+          [title]="'Click to change status (currently: ' + statusLabel + ')'"
+          (click)="onStatusClick($event)">
+    </span>
+    <span class="status-label">{{ statusLabel }}</span>
+  </td>
+</tr>
