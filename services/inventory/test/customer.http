@@ -1,7 +1,7 @@
 
 ### Get All Customers
 
-GET http://localhost:8000/api/v1/customers?page=1&size=10
+GET http://localhost:8000/api/v1/customers
 
 ### Create Customer
 
