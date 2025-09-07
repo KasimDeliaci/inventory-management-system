@@ -20,10 +20,43 @@
       Delete <span *ngIf="deletableCount">({{ deletableCount }})</span>
     </button>
 
-    <button class="filter" type="button" (click)="openFilters.emit()">
-      <img class="i" src="assets/icons/filter.png" alt="filters" />
-      Filters
-    </button>
+    <div class="filter-container">
+      <button class="filter" type="button" (click)="openFilters.emit()">
+        <img class="i" src="assets/icons/filter.png" alt="filters" />
+        Filters
+        <span class="filter-indicator" *ngIf="statusFilter !== 'all'"></span>
+      </button>
+      
+      <div class="filter-dropdown" *ngIf="filterOpen">
+        <button 
+          class="filter-option" 
+          [class.active]="statusFilter === 'all'"
+          (click)="onFilterClick('all')">
+          All
+        </button>
+        <button 
+          class="filter-option ok" 
+          [class.active]="statusFilter === 'ok'"
+          (click)="onFilterClick('ok')">
+          <span class="status-dot ok"></span>
+          OK
+        </button>
+        <button 
+          class="filter-option warning" 
+          [class.active]="statusFilter === 'warning'"
+          (click)="onFilterClick('warning')">
+          <span class="status-dot warning"></span>
+          Warning
+        </button>
+        <button 
+          class="filter-option critical" 
+          [class.active]="statusFilter === 'critical'"
+          (click)="onFilterClick('critical')">
+          <span class="status-dot critical"></span>
+          Critical
+        </button>
+      </div>
+    </div>
 
     <button class="primary" type="button" (click)="addProduct.emit()">+ Add product</button>
   </div>
