@@ -1,0 +1,106 @@
+<!-- Backdrop -->
+<div class="backdrop" (click)="close.emit()"></div>
+
+<!-- Modal -->
+<section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
+    
+    <form [formGroup]="form" (ngSubmit)="onSave()">
+        <div class="grid">
+            <!-- Top row - main supplier fields -->
+            <div class="main-fields">
+                <label class="box">
+                    <span class="label">ID</span>
+                    <input 
+                        type="text" 
+                        formControlName="id"
+                        [readonly]="!isNewSupplier"
+                        placeholder="Auto-generated if empty">
+                    <div class="error" *ngIf="getFieldError('id')">
+                        {{ getFieldError('id') }}
+                    </div>
+                </label>
+                
+                <label class="box">
+                    <span class="label">NAME *</span>
+                    <input 
+                        type="text" 
+                        formControlName="name"
+                        [class.invalid]="form.controls.name.invalid && form.controls.name.touched"
+                        placeholder="Enter supplier name">
+                    <div class="error" *ngIf="getFieldError('name')">
+                        {{ getFieldError('name') }}
+                    </div>
+                </label>
+                
+                <label class="box">
+                    <span class="label">E-MAIL *</span>
+                    <input 
+                        type="email" 
+                        formControlName="email"
+                        [class.invalid]="form.controls.email.invalid && form.controls.email.touched"
+                        placeholder="Enter email address">
+                    <div class="error" *ngIf="getFieldError('email')">
+                        {{ getFieldError('email') }}
+                    </div>
+                </label>
+                
+                <label class="box">
+                    <span class="label">PHONE *</span>
+                    <input 
+                        type="text" 
+                        formControlName="phone"
+                        [class.invalid]="form.controls.phone.invalid && form.controls.phone.touched"
+                        placeholder="Enter phone number">
+                    <div class="error" *ngIf="getFieldError('phone')">
+                        {{ getFieldError('phone') }}
+                    </div>
+                </label>
+                
+                <label class="box">
+                    <span class="label">CITY *</span>
+                    <input 
+                        type="text" 
+                        formControlName="city"
+                        [class.invalid]="form.controls.city.invalid && form.controls.city.touched"
+                        placeholder="Enter city name">
+                    <div class="error" *ngIf="getFieldError('city')">
+                        {{ getFieldError('city') }}
+                    </div>
+                </label>
+            </div>
+
+            <!-- Product responsibilities section -->
+            <div class="responsibilities" *ngIf="associatedProducts.length > 0">
+                <div class="section-head">PRODUCT RESPONSIBILITIES</div>
+                <div class="tags-container">
+                    <!-- Preferred products -->
+                    <div class="tag preferred" 
+                         *ngFor="let product of preferredProducts"
+                         [title]="'Preferred supplier for ' + product.name">
+                        {{ product.id }} - {{ product.name }}
+                    </div>
+                    <!-- Active products -->
+                    <div class="tag active" 
+                         *ngFor="let product of activeProducts"
+                         [title]="'Active supplier for ' + product.name">
+                        {{ product.id }} - {{ product.name }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn primary" type="submit" [disabled]="form.invalid">
+                    {{ isNewSupplier ? 'CREATE' : 'SAVE' }}
+                </button>
+                <button class="btn danger" 
+                        type="button" 
+                        (click)="onDelete()" 
+                        [disabled]="isNewSupplier">
+                    DELETE
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
