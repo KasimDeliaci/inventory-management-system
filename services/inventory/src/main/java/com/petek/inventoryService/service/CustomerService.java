@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.petek.inventoryService.dto.CustomerCreateRequest;
-import com.petek.inventoryService.dto.CustomerResponse;
-import com.petek.inventoryService.dto.CustomerUpdateRequest;
+import com.petek.inventoryService.dto.customer.CustomerCreateRequest;
+import com.petek.inventoryService.dto.customer.CustomerResponse;
+import com.petek.inventoryService.dto.customer.CustomerUpdateRequest;
 import com.petek.inventoryService.entity.Customer;
 import com.petek.inventoryService.mapper.CustomerMapper;
 import com.petek.inventoryService.repository.CustomerRepository;

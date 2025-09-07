@@ -2,8 +2,8 @@ package com.petek.inventoryService.mapper;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.CustomerCreateRequest;
-import com.petek.inventoryService.dto.CustomerResponse;
+import com.petek.inventoryService.dto.customer.CustomerCreateRequest;
+import com.petek.inventoryService.dto.customer.CustomerResponse;
 import com.petek.inventoryService.entity.Customer;
 
 @Service

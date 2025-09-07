@@ -1,4 +1,4 @@
-package com.petek.inventoryService.dto;
+package com.petek.inventoryService.dto.customer;
 
 import com.petek.inventoryService.entity.Customer.CustomerSegment;
 
