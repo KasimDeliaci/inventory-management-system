@@ -1,0 +1,20 @@
+<tr [class.low]="product.status === 'critical'" (click)="rowClick.emit(product)">
+  <td class="chk">
+    <input type="checkbox"
+           [(ngModel)]="product.selected"
+           (change)="toggle.emit(!!product.selected)"
+           (click)="$event.stopPropagation()" />
+  </td>
+  <td>{{ product.id }}</td>
+  <td class="name">{{ product.name }}</td>
+  <td>{{ product.category }}</td>
+  <td>{{ product.unit }}</td>
+  <td>{{ product.currentStock }}</td>
+  <td>{{ supplierDisplay }}</td>
+  <td class="status">
+    <span class="dot clickable" 
+          [ngClass]="statusClass" 
+          [title]="'Click to change status (currently: ' + product.status + ')'"
+          (click)="onStatusClick($event)"></span>
+  </td>
+</tr>

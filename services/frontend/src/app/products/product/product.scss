@@ -1,0 +1,65 @@
+:host { display: contents; }
+
+tr.low { background: #eeb7bf33; } /* light red tint for critical rows */
+
+td, th {
+  padding: .9rem .8rem;
+  border-bottom: 1px solid #e7ebf1;
+  font-size: .92rem;
+  color: #2a2f36;
+}
+td.chk { width: 42px; }
+td.name { min-width: 260px; }
+
+.status { 
+  width: 68px; 
+  text-align: center; 
+}
+
+.dot { 
+  width: 18px; 
+  height: 18px; 
+  border-radius: 999px; 
+  display: inline-block; 
+  background: #cbd5e1; 
+  transition: all 0.2s ease;
+}
+
+.dot.clickable {
+  cursor: pointer;
+  transform: scale(1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dot.clickable:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dot.clickable:active {
+  transform: scale(0.95);
+}
+
+.dot.ok { 
+  background: #20bf55; 
+}
+
+.dot.ok.clickable:hover {
+  background: #1ba84a;
+}
+
+.dot.warning { 
+  background: #cfa11f; 
+}
+
+.dot.warning.clickable:hover {
+  background: #b8911c;
+}
+
+.dot.critical { 
+  background: #d64545; 
+}
+
+.dot.critical.clickable:hover {
+  background: #c23e3e;
+}
