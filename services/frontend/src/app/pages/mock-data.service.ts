@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Product } from '../models/product.model';
 import { Supplier } from '../models/supplier.model';
+import { Customer } from '../models/customer.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MockDataService {
-
   getProducts(): Product[] {
     return [
       {
@@ -18,7 +18,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-008',
         activeSupplierIds: ['SUP-003', 'SUP-001', 'SUP-008'],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-002',
@@ -29,7 +28,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-002',
         activeSupplierIds: [],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-003',
@@ -40,7 +38,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-003',
         activeSupplierIds: [],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-004',
@@ -51,7 +48,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-004',
         activeSupplierIds: [],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-008',
@@ -62,7 +58,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-008',
         activeSupplierIds: [],
         status: 'warning',
-        selected: false,
       },
       {
         id: 'ID-009',
@@ -73,7 +68,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-009',
         activeSupplierIds: ['SUP-010'],
         status: 'warning',
-        selected: false,
       },
       {
         id: 'ID-010',
@@ -84,7 +78,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-010',
         activeSupplierIds: [],
         status: 'critical',
-        selected: false,
       },
       {
         id: 'ID-011',
@@ -95,7 +88,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-011',
         activeSupplierIds: [],
         status: 'critical',
-        selected: false,
       },
       {
         id: 'ID-012',
@@ -106,7 +98,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-012',
         activeSupplierIds: [],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-013',
@@ -117,7 +108,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-013',
         activeSupplierIds: ['SUP-014'],
         status: 'critical',
-        selected: false,
       },
       {
         id: 'ID-014',
@@ -128,7 +118,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-014',
         activeSupplierIds: [],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-015',
@@ -139,7 +128,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-015',
         activeSupplierIds: [],
         status: 'warning',
-        selected: false,
       },
       {
         id: 'ID-016',
@@ -150,7 +138,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-016',
         activeSupplierIds: ['SUP-018'],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-017',
@@ -161,7 +148,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-017',
         activeSupplierIds: [],
         status: 'warning',
-        selected: false,
       },
       {
         id: 'ID-018',
@@ -172,7 +158,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-019',
         activeSupplierIds: [],
         status: 'ok',
-        selected: false,
       },
       {
         id: 'ID-019',
@@ -183,7 +168,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-020',
         activeSupplierIds: [],
         status: 'critical',
-        selected: false,
       },
       {
         id: 'ID-020',
@@ -194,7 +178,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-021',
         activeSupplierIds: [],
         status: 'warning',
-        selected: false,
       },
       {
         id: 'ID-021',
@@ -205,7 +188,6 @@ export class MockDataService {
         preferredSupplierId: 'SUP-022',
         activeSupplierIds: ['SUP-023'],
         status: 'ok',
-        selected: false,
       },
     ];
   }
@@ -344,6 +326,91 @@ export class MockDataService {
         email: 'info@comfortfurn.com',
         phone: '+90 555 999 11 22',
         city: 'Manisa',
+      },
+    ];
+  }
+
+  getCustomers(): Customer[] {
+    return [
+      {
+        id: 'CUST-001',
+        name: 'Alice Johnson',
+        segment: 'individual',
+        email: 'alice.johnson@example.com',
+        phone: '+90 501 111 22 33',
+        city: 'Ankara',
+      },
+      {
+        id: 'CUST-002',
+        name: 'Bob Smith',
+        segment: 'sme',
+        email: 'bob.smith@example.com',
+        phone: '+90 502 222 33 44',
+        city: 'Istanbul',
+      },
+      {
+        id: 'CUST-003',
+        name: 'Clara Lee',
+        segment: 'institutional',
+        email: 'clara.lee@example.com',
+        phone: '+90 503 333 44 55',
+        city: 'Izmir',
+      },
+      {
+        id: 'CUST-004',
+        name: 'David Brown',
+        segment: 'sme',
+        email: 'david.brown@example.com',
+        phone: '+90 504 444 55 66',
+        city: 'Bursa',
+      },
+      {
+        id: 'CUST-005',
+        name: 'Eva Green',
+        segment: 'individual',
+        email: 'eva.green@example.com',
+        phone: '+90 505 555 66 77',
+        city: 'Antalya',
+      },
+      {
+        id: 'CUST-006',
+        name: 'Frank Miller',
+        segment: 'sme',
+        email: 'frank.miller@example.com',
+        phone: '+90 506 666 77 88',
+        city: 'Adana',
+      },
+      {
+        id: 'CUST-007',
+        name: 'Grace Kim',
+        segment: 'institutional',
+        email: 'grace.kim@example.com',
+        phone: '+90 507 777 88 99',
+        city: 'Gaziantep',
+      },
+      {
+        id: 'CUST-008',
+        name: 'Henry Wilson',
+        segment: 'sme',
+        email: 'henry.wilson@example.com',
+        phone: '+90 508 888 99 00',
+        city: 'Konya',
+      },
+      {
+        id: 'CUST-009',
+        name: 'Ivy Martinez',
+        segment: 'individual',
+        email: 'ivy.martinez@example.com',
+        phone: '+90 509 999 00 11',
+        city: 'Kayseri',
+      },
+      {
+        id: 'CUST-010',
+        name: 'Jack Taylor',
+        segment: 'institutional',
+        email: 'jack.taylor@example.com',
+        phone: '+90 510 000 11 22',
+        city: 'Mersin',
       },
     ];
   }

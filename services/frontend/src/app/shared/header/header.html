@@ -1,6 +1,5 @@
 <header class="page-header">
   <h1>{{ title }}</h1>
-
   <div class="actions">
     <div class="search">
       <span class="icon">🔍</span>
@@ -11,7 +10,7 @@
         placeholder="Search" />
       <button class="ghost" *ngIf="query" (click)="clearSearch.emit()">✖</button>
     </div>
-
+    
     <button class="danger"
             type="button"
             [disabled]="deletableCount === 0"
@@ -19,45 +18,77 @@
       <img class="i" src="assets/icons/trash.png" alt="delete" />
       Delete <span *ngIf="deletableCount">({{ deletableCount }})</span>
     </button>
-
+    
     <div class="filter-container" *ngIf="showFilters">
       <button class="filter" type="button" (click)="openFilters.emit()">
         <img class="i" src="assets/icons/filter.png" alt="filters" />
         Filters
-        <span class="filter-indicator" *ngIf="statusFilter !== 'all'"></span>
+        <span class="filter-indicator" *ngIf="hasActiveFilter"></span>
       </button>
       
-      <div class="filter-dropdown" *ngIf="filterOpen">
-        <button 
-          class="filter-option" 
+      <!-- Product Status Filters -->
+      <div class="filter-dropdown" *ngIf="filterOpen && isProductPage">
+        <button
+          class="filter-option"
           [class.active]="statusFilter === 'all'"
           (click)="onFilterClick('all')">
           All
         </button>
-        <button 
-          class="filter-option ok" 
+        <button
+          class="filter-option ok"
           [class.active]="statusFilter === 'ok'"
           (click)="onFilterClick('ok')">
           <span class="status-dot ok"></span>
           OK
         </button>
-        <button 
-          class="filter-option warning" 
+        <button
+          class="filter-option warning"
           [class.active]="statusFilter === 'warning'"
           (click)="onFilterClick('warning')">
           <span class="status-dot warning"></span>
           Warning
         </button>
-        <button 
-          class="filter-option critical" 
+        <button
+          class="filter-option critical"
           [class.active]="statusFilter === 'critical'"
           (click)="onFilterClick('critical')">
           <span class="status-dot critical"></span>
           Critical
         </button>
       </div>
+      
+      <!-- Customer Segment Filters -->
+      <div class="filter-dropdown" *ngIf="filterOpen && isCustomerPage">
+        <button
+          class="filter-option"
+          [class.active]="segmentFilter === 'all'"
+          (click)="onFilterClick('all')">
+          All Segments
+        </button>
+        <button
+          class="filter-option individual"
+          [class.active]="segmentFilter === 'individual'"
+          (click)="onFilterClick('individual')">
+          <span class="segment-badge individual"></span>
+          Individual
+        </button>
+        <button
+          class="filter-option sme"
+          [class.active]="segmentFilter === 'sme'"
+          (click)="onFilterClick('sme')">
+          <span class="segment-badge sme"></span>
+          SME
+        </button>
+        <button
+          class="filter-option institutional"
+          [class.active]="segmentFilter === 'institutional'"
+          (click)="onFilterClick('institutional')">
+          <span class="segment-badge institutional"></span>
+          Institutional
+        </button>
+      </div>
     </div>
-
-    <button class="primary" type="button" (click)="addProduct.emit()">{{ addButtonText }}</button>
+    
+    <button class="primary" type="button" (click)="onAddClick()">{{ addButtonText }}</button>
   </div>
 </header>

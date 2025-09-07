@@ -1,0 +1,35 @@
+:host { display: contents; }
+
+td, th {
+  padding: .9rem .8rem;
+  border-bottom: 1px solid #e7ebf1;
+  font-size: .92rem;
+  color: #2a2f36;
+}
+td.chk { width: 42px; }
+td.name { min-width: 260px; }
+
+.segment-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.segment-badge.sme {
+  background: #e0f2fe;
+  color: #0277bd;
+}
+
+.segment-badge.individual {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.segment-badge.institutional {
+  background: #fff3e0;
+  color: #f57c00;
+}

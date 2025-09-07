@@ -1,0 +1,55 @@
+<!-- Backdrop -->
+<div class="backdrop" (click)="close.emit()"></div>
+<!-- Modal -->
+<section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+  <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
+  <div class="grid">
+    <!-- Top row: ID, Name, E-mail -->
+    <div class="row1">
+      <label class="box">
+        <span class="label">ID</span>
+        <input type="text" class="input" [value]="form.value.id"
+               (input)="form.controls.id.setValue(($any($event.target).value || ''))">
+      </label>
+      <label class="box">
+        <span class="label">NAME</span>
+        <input type="text" class="input" [value]="form.value.name"
+               (input)="form.controls.name.setValue(($any($event.target).value || ''))">
+      </label>
+      <label class="box">
+        <span class="label">E-MAIL</span>
+        <input type="email" class="input" [value]="form.value.email"
+               (input)="form.controls.email.setValue(($any($event.target).value || ''))">
+      </label>
+    </div>
+    
+    <!-- Second row: Segment, City, Phone -->
+    <div class="row2">
+      <label class="box">
+        <span class="label">SEGMENT</span>
+        <select class="input" [value]="form.value.segment"
+                (change)="form.controls.segment.setValue($any($event.target).value)">
+          <option value="individual">Individual</option>
+          <option value="sme">SME</option>
+          <option value="institutional">Institutional</option>
+        </select>
+      </label>
+      <label class="box">
+        <span class="label">CITY</span>
+        <input type="text" class="input" [value]="form.value.city"
+               (input)="form.controls.city.setValue(($any($event.target).value || ''))">
+      </label>
+      <label class="box">
+        <span class="label">PHONE</span>
+        <input type="tel" class="input" [value]="form.value.phone"
+               (input)="form.controls.phone.setValue(($any($event.target).value || ''))">
+      </label>
+    </div>
+    
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn primary" type="button" (click)="onSave()">SAVE</button>
+      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!value?.id">DELETE</button>
+    </div>
+  </div>
+</section>

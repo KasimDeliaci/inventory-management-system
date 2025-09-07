@@ -1,0 +1,27 @@
+<section class="list-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th class="chk">
+          <input type="checkbox"
+                 [checked]="allSelected"
+                 (change)="toggleAll($any($event.target).checked)" />
+        </th>
+        <th>ID</th>
+        <th>NAME</th>
+        <th>SEGMENT</th>
+        <th>E-MAIL</th>
+        <th>PHONE</th>
+        <th>CITY</th>
+      </tr>
+    </thead>
+    <tbody>
+      <app-customer
+        *ngFor="let c of customers"
+        [customer]="c"
+        (rowClick)="edit.emit($event)"
+        (toggle)="selectionChange.emit()">
+      </app-customer>
+    </tbody>
+  </table>
+</section>
