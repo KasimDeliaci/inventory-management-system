@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-import com.petek.inventoryService.dto.SupplierResponse;
+import com.petek.inventoryService.dto.supplier.SupplierResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.petek.inventoryService.dto.SupplierCreateRequest;
-import com.petek.inventoryService.dto.SupplierResponse;
-import com.petek.inventoryService.dto.SupplierUpdateRequest;
+import com.petek.inventoryService.dto.supplier.SupplierCreateRequest;
+import com.petek.inventoryService.dto.supplier.SupplierResponse;
+import com.petek.inventoryService.dto.supplier.SupplierUpdateRequest;
 import com.petek.inventoryService.service.SupplierService;
 
 import jakarta.validation.Valid;

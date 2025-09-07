@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.petek.inventoryService.dto.SupplierCreateRequest;
-import com.petek.inventoryService.dto.SupplierResponse;
-import com.petek.inventoryService.dto.SupplierUpdateRequest;
+import com.petek.inventoryService.dto.supplier.SupplierCreateRequest;
+import com.petek.inventoryService.dto.supplier.SupplierResponse;
+import com.petek.inventoryService.dto.supplier.SupplierUpdateRequest;
 import com.petek.inventoryService.entity.Supplier;
 import com.petek.inventoryService.mapper.SupplierMapper;
 import com.petek.inventoryService.repository.SupplierRepository;
