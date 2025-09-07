@@ -1,0 +1,139 @@
+:host { 
+  position: fixed; 
+  inset: 0; 
+  display: grid; 
+  place-items: center; 
+  z-index: 1000; 
+}
+
+.backdrop { 
+  position: absolute; 
+  inset: 0; 
+  background: rgba(0,0,0,.35); 
+}
+
+.modal {
+  position: relative;
+  width: min(800px, 96vw);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  padding: 24px 24px 18px;
+  border: 3px solid #163a5a;
+}
+
+.close {
+  position: absolute; 
+  top: 10px; 
+  right: 12px;
+  background: transparent; 
+  border: 0; 
+  font-size: 22px; 
+  cursor: pointer; 
+  color: #163a5a;
+}
+
+.grid { 
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 16px; 
+}
+
+.row1,
+.row2 { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr 1fr; 
+  gap: 20px; 
+}
+
+.box {
+  border: 3px solid #163a5a; 
+  border-radius: 4px; 
+  background: #d4d6d7; 
+  padding: 8px;
+  display: grid; 
+  gap: 6px;
+}
+
+.label { 
+  font-weight: 700; 
+  color: #163a5a; 
+  font-size: 14px; 
+}
+
+.input {
+  width: 100%; 
+  border: 0; 
+  outline: none; 
+  background: transparent; 
+  font-size: 16px;
+  padding: 4px 0;
+}
+
+.input:focus {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  padding: 4px 6px;
+}
+
+select.input {
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+}
+
+select.input option {
+  background: #d4d6d7;
+  color: #163a5a;
+}
+
+/* Actions */
+.actions { 
+  margin-top: 14px; 
+  display: flex; 
+  gap: 16px; 
+  justify-content: flex-end; 
+}
+
+.btn { 
+  border: 0; 
+  border-radius: 10px; 
+  padding: 12px 28px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  transition: all 0.2s ease;
+}
+
+.btn.primary { 
+  background: #123a8a; 
+  color: #fff; 
+}
+
+.btn.primary:hover {
+  background: #0f2f75;
+}
+
+.btn.danger { 
+  background: #8e1c28; 
+  color: #fff; 
+}
+
+.btn.danger:hover {
+  background: #7a1822;
+}
+
+.btn:disabled { 
+  opacity: .6; 
+  cursor: not-allowed; 
+}
+
+@media (max-width: 768px) {
+  .row1,
+  .row2 { 
+    grid-template-columns: 1fr; 
+  }
+  
+  .modal {
+    width: min(500px, 96vw);
+  }
+}
