@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductStatus } from '../../models/product.model';
 import { CustomerSegment } from '../../models/customer.model';
+import { OrderType, PurchaseOrderStatus, SalesOrderStatus } from '../../models/order.model';
 
 @Component({
   selector: 'app-header',
@@ -22,8 +23,14 @@ export class Header {
   // Customer-specific inputs
   @Input() segmentFilter?: CustomerSegment | 'all';
   
-  @Input() addButtonText = '+ Add product'; // Allow customization of add button text
-  @Input() showFilters = true; // Allow hiding filters for supplier page
+  // Order-specific inputs
+  @Input() typeFilter?: OrderType | 'all';
+  @Input() orderStatusFilter?: PurchaseOrderStatus | SalesOrderStatus | 'all';
+  
+  @Input() addButtonText = '+ Add product';
+  @Input() showFilters = true;
+  @Input() showAddButton = true;
+  @Input() customActionButtons: { text: string; action: string; }[] = [];
   
   @Output() queryChange = new EventEmitter<string>();
   @Output() openFilters = new EventEmitter<void>();
@@ -36,10 +43,15 @@ export class Header {
   @Output() segmentFilterSelect = new EventEmitter<CustomerSegment | 'all'>();
   @Output() addCustomer = new EventEmitter<void>();
   
+  // Order-specific outputs
+  @Output() typeFilterSelect = new EventEmitter<OrderType | 'all'>();
+  @Output() statusFilterSelect = new EventEmitter<PurchaseOrderStatus | SalesOrderStatus | 'all'>();
+  @Output() customAction = new EventEmitter<string>();
+  
   @Output() clearSearch = new EventEmitter<void>();
   @Output() deleteSelected = new EventEmitter<void>();
 
-  // Determine if this is customer page or product page
+  // Determine page type
   get isCustomerPage(): boolean {
     return this.segmentFilter !== undefined;
   }
@@ -48,11 +60,17 @@ export class Header {
     return this.statusFilter !== undefined;
   }
 
+  get isOrderPage(): boolean {
+    return this.typeFilter !== undefined;
+  }
+
   get hasActiveFilter(): boolean {
     if (this.isProductPage) {
       return this.statusFilter !== 'all';
     } else if (this.isCustomerPage) {
       return this.segmentFilter !== 'all';
+    } else if (this.isOrderPage) {
+      return this.typeFilter !== 'all' || this.orderStatusFilter !== 'all';
     }
     return false;
   }
@@ -69,11 +87,23 @@ export class Header {
     }
   }
 
+  onOrderTypeFilterClick(type: OrderType | 'all') {
+    this.typeFilterSelect.emit(type);
+  }
+
+  onOrderStatusFilterClick(status: PurchaseOrderStatus | SalesOrderStatus | 'all') {
+    this.statusFilterSelect.emit(status);
+  }
+
   onAddClick() {
     if (this.isCustomerPage) {
       this.addCustomer.emit();
     } else {
       this.addProduct.emit();
     }
+  }
+
+  onCustomActionClick(action: string) {
+    this.customAction.emit(action);
   }
 }

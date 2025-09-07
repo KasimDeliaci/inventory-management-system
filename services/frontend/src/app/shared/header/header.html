@@ -87,8 +87,118 @@
           Institutional
         </button>
       </div>
+      
+      <!-- Order Filters -->
+      <div class="filter-dropdown" *ngIf="filterOpen && isOrderPage">
+        <!-- Type Filter -->
+        <div class="filter-section">
+          <button
+            class="filter-option"
+            [class.active]="typeFilter === 'all'"
+            (click)="onOrderTypeFilterClick('all')">
+            All Orders
+          </button>
+          <button
+            class="filter-option"
+            [class.active]="typeFilter === 'purchase'"
+            (click)="onOrderTypeFilterClick('purchase')">
+            Purchase Orders
+          </button>
+          <button
+            class="filter-option"
+            [class.active]="typeFilter === 'sales'"
+            (click)="onOrderTypeFilterClick('sales')">
+            Sales Orders
+          </button>
+        </div>
+        
+        <!-- Status Filter (shows different options based on type) -->
+        <div class="filter-section" *ngIf="typeFilter !== 'all'">
+          <div class="filter-label">Status</div>
+          <button
+            class="filter-option"
+            [class.active]="orderStatusFilter === 'all'"
+            (click)="onOrderStatusFilterClick('all')">
+            All Statuses
+          </button>
+          
+          <!-- Purchase Order Statuses -->
+          <ng-container *ngIf="typeFilter === 'purchase'">
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'placed'"
+              (click)="onOrderStatusFilterClick('placed')">
+              Placed
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'in_transit'"
+              (click)="onOrderStatusFilterClick('in_transit')">
+              In Transit
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'received'"
+              (click)="onOrderStatusFilterClick('received')">
+              Received
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'canceled'"
+              (click)="onOrderStatusFilterClick('canceled')">
+              Canceled
+            </button>
+          </ng-container>
+          
+          <!-- Sales Order Statuses -->
+          <ng-container *ngIf="typeFilter === 'sales'">
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'pending'"
+              (click)="onOrderStatusFilterClick('pending')">
+              Pending
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'allocated'"
+              (click)="onOrderStatusFilterClick('allocated')">
+              Allocated
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'in_transit'"
+              (click)="onOrderStatusFilterClick('in_transit')">
+              In Transit
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'delivered'"
+              (click)="onOrderStatusFilterClick('delivered')">
+              Delivered
+            </button>
+            <button
+              class="filter-option"
+              [class.active]="orderStatusFilter === 'canceled'"
+              (click)="onOrderStatusFilterClick('canceled')">
+              Canceled
+            </button>
+          </ng-container>
+        </div>
+      </div>
     </div>
     
-    <button class="primary" type="button" (click)="onAddClick()">{{ addButtonText }}</button>
+    <!-- Default Add Button -->
+    <button class="primary" type="button" *ngIf="showAddButton" (click)="onAddClick()">
+      {{ addButtonText }}
+    </button>
+    
+    <!-- Custom Action Buttons -->
+    <button 
+      class="primary" 
+      type="button" 
+      *ngFor="let btn of customActionButtons"
+      (click)="onCustomActionClick(btn.action)">
+      {{ btn.text }}
+    </button>
   </div>
 </header>
