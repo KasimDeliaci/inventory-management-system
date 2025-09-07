@@ -1,7 +1,7 @@
 
 ### Get All Suppliers
 
-GET http://localhost:8000/api/v1/suppliers?page=1&size=10
+GET http://localhost:8000/api/v1/suppliers
 
 ### Create Supplier
 

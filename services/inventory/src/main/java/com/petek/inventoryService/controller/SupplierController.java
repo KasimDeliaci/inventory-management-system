@@ -3,6 +3,7 @@ package com.petek.inventoryService.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.supplier.SupplierCreateRequest;
+import com.petek.inventoryService.dto.supplier.SupplierFilterRequest;
 import com.petek.inventoryService.dto.supplier.SupplierResponse;
 import com.petek.inventoryService.dto.supplier.SupplierUpdateRequest;
 import com.petek.inventoryService.service.SupplierService;
@@ -24,6 +27,16 @@ import lombok.RequiredArgsConstructor;
 public class SupplierController {
 
     private final SupplierService service;
+
+    /**
+     * Get all suppliers.
+     */
+    @GetMapping
+    public ResponseEntity<PageResponse<SupplierResponse>> getSuppliers(
+        @ModelAttribute @Valid SupplierFilterRequest request
+    ) {
+        return ResponseEntity.ok(service.getAllSUppliers(request));
+    }
 
     /**
      * Create a new supplier.

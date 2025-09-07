@@ -32,6 +32,7 @@ public class SupplierMapper {
             .phone(supplier.getPhone())
             .city(supplier.getCity())
             .createdAt(supplier.getCreatedAt())
+            .updatedAt(supplier.getUpdatedAt())
             .build();
     }
 

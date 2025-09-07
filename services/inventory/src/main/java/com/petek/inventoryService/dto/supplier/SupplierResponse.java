@@ -18,4 +18,5 @@ public class SupplierResponse {
     private String phone;
     private String city;
     private Instant createdAt;
+    private Instant updatedAt;
 }
