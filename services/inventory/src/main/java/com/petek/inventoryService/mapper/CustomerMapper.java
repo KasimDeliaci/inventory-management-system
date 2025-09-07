@@ -2,8 +2,8 @@ package com.petek.inventoryService.mapper;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.CustomerCreateRequest;
-import com.petek.inventoryService.dto.CustomerResponse;
+import com.petek.inventoryService.dto.customer.CustomerCreateRequest;
+import com.petek.inventoryService.dto.customer.CustomerResponse;
 import com.petek.inventoryService.entity.Customer;
 
 @Service
@@ -25,7 +25,7 @@ public class CustomerMapper {
     /**
      * Map Customer entity to CustomerResponse.
      */
-    public CustomerResponse toResponse(Customer customer) {
+    public CustomerResponse toCustomerResponse(Customer customer) {
         return CustomerResponse.builder()
             .customerId(customer.getCustomerId())
             .customerName(customer.getCustomerName())
@@ -34,6 +34,7 @@ public class CustomerMapper {
             .phone(customer.getPhone())
             .city(customer.getCity())
             .createdAt(customer.getCreatedAt())
+            .updatedAt(customer.getUpdatedAt())
             .build();
     }
 

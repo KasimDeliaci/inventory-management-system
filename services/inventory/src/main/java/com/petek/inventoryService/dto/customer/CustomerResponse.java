@@ -1,4 +1,4 @@
-package com.petek.inventoryService.dto;
+package com.petek.inventoryService.dto.customer;
 
 import java.time.Instant;
 
@@ -21,4 +21,5 @@ public class CustomerResponse {
     private String phone;
     private String city;
     private Instant createdAt;
+    private Instant updatedAt;
 }
