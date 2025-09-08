@@ -1,16 +1,27 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.stock.StockMovementCreateRequest;
+import com.petek.inventoryService.dto.stock.StockMovementFilterRequest;
 import com.petek.inventoryService.dto.stock.StockMovementResponse;
 import com.petek.inventoryService.entity.StockMovement;
 import com.petek.inventoryService.entity.StockMovement.MovementKind;
 import com.petek.inventoryService.entity.StockMovement.MovementSource;
 import com.petek.inventoryService.mapper.StockMovementMapper;
 import com.petek.inventoryService.repository.StockMovementRepository;
+import com.petek.inventoryService.spec.StockMovementSpecifications;
+import com.petek.inventoryService.utils.SortUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +35,41 @@ public class StockMovementService {
 
     private final ProductService productService;
     private final CurrentStockService currentStockService;
-    
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "movementId", "product", "movementKind", "movementSource", "quantity", "movementDate"
+    );
+
+    /**
+     * Get All Stock Movements.
+     */
+    public PageResponse<StockMovementResponse> getAllStockMovements(StockMovementFilterRequest request) {
+        // Validate movement date range
+        if (request.getMovementDateGte() != null && request.getMovementDateLte() != null && 
+            request.getMovementDateGte().isAfter(request.getMovementDateLte())) {
+            throw new IllegalArgumentException("movement_date_gte cannot be after movement_date_lte");
+        }
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+        Specification<StockMovement> spec = StockMovementSpecifications.withFilters(request);
+
+        Page<StockMovement> stockMovementPage = repository.findAll(spec, pageable);
+
+        List<StockMovementResponse> stockMovementResponses = stockMovementPage.getContent()
+            .stream()
+            .map(mapper::toStockMovementResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            stockMovementPage.getNumber(),
+            stockMovementPage.getSize(),
+            stockMovementPage.getTotalElements(),
+            stockMovementPage.getTotalPages()
+        );
+
+        return new PageResponse<StockMovementResponse>(stockMovementResponses, pageInfo);
+    }
+
     /**
      * Create a Stock Movement.
      */
