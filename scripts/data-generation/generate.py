@@ -33,6 +33,7 @@ from campaigns import (
     emit_campaign_products_sql,
     emit_customer_offers_sql,
 )
+from orders import generate_orders
 
 
 def sql_str(value: str) -> str:
@@ -232,10 +233,22 @@ def main():
     import pandas as pd
     camp_csv = camp_dir / 'product_campaigns.csv'
     camp_df = pd.read_csv(camp_csv, parse_dates=['startDate', 'endDate']) if camp_csv.exists() else None
+    offers_csv = camp_dir / 'customer_offers.csv'
+    offers_df_for_demand = pd.read_csv(offers_csv, parse_dates=['startDate', 'endDate']) if offers_csv.exists() else None
 
-    out_paths = generate_demand(world, cal_df, camp_df, product_ids, outdir)
+    out_paths = generate_demand(world, cal_df, camp_df, offers_df_for_demand, product_ids, outdir)
     for p in out_paths:
         print(f"Wrote {p}")
+
+    # Phase A: Generate sales orders and items (ignore stock)
+    offers_df = offers_df_for_demand
+
+    # Demand DF for orders-follow-demand mode
+    demand_csv = (outdir / 'datasets' / 'demand' / 'all_products.csv') if (str(args.product).lower() == 'all') else (outdir / 'datasets' / 'demand' / f'product_{int(args.product)}.csv')
+    demand_df = pd.read_csv(demand_csv, parse_dates=['date']) if demand_csv.exists() else None
+
+    so_sql, soi_sql, orders_csv, order_items_csv, prod_day_csv = generate_orders(world, cal_df, camp_df, offers_df, outdir, demand_df)
+    print(f"Wrote {so_sql}\nWrote {soi_sql}\nWrote {orders_csv}\nWrote {order_items_csv}\nWrote {prod_day_csv}")
 
 
 if __name__ == '__main__':

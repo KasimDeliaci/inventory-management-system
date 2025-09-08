@@ -143,6 +143,58 @@ def _ar1(n: int, rho: float, sigma: float, rng: np.random.Generator) -> List[flo
     return vals
 
 
+def _offer_pressure_by_date(world: Dict, calendar_df: pd.DataFrame, offers_df: Optional[pd.DataFrame]) -> Dict[date, float]:
+    """Compute a weighted daily average percentOff across customers with active offers.
+
+    Weights reflect segment order propensity and weekend multiplier, so the measure
+    captures both breadth and strength of offers on a given day.
+    Returns mapping date -> effective percent (0..100).
+    """
+    if offers_df is None or offers_df.empty:
+        return {}
+
+    # Ensure date types
+    cal = calendar_df[['date', 'is_weekend']].copy()
+    cal['date'] = pd.to_datetime(cal['date']).dt.date
+    of = offers_df.copy()
+    if 'startDate' in of.columns:
+        of['startDate'] = pd.to_datetime(of['startDate']).dt.date
+    if 'endDate' in of.columns:
+        of['endDate'] = pd.to_datetime(of['endDate']).dt.date
+
+    # Customer segments
+    customers = world.get('customers', [])
+    cust_seg: Dict[int, str] = {int(c['id']): str(c['segment']) for c in customers}
+    policy = world.get('order_policy', {})
+    base_rate = policy.get('base_rate_per_segment', {})
+    weekend_mult = policy.get('weekend_mult_per_segment', {})
+
+    result: Dict[date, float] = {}
+    for _, row in cal.iterrows():
+        d = row['date']
+        is_wknd = bool(row['is_weekend'])
+        # Total mass across all customers
+        total_mass = 0.0
+        active_weighted_pct = 0.0
+        # Build a quick view of active offers for the day
+        active = of[(of['startDate'] <= d) & (of['endDate'] >= d)]
+        # Index by customer for fast lookup
+        active_by_cust = {int(r['customerId']): float(r['percentOff']) for _, r in active.iterrows()}
+
+        for cid, seg in cust_seg.items():
+            w = float(base_rate.get(seg, 0.2))
+            w *= float(weekend_mult.get(seg, 1.0)) if is_wknd else 1.0
+            total_mass += w
+            pct = active_by_cust.get(cid)
+            if pct is not None:
+                active_weighted_pct += w * pct
+
+        eff = (active_weighted_pct / total_mass) if total_mass > 0 else 0.0
+        result[d] = eff
+
+    return result
+
+
 def _sample_nb(mean: float, dispersion: float, rng: np.random.Generator) -> int:
     """Sample Negative Binomial with given mean and shape k (dispersion).
 
@@ -170,7 +222,7 @@ def _ema(series: List[float], alpha: float) -> List[float]:
     return s
 
 
-def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df: Optional[pd.DataFrame], product_ids: List[int], outdir) -> List[str]:
+def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df: Optional[pd.DataFrame], offers_df: Optional[pd.DataFrame], product_ids: List[int], outdir) -> List[str]:
     profiles = _default_profiles(world)
     meta = world.get('meta', {})
     seed = int(meta.get('seed', 42))
@@ -179,6 +231,11 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
     dispersion_scale = float(meta.get('dispersion_scale', 1.5))  # >1 increases k, reducing variance
     latent_rho = float(meta.get('latent_rho', 0.6))
     latent_sigma = float(meta.get('latent_sigma', 0.15))
+    offer_alpha = float(meta.get('offer_effect_alpha', 0.6))
+    offer_cap_pct = float(meta.get('offer_effect_cap_pct', 30.0))
+
+    # Precompute daily offer pressure (effective average percent-off across the customer base)
+    offer_pressure = _offer_pressure_by_date(world, calendar_df, offers_df)
 
     start = pd.to_datetime(meta['start_date']).date()
     end = pd.to_datetime(meta['end_date']).date()
@@ -208,6 +265,13 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
             mu *= _events_mult_from_row(crow, profile, pid)
             pct = _campaign_daily_percent(pid, crow['date'], product_campaigns_df) if product_campaigns_df is not None else 0.0
             mu *= _promo_mult(pct, profile.promo_strength)
+            # Offer multiplier: 1 + alpha * (effective offer percent / 100), capped
+            eff_offer_pct = float(offer_pressure.get(crow['date'], 0.0))
+            m_offer = 1.0 + offer_alpha * (eff_offer_pct / 100.0)
+            cap = 1.0 + (offer_cap_pct / 100.0)
+            if m_offer > cap:
+                m_offer = cap
+            mu *= m_offer
             base_means.append(mu)
             promo_pcts.append(round(pct, 2))
             dates_list.append(crow['date'])
