@@ -1,5 +1,7 @@
 package com.petek.inventoryService.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +21,11 @@ import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.dto.product.ProductSupplierItemResponse;
 import com.petek.inventoryService.dto.product.ProductUpdateRequest;
+import com.petek.inventoryService.dto.stock.StockMovementFilterRequest;
+import com.petek.inventoryService.dto.stock.StockMovementResponse;
 import com.petek.inventoryService.service.ProductService;
 import com.petek.inventoryService.service.ProductSupplierService;
+import com.petek.inventoryService.service.StockMovementService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +37,7 @@ public class ProductController {
 
     private final ProductService service;
     private final ProductSupplierService productSupplierService;
+    private final StockMovementService stockMovementService;
 
     /**
      * Get all products.
@@ -94,6 +100,18 @@ public class ProductController {
         @ModelAttribute @Valid ProductGetSuppliersFilterRequest request
     ) {
         return ResponseEntity.ok(productSupplierService.getSuppliers(productId, request));
+    }
+
+    /**
+     * Get stock movements.
+     */
+    @GetMapping("/{productId}/stock-movements")
+    public ResponseEntity<PageResponse<StockMovementResponse>> getStockMovements(
+        @PathVariable Long productId,
+        @ModelAttribute @Valid StockMovementFilterRequest request
+    ) {
+        request.setProductId(List.of(productId));
+        return ResponseEntity.ok(stockMovementService.getAllStockMovements(request));
     }
 
 }
