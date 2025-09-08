@@ -1,0 +1,39 @@
+:host { display: contents; }
+
+td, th {
+  padding: .9rem .8rem;
+  border-bottom: 1px solid #e7ebf1;
+  font-size: .92rem;
+  color: #2a2f36;
+}
+td.chk { width: 42px; }
+td.name { min-width: 200px; }
+
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.type-badge.discount {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.type-badge.promotion {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.type-badge.seasonal {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.type-badge.clearance {
+  background: #fecaca;
+  color: #dc2626;
+}

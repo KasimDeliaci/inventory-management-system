@@ -1,0 +1,35 @@
+<div class="layout">
+  <app-side-nav />
+
+  <main class="content">
+    <app-header
+      [title]="'Campaign List'"
+      [query]="query()"
+      [deletableCount]="selectedCount()"
+      [filterOpen]="filterOpen()"
+      [addButtonText]="'+ Add campaign'"
+      [showFilters]="false"
+      (queryChange)="query.set($event)"
+      (openFilters)="onOpenFilters()"
+      (addProduct)="onAddCampaign()"
+      (deleteSelected)="deleteSelected()"
+      (clearSearch)="onClear()"
+    />
+
+    <app-campaign-listing
+      [campaigns]="campaigns()"
+      (edit)="openEditorFor($event)"
+      (selectionChange)="bumpSelection()">
+    </app-campaign-listing>
+  </main>
+</div>
+
+<app-campaign-editor
+  *ngIf="editorOpen()"
+  [value]="editing()"
+  [products]="products()"
+  [customers]="customers()"
+  (close)="closeEditor()"
+  (save)="handleSave($event)"
+  (delete)="handleDelete($event)">
+</app-campaign-editor>
