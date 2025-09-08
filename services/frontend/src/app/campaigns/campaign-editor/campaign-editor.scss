@@ -1,0 +1,298 @@
+// campaign-editor.scss
+:host { 
+  position: fixed; 
+  inset: 0; 
+  display: grid; 
+  place-items: center; 
+  z-index: 1000; 
+}
+
+.backdrop { 
+  position: absolute; 
+  inset: 0; 
+  background: rgba(0,0,0,.35); 
+}
+
+.modal {
+  position: relative;
+  width: min(1080px, 96vw);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  padding: 24px 24px 18px;
+  border: 3px solid #163a5a;
+}
+
+.close {
+  position: absolute; 
+  top: 10px; 
+  right: 12px;
+  background: transparent; 
+  border: 0; 
+  font-size: 22px; 
+  cursor: pointer; 
+  color: #163a5a;
+}
+
+.grid { 
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 16px; 
+}
+
+/* Reserve space for the sidebar (260px + padding) so left-side blocks align */
+.row1,
+.box.big,
+.assignment { 
+  width: calc(100% - 300px); 
+}
+
+/* Top ID/Name */
+.row1 { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px; 
+}
+
+.box {
+  border: 3px solid #163a5a; 
+  border-radius: 4px; 
+  background: #d4d6d7; 
+  padding: 8px;
+  display: grid; 
+  gap: 6px;
+}
+
+.box.big { 
+  height: 300px; 
+}
+
+.label { 
+  font-weight: 700; 
+  color: #163a5a; 
+  font-size: 14px; 
+}
+
+.input { 
+  width: 100%; 
+  border: 0; 
+  outline: none; 
+  background: transparent; 
+  font-size: 16px; 
+}
+
+.textarea { 
+  width: 100%; 
+  height: 100%; 
+  resize: none; 
+  border: 0; 
+  outline: none; 
+  background: transparent; 
+  font-size: 16px; 
+  line-height: 1.4; 
+}
+
+/* Right column of small boxes */
+.sidebar {
+  position: absolute; 
+  top: 50px; 
+  right: 24px; 
+  width: 260px;
+  display: grid; 
+  gap: 16px;
+}
+
+@media (max-width: 1000px) {
+  .sidebar { 
+    position: static; 
+    width: 100%; 
+  }
+  .row1, .box.big, .assignment { 
+    width: 100%; 
+  }
+}
+
+/* Assignment section */
+.assignment { 
+  margin-top: 8px; 
+}
+
+/* Fixed assignment header */
+.assignment-head {
+  display: inline-block; 
+  padding: 8px 12px; 
+  background: #d4d6d7;
+  border: 3px solid #163a5a; 
+  border-bottom: 0; 
+  border-radius: 4px 4px 0 0;
+  color: #163a5a; 
+  font-weight: 700; 
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+/* Table container */
+.table {
+  border: 3px solid #163a5a;
+  border-radius: 0 4px 4px 4px;
+  overflow: hidden;
+}
+
+/* Scrollable table body */
+.table-body {
+  max-height: calc(4 * 42px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.table-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-body::-webkit-scrollbar-track {
+  background: #c7c9cc;
+}
+
+.table-body::-webkit-scrollbar-thumb {
+  background: #163a5a;
+  border-radius: 4px;
+}
+
+.table-body::-webkit-scrollbar-thumb:hover {
+  background: #0f2f75;
+}
+
+/* Grid layouts for different assignment types */
+.thead,
+.row2 {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Product table layout */
+.assignment:has(.thead:contains("CATEGORY")) .thead,
+.assignment:has(.thead:contains("CATEGORY")) .row2 {
+  grid-template-columns: 80px 120px 1fr 140px 120px;
+}
+
+/* Customer table layout - fallback */
+.thead,
+.row2 {
+  grid-template-columns: 80px 120px 1fr 120px 140px;
+}
+
+.thead {
+  background: #9a9c9f;
+  font-weight: 800;
+  color: #1f2430;
+  padding: 10px 12px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.row2 {
+  background: #d7d9db;
+  border-bottom: 1px solid #c7c9cc;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.row2:hover { 
+  background: #c7c9cc; 
+}
+
+.row2:last-child {
+  border-bottom: none;
+}
+
+.row2 > div,
+.thead > div { 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  padding: 2px 4px;
+}
+
+.row2 > div:first-child,
+.thead > div:first-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.row2 input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+  accent-color: #163a5a;
+}
+
+/* Segment badge styles */
+.segment-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: white;
+}
+
+.segment-badge.individual {
+  background: #2e7d32;
+}
+
+.segment-badge.sme {
+  background: #0277bd;
+}
+
+.segment-badge.institutional {
+  background: #f57c00;
+}
+
+/* Actions */
+.actions { 
+  margin-top: 14px; 
+  display: flex; 
+  gap: 16px; 
+  justify-content: flex-end; 
+}
+
+.btn { 
+  border: 0; 
+  border-radius: 10px; 
+  padding: 12px 28px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  transition: all 0.2s ease;
+}
+
+.btn.primary { 
+  background: #123a8a; 
+  color: #fff; 
+}
+
+.btn.primary:hover {
+  background: #0f2f75;
+}
+
+.btn.danger { 
+  background: #8e1c28; 
+  color: #fff; 
+}
+
+.btn.danger:hover {
+  background: #7a1822;
+}
+
+.btn:disabled { 
+  opacity: .6; 
+  cursor: not-allowed; 
+}

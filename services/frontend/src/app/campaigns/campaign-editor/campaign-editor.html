@@ -1,0 +1,134 @@
+<!-- campaign-editor.html -->
+<!-- Backdrop -->
+<div class="backdrop" (click)="close.emit()"></div>
+<!-- Modal -->
+<section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+  <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
+  <div class="grid">
+    <!-- Top row - ID and Name -->
+    <div class="row1">
+      <label class="box">
+        <span class="label">ID</span>
+        <input type="text" class="input" [value]="form.value.id"
+               (input)="form.controls.id.setValue(($any($event.target).value || ''))">
+      </label>
+      <label class="box">
+        <span class="label">NAME</span>
+        <input type="text" class="input" [value]="form.value.name"
+               (input)="form.controls.name.setValue(($any($event.target).value || ''))">
+      </label>
+    </div>
+    
+    <!-- Description -->
+    <label class="box big">
+      <span class="label">DESCRIPTION</span>
+      <textarea class="textarea" [value]="form.value.description || ''"
+                (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
+    </label>
+    
+    <!-- Right sidebar fields -->
+    <div class="sidebar">
+      <label class="box">
+        <span class="label">TYPE</span>
+        <select class="input" [value]="form.value.type"
+                (change)="form.controls.type.setValue($any($event.target).value)">
+          <option value="discount">Discount</option>
+          <option value="promotion">Promotion</option>
+          <option value="seasonal">Seasonal</option>
+          <option value="clearance">Clearance</option>
+        </select>
+      </label>
+      
+      <label class="box">
+        <span class="label">ASSIGNMENT TYPE</span>
+        <select class="input" [value]="form.value.assignmentType"
+                (change)="onAssignmentTypeChange($any($event.target).value)">
+          <option value="product">Products</option>
+          <option value="customer">Customers</option>
+        </select>
+      </label>
+      
+      <label class="box">
+        <span class="label">PERCENTAGE</span>
+        <input type="number" class="input" [value]="form.value.percentage ?? ''"
+               min="0" max="100"
+               (input)="form.controls.percentage.setValue($any($event.target).valueAsNumber || 0)">
+      </label>
+      
+      <label class="box">
+        <span class="label">START DATE</span>
+        <input type="date" class="input" [value]="form.value.startDate"
+               (input)="form.controls.startDate.setValue($any($event.target).value)">
+      </label>
+      
+      <label class="box">
+        <span class="label">END DATE</span>
+        <input type="date" class="input" [value]="form.value.endDate"
+               (input)="form.controls.endDate.setValue($any($event.target).value)">
+      </label>
+    </div>
+    
+    <!-- Assignment table -->
+    <div class="assignment">
+      <div class="assignment-head">
+        {{ form.value.assignmentType === 'product' ? 'PRODUCTS' : 'CUSTOMERS' }}
+      </div>
+      <div class="table">
+        <div class="thead" *ngIf="form.value.assignmentType === 'product'">
+          <div>SELECT</div>
+          <div>ID</div>
+          <div>NAME</div>
+          <div>CATEGORY</div>
+          <div>CURRENT STOCK</div>
+        </div>
+        <div class="thead" *ngIf="form.value.assignmentType === 'customer'">
+          <div>SELECT</div>
+          <div>ID</div>
+          <div>NAME</div>
+          <div>SEGMENT</div>
+          <div>CITY</div>
+        </div>
+        
+        <div class="table-body">
+          <!-- Product rows -->
+          <ng-container *ngIf="form.value.assignmentType === 'product'">
+            <div class="row2 product-row" *ngFor="let product of products">
+              <div>
+                <input type="checkbox"
+                       [checked]="isItemSelected(product.id)"
+                       (change)="toggleItemSelection(product.id, $event)">
+              </div>
+              <div>{{ product.id }}</div>
+              <div>{{ product.name }}</div>
+              <div>{{ product.category }}</div>
+              <div>{{ product.currentStock }}</div>
+            </div>
+          </ng-container>
+          
+          <!-- Customer rows -->
+          <ng-container *ngIf="form.value.assignmentType === 'customer'">
+            <div class="row2 customer-row" *ngFor="let customer of customers">
+              <div>
+                <input type="checkbox"
+                       [checked]="isItemSelected(customer.id)"
+                       (change)="toggleItemSelection(customer.id, $event)">
+              </div>
+              <div>{{ customer.id }}</div>
+              <div>{{ customer.name }}</div>
+              <div>
+                <span class="segment-badge" [ngClass]="customer.segment">{{ customer.segment }}</span>
+              </div>
+              <div>{{ customer.city }}</div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn primary" type="button" (click)="onSave()">SAVE</button>
+      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!value?.id">DELETE</button>
+    </div>
+  </div>
+</section>
