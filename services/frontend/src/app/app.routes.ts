@@ -12,4 +12,5 @@ export const routes: Routes = [
   { path: 'customers', component: CustomerPageComponent },
   { path: 'orders', component: OrderPageComponent },
   { path: 'campaigns', component: CampaignPageComponent },
+  { path: '**', redirectTo: 'products' }
 ];
