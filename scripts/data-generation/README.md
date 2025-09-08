@@ -53,6 +53,24 @@ This writes:
    Outputs:
    - `out/plots/monthly/*.png`, `out/plots/yearly/*.png`, `out/plots/all/*.png`
 
+5) Sales orders (Phase A)
+   The generator now also emits sales orders and items using customer offers and product campaigns (stacked discounts), ignoring stock:
+   - SQL: `out/sql/20_sales_orders.sql`, `out/sql/21_sales_order_items.sql`
+   - CSV: `out/sales/orders.csv`, `out/sales/order_items.csv`
+   - Product-day aggregates: `out/datasets/demand/product_day_sales.csv` (observedSales, offerActiveShare)
+
+   Tuning (in `world.yaml`): `order_policy`
+   - `base_rate_per_segment`, `weekend_mult_per_segment`
+   - `basket_size_probs` (1–3 lines)
+   - `offer_uplift_alpha`
+   - `segment_category_affinity` (weights per segment)
+   - `countable_qty_probs`, `noncountable_default_qty`
+
+   Alignment with demand:
+   - `orders_follow_demand: true` (default in `order_policy`) makes orders consume the daily demand budgets per product/date. Result: `observedSales` ≈ `demand` totals.
+   - If you set `orders_follow_demand: false`, orders are generated from per-customer propensities; `observedSales` will differ from `demand` (useful for more stochastic behavior).
+   - Customer offers influence both ordering (via `offer_uplift_alpha`) and line discounts (stacked with product campaigns). `offerActiveShare` reports the share of units sold under active offers per product-day.
+
 ## Roadmap
 
 - v0: master data + product-suppliers seed SQL (this commit)
