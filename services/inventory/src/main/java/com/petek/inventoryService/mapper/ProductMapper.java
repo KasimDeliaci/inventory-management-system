@@ -13,6 +13,7 @@ import com.petek.inventoryService.dto.stock.CurrentStockResponse;
 import com.petek.inventoryService.entity.Product;
 
 import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class ProductMapper {
 
