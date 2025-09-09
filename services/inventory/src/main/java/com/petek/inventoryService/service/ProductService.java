@@ -41,7 +41,7 @@ public class ProductService {
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "productId", "productName", "category", "currentPrice", "updatedAt"
-    );
+    );  
     
     /**
      * Get all products.

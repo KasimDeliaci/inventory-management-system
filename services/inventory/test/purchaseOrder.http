@@ -1,0 +1,33 @@
+### Get All Purchase Order
+
+GET http://localhost:8000/api/v1/purchase-orders
+
+
+### Create Purchase Order
+
+POST http://localhost:8000/api/v1/purchase-orders
+content-type: application/json
+
+{
+    "supplierId": 1,
+    "orderDate": "2025-09-09",
+    "expectedDelivery": "2025-09-09"
+}
+
+### Get Purchase Order By Id
+
+GET http://localhost:8000/api/v1/purchase-orders/1
+
+### Update Purchase Order By Id
+
+PUT http://localhost:8000/api/v1/purchase-orders/1
+content-type: application/json
+
+{
+    "actualDelivery": "2025-09-09T21:14:39Z",
+    "status": "RECEIVED"
+}
+
+### Delete Purchase Order
+
+DELETE http://localhost:8000/api/v1/purchase-orders/1
