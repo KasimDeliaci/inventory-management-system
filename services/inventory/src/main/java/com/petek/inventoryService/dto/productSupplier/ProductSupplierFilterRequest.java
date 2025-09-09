@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -31,18 +29,10 @@ public class ProductSupplierFilterRequest {
     @Builder.Default
     private List<String> sort = List.of("productSupplierId");
 
-    @JsonProperty("product_id")
     private List<BigDecimal> productId;
-
-    @JsonProperty("supplier_id")
     private List<BigDecimal> supplierId;
-
     private Boolean active;
     private Boolean preferred;
-
-    @JsonProperty("last_delivery_since")
     private Instant lastDeliverySince;
-
-    @JsonProperty("updated_after")
     private Instant updatedAfter;
 }

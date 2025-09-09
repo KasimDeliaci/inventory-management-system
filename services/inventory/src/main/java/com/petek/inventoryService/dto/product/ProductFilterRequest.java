@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -35,24 +33,11 @@ public class ProductFilterRequest {
     private List<String> category;
     private List<String> uom;
 
-    @JsonProperty("price_gte")
     private BigDecimal priceGte;
-
-    @JsonProperty("price_lte")
     private BigDecimal priceLte;
-
-    @JsonProperty("safety_gte")
     private BigDecimal safetyGte;
-
-    @JsonProperty("safety_lte")
     private BigDecimal safetyLte;
-
-    @JsonProperty("reorder_gte")
     private BigDecimal reorderGte;
-
-    @JsonProperty("reorder_lte")
     private BigDecimal reorderLte;
-
-    @JsonProperty("updated_after")
     private Instant updatedAfter;
 }
