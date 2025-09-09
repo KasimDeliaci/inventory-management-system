@@ -22,3 +22,7 @@ content-type: application/json
     "actualDelivery": "2025-09-09T21:14:39Z",
     "status": "RECEIVED"
 }
+
+### Delete Purchase Order
+
+DELETE http://localhost:8000/api/v1/purchase-orders/1

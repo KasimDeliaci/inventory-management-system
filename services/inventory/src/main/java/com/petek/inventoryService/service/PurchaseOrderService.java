@@ -71,4 +71,13 @@ public class PurchaseOrderService {
         return mapper.toPurchaseOrderResponse(repository.save(existingPurchaseOrder));
     }
 
+    /**
+     * Delete purchase order.
+     */
+    public void deletePurchaseOrder(Long purchaseOrderId) {
+        PurchaseOrder existingPurchaseOrder = repository.findById(purchaseOrderId) 
+            .orElseThrow(() -> new EntityNotFoundException("Purchase Order not found with id: " + purchaseOrderId));
+        repository.delete(existingPurchaseOrder);
+    }
+
 }
