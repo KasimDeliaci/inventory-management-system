@@ -2,11 +2,20 @@ package com.petek.inventoryService.service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemCreateRequest;
+import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemFilterRequest;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemResponse;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemUpdateRequest;
 import com.petek.inventoryService.entity.Product;
@@ -16,9 +25,9 @@ import com.petek.inventoryService.mapper.PurchaseOrderItemMapper;
 import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.repository.PurchaseOrderItemRepository;
 import com.petek.inventoryService.repository.PurchaseOrderRepository;
+import com.petek.inventoryService.utils.SortUtils;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,6 +40,34 @@ public class PurchaseOrderItemService {
 
     private final ProductRepository productRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "purchaseOrderItemId", "productId", "quantityOrdered", "quantityReceived", "unitPrice", "lineTotal", "lineTotalReceived", "createdAt"
+    );  
+    
+    /**
+     * Get all products.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<PurchaseOrderItemResponse> getAllPurchaseOrderItem(Long purchaseOrderId, PurchaseOrderItemFilterRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+
+        Page<PurchaseOrderItem> purchaseOrderItemPage = repository.findByPurchaseOrderPurchaseOrderId(purchaseOrderId, pageable);
+
+        List<PurchaseOrderItemResponse> purchaseOrderItemResponses = purchaseOrderItemPage.getContent()
+            .stream()
+            .map(mapper::toPurchaseOrderItemItemResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            purchaseOrderItemPage.getNumber(),
+            purchaseOrderItemPage.getSize(),
+            purchaseOrderItemPage.getTotalElements(),
+            purchaseOrderItemPage.getTotalPages()
+        );
+
+        return new PageResponse<PurchaseOrderItemResponse>(purchaseOrderItemResponses, pageInfo);
+    }
 
     /**
      * Create a new purchase order item.

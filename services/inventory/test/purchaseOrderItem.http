@@ -1,5 +1,9 @@
 ### Create Purchase Order Item
 
+GET  http://localhost:8000/api/v1/purchase-orders/1/items
+
+### Create Purchase Order Item
+
 POST http://localhost:8000/api/v1/purchase-orders/1/items
 content-type: application/json
 

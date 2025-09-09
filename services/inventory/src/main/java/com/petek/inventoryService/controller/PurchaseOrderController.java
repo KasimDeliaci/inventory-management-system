@@ -17,6 +17,7 @@ import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderFilterRequest;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderResponse;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderUpdateRequest;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemCreateRequest;
+import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemFilterRequest;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemResponse;
 import com.petek.inventoryService.service.PurchaseOrderItemService;
 import com.petek.inventoryService.service.PurchaseOrderService;
@@ -94,6 +95,17 @@ public class PurchaseOrderController {
     ) {
         service.deletePurchaseOrder(purchaseOrderId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Get all purchase order items of a purches order.
+     */
+    @GetMapping("/{purchaseOrderId}/items")
+    public ResponseEntity<PageResponse<PurchaseOrderItemResponse>> getAllPurchaseOrderItem(
+        @PathVariable Long purchaseOrderId,
+        @ModelAttribute @Valid PurchaseOrderItemFilterRequest request
+    ) {
+        return ResponseEntity.ok(purchaseOrderItemService.getAllPurchaseOrderItem(purchaseOrderId, request));
     }
 
 }
