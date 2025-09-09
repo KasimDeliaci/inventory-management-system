@@ -37,7 +37,7 @@ public class PurchaseOrderItemService {
      */
     public PurchaseOrderItemResponse createPurchaseOrderItem(Long purchaseOrderItemId, PurchaseOrderItemCreateRequest request) {
         PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderItemId)
-            .orElseThrow(() -> new EntityNotFoundException("Purches Order not found with id: " + purchaseOrderItemId));
+            .orElseThrow(() -> new EntityNotFoundException("Purches Order Item not found with id: " + purchaseOrderItemId));
         
         Product product = productRepository.findById(request.getProductId())
             .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + request.getProductId()));
@@ -57,7 +57,7 @@ public class PurchaseOrderItemService {
     public PurchaseOrderItemResponse getPurchaseOrderItemById(Long purchaseOrderItemId) {
         return repository.findById(purchaseOrderItemId)
             .map(mapper::toPurchaseOrderItemItemResponse)
-            .orElseThrow(() -> new EntityNotFoundException("Purches Order not found with id: " + purchaseOrderItemId));
+            .orElseThrow(() -> new EntityNotFoundException("Purches Order Item not found with id: " + purchaseOrderItemId));
     }
 
     /**
@@ -65,7 +65,7 @@ public class PurchaseOrderItemService {
      */
     public PurchaseOrderItemResponse updatePurchaseOrderItem(Long purchaseOrderItemId, PurchaseOrderItemUpdateRequest request) {
         PurchaseOrderItem existingPurchaseOrderItem = repository.findById(purchaseOrderItemId)
-            .orElseThrow(() -> new EntityNotFoundException("Purchase Order not found with id: " + purchaseOrderItemId));
+            .orElseThrow(() -> new EntityNotFoundException("Purchase Item Order not found with id: " + purchaseOrderItemId));
         
         Optional.ofNullable(request.getQuantityReceived())
             .ifPresent(existingPurchaseOrderItem::setQuantityReceived);
@@ -74,6 +74,15 @@ public class PurchaseOrderItemService {
             .ifPresent(existingPurchaseOrderItem::setUnitPrice);
 
         return mapper.toPurchaseOrderItemItemResponse(repository.save(existingPurchaseOrderItem));
+    }
+
+    /**
+     * Delete purchase order item.
+     */
+    public void deletePurchaseOrderItem(Long purchaseOrderItemId) {
+        PurchaseOrderItem purchaseOrderItem = repository.findById(purchaseOrderItemId)
+            .orElseThrow(() -> new EntityNotFoundException("Purchase Order Item not found with id: " + purchaseOrderItemId));
+        repository.delete(purchaseOrderItem);
     }
 
 }

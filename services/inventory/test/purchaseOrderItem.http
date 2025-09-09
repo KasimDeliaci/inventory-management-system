@@ -22,3 +22,7 @@ content-type: application/json
     "quantityReceived": 100,
     "unitPrice": 50
 }
+
+### Delete Purchase Order Item By Id
+
+DELETE  http://localhost:8000/api/v1/purchase-order-items/1
