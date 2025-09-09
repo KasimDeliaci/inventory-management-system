@@ -1,0 +1,14 @@
+### Get All Products
+
+GET http://localhost:8000/api/v1/stock-movements
+
+### Create Stock Movement
+
+POST http://localhost:8000/api/v1/stock-movements
+content-type: application/json
+
+{
+    "productId": 1,
+    "movementKind": "ADJUSTMENT_IN",
+    "quantity": 10
+}
