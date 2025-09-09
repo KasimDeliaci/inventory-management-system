@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SupplierPage } from './supplier-page';
+import { SupplierPageComponent } from './supplier-page';
 
 describe('SupplierPage', () => {
-  let component: SupplierPage;
-  let fixture: ComponentFixture<SupplierPage>;
+  let component: SupplierPageComponent;
+  let fixture: ComponentFixture<SupplierPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SupplierPage]
+      imports: [SupplierPageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SupplierPage);
+    fixture = TestBed.createComponent(SupplierPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
