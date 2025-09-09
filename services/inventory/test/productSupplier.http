@@ -9,8 +9,8 @@ POST http://localhost:8000/api/v1/product-suppliers
 content-type: application/json
 
 {
-    "productId": 28,
-    "supplierId": 75,
+    "productId": 1,
+    "supplierId": 1,
     "minOrderQuantity": 0.001,
     "isPreferred": false,
     "active": true

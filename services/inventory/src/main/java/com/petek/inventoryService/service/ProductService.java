@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProductService {
     
     private final ProductRepository repository;
@@ -40,9 +41,10 @@ public class ProductService {
     );
     
     /**
-     * Utils
+     * Get all products.
      */
-    private void validateSortRequest(ProductFilterRequest request) {
+    @Transactional(readOnly = true)
+    public PageResponse<ProductItemResponse> getAllProducts(ProductFilterRequest request) {
         // Validate price range
         if (request.getPriceGte() != null && request.getPriceLte() != null && 
             request.getPriceGte().compareTo(request.getPriceLte()) > 0) {
@@ -60,14 +62,6 @@ public class ProductService {
             request.getReorderGte().compareTo(request.getReorderLte()) > 0) {
             throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
         }
-    }
-
-    /**
-     * Get all products.
-     */
-    @Transactional(readOnly = true)
-    public PageResponse<ProductItemResponse> getAllProducts(ProductFilterRequest request) {
-        validateSortRequest(request);
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
         Specification<Product> spec = ProductSpecifications.withFilters(request);
@@ -105,14 +99,13 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
-                .map(mapper::toProductResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));    
+            .map(mapper::toProductResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));    
     }
 
     /**
      * Update a product.
      */
-    @Transactional
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));

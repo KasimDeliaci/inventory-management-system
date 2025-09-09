@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CustomerService {
     
     private final CustomerRepository repository;
@@ -78,8 +79,8 @@ public class CustomerService {
      */
     public CustomerResponse getCustomerById(Long customerId) {
         return repository.findById(customerId)
-                .map(mapper::toCustomerResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
+            .map(mapper::toCustomerResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
     }
 
     /**

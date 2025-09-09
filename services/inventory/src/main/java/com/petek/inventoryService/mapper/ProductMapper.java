@@ -11,13 +11,10 @@ import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.entity.Product;
 
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
 public class ProductMapper {
 
-    private SupplierMapper supplierMapper;
+    private SupplierMapper supplierMapper = new SupplierMapper();
 
     /**
      * Map ProductCreateRequest to Product entity.

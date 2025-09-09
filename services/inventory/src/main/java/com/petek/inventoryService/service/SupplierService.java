@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SupplierService {
     
     private final SupplierRepository repository;
@@ -79,8 +80,8 @@ public class SupplierService {
     @Transactional(readOnly = true)
     public SupplierResponse getSupplierById(Long supplierId) {
         return repository.findById(supplierId)
-                .map(mapper::toSupplierResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Supplier not found with id: " + supplierId));
+            .map(mapper::toSupplierResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Supplier not found with id: " + supplierId));
     }
 
     /**
