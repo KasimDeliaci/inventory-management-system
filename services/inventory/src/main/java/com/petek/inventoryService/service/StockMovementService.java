@@ -15,10 +15,12 @@ import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.stock.StockMovementCreateRequest;
 import com.petek.inventoryService.dto.stock.StockMovementFilterRequest;
 import com.petek.inventoryService.dto.stock.StockMovementResponse;
+import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.StockMovement;
 import com.petek.inventoryService.entity.StockMovement.MovementKind;
 import com.petek.inventoryService.entity.StockMovement.MovementSource;
 import com.petek.inventoryService.mapper.StockMovementMapper;
+import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.repository.StockMovementRepository;
 import com.petek.inventoryService.spec.StockMovementSpecifications;
 import com.petek.inventoryService.utils.SortUtils;
@@ -33,7 +35,7 @@ public class StockMovementService {
     private final StockMovementRepository repository;
     private final StockMovementMapper mapper;
 
-    private final ProductService productService;
+    private final ProductRepository productRepository;
     private final CurrentStockService currentStockService;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
@@ -74,24 +76,23 @@ public class StockMovementService {
      * Create a Stock Movement.
      */
     public StockMovementResponse createStockMovement(StockMovementCreateRequest request) {
-        // Control for product
-        if (productService.getProductById(request.getProductId()) == null) {
-            throw new EntityNotFoundException("Product not found with id: " + request.getProductId());
-        }
-
         // Control for movement kind
         if (request.getMovementKind() != MovementKind.ADJUSTMENT_IN && request.getMovementKind() != MovementKind.ADJUSTMENT_OUT) {
             throw new IllegalArgumentException("Invalid movement kind. Must be ADJUSTMENT_IN or ADJUSTMENT_OUT.");
         }
-
+        
         // Control for available quantity
         if (request.getMovementKind() == MovementKind.ADJUSTMENT_OUT
-            && currentStockService.getAvailableQuantityById(request.getProductId()).compareTo(request.getQuantity()) < 0
+        && currentStockService.getAvailableQuantityById(request.getProductId()).compareTo(request.getQuantity()) < 0
         ) {
             throw new IllegalArgumentException("Not enough stock in inventory");
         }
         
-        StockMovement stockMovement = mapper.toStockMovement(request);
+        // Getting product
+        Product product = productRepository.findById(request.getProductId())
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + request.getProductId()));
+            
+        StockMovement stockMovement = mapper.toStockMovement(request, product);
         stockMovement.setMovementSource(MovementSource.ADJUSTMENT);
         stockMovement.setMovementDate(Instant.now());
         stockMovement.setCreatedAt(Instant.now());
