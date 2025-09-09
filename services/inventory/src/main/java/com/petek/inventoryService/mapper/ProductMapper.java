@@ -1,6 +1,5 @@
 package com.petek.inventoryService.mapper;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.petek.inventoryService.dto.product.ProductCreateRequest;
 import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
+import com.petek.inventoryService.dto.stock.CurrentStockResponse;
 import com.petek.inventoryService.entity.Product;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -76,13 +76,13 @@ public class ProductMapper {
     /**
      * Map Product entity to ProductItemResponse.
      */
-    public ProductItemResponse toProductItemResponse(Product product) {
+    public ProductItemResponse toProductItemResponse(Product product, CurrentStockResponse currentStockResponse) {
         return ProductItemResponse.builder()
             .productId(product.getProductId())
             .productName(product.getProductName())
             .category(product.getCategory())
             .unitOfMeasure(product.getUnitOfMeasure())
-            .quantityAvailable(BigDecimal.ZERO) // Placeholder, replace with actual available quantity
+            .quantityAvailable(currentStockResponse.getQuantityAvailable()) // Placeholder, replace with actual available quantity
             .activeSuppliers(product.getProductSuppliers() != null ? 
                 product.getProductSuppliers().stream()
                     .filter(ps -> ps.getActive())

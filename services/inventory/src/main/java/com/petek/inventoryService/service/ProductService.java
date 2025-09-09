@@ -18,6 +18,7 @@ import com.petek.inventoryService.dto.product.ProductFilterRequest;
 import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.dto.product.ProductUpdateRequest;
+import com.petek.inventoryService.dto.stock.CurrentStockResponse;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.mapper.ProductMapper;
@@ -35,6 +36,8 @@ public class ProductService {
     
     private final ProductRepository repository;
     private final ProductMapper mapper;
+
+    private final CurrentStockService currentStockService;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "productId", "productName", "category", "currentPrice", "updatedAt"
@@ -70,7 +73,10 @@ public class ProductService {
         
         List<ProductItemResponse> productResponses = productPage.getContent()
             .stream()
-            .map(mapper::toProductItemResponse)
+            .map(product -> {
+                CurrentStockResponse currentStockResponse = currentStockService.getCurrentStockById(product.getProductId());
+                return mapper.toProductItemResponse(product, currentStockResponse);
+            })
             .toList();
         
         PageInfo pageInfo = new PageInfo(

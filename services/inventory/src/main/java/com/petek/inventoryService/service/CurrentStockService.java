@@ -39,7 +39,6 @@ public class CurrentStockService {
 
     private final StockMovementRepository stockMovementRepository;
     private final ProductRepository productRepository;
-    private final ProductService productService;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "productId", "quantityOnHand", "quantityReserved", "quantityAvailable", "lastUpdated"
@@ -112,9 +111,8 @@ public class CurrentStockService {
      */
     public void updateStockIn(Long productId, Long stockMovementId, BigDecimal quantity) {
         // Control for product
-        if (productService.getProductById(productId) == null) {
-            throw new EntityNotFoundException("Product not found with id: " + productId);
-        }
+        productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
         
         // Control for stock movement
         StockMovement stockMovement = stockMovementRepository.findById(stockMovementId)
@@ -149,9 +147,8 @@ public class CurrentStockService {
      */
     public void updateStockOut(Long productId, Long stockMovementId, BigDecimal quantity, boolean isReserve) {
         // Control for product
-        if (productService.getProductById(productId) == null) {
-            throw new EntityNotFoundException("Product not found with id: " + productId);
-        }
+        productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
 
         // Control for available quantity
         if (getAvailableQuantityById(productId).compareTo(quantity) < 0) {
