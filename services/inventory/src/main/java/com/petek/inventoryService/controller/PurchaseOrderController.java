@@ -3,6 +3,7 @@ package com.petek.inventoryService.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderCreateRequest;
+import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderFilterRequest;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderResponse;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderUpdateRequest;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemCreateRequest;
@@ -29,6 +32,16 @@ public class PurchaseOrderController {
     private final PurchaseOrderService service;
 
     private final PurchaseOrderItemService purchaseOrderItemService;
+
+    /**
+     * Get all purchase order.
+     */
+    @GetMapping
+    public ResponseEntity<PageResponse<PurchaseOrderResponse>> getAllPurchaseOrder(
+        @ModelAttribute @Valid PurchaseOrderFilterRequest request
+    ) {
+        return ResponseEntity.ok(service.getAllPurchaseOrder(request));
+    }
 
     /**
      * Create a new purchase order.
