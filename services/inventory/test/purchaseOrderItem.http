@@ -1,0 +1,10 @@
+### Create Purchase Order Item
+
+POST http://localhost:8000/api/v1/purchase-orders/1/items
+content-type: application/json
+
+{
+    "productId": 1,
+    "quantityOrdered": 200,
+    "unitPrice": 10.5
+}
