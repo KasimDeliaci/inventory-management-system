@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Product } from '../models/product.model';
 import { Supplier } from '../models/supplier.model';
 import { Customer } from '../models/customer.model';
-import { Order, OrderType, PurchaseOrderStatus, SalesOrderStatus } from '../models/order.model';
+import { Order } from '../models/order.model';
 import { Campaign } from '../models/campaign.model';
 
 @Injectable({
