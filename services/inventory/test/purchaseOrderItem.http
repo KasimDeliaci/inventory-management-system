@@ -1,7 +1,3 @@
-### Get Purchase Order Item By Id
-
-GET http://localhost:8000/api/v1/purchase-orders/1
-
 ### Create Purchase Order Item
 
 POST http://localhost:8000/api/v1/purchase-orders/1/items
@@ -11,4 +7,18 @@ content-type: application/json
     "productId": 1,
     "quantityOrdered": 200,
     "unitPrice": 10.5
+}
+
+### Get Purchase Order Item By Id
+
+GET http://localhost:8000/api/v1/purchase-order-items/1
+
+### Update Purchase Order Item
+
+PUT http://localhost:8000/api/v1/purchase-order-items/1
+content-type: application/json
+
+{
+    "quantityReceived": 100,
+    "unitPrice": 50
 }

@@ -52,7 +52,7 @@ public class PurchaseOrderItem {
     @Column(name = "line_total", precision = 14, scale = 2, insertable = false, updatable = false)
     private BigDecimal lineTotal;
 
-    @Column(name = "line_total_received", precision = 14, scale = 2, insertable = false)
+    @Column(name = "line_total_received", precision = 14, scale = 2, insertable = false, updatable = false)
     private BigDecimal lineTotalReceived;
 
     @Column(name = "created_at", nullable = false)
