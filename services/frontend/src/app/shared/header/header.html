@@ -15,13 +15,13 @@
             type="button"
             [disabled]="deletableCount === 0"
             (click)="deleteSelected.emit()">
-      <img class="i" src="assets/icons/trash.png" alt="delete" />
+      <img class="i" src="assets/icons/trash.svg" alt="delete" />
       Delete <span *ngIf="deletableCount">({{ deletableCount }})</span>
     </button>
     
     <div class="filter-container" *ngIf="showFilters">
       <button class="filter" type="button" (click)="openFilters.emit()">
-        <img class="i" src="assets/icons/filter.png" alt="filters" />
+        <img class="i" src="assets/icons/filter.svg" alt="filters" />
         Filters
         <span class="filter-indicator" *ngIf="hasActiveFilter"></span>
       </button>
