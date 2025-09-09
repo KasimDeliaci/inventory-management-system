@@ -58,7 +58,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<ProductSupplier> productSuppliers;
-    
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
     

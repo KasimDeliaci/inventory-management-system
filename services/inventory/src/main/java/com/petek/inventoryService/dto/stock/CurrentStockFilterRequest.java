@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,7 +30,7 @@ public class CurrentStockFilterRequest {
     private List<String> sort = List.of("productId");
 
     private List<Long> productId;
-    private Integer availableGte;
+    private BigDecimal availableGte;
     private BigDecimal availableLte;
     private BigDecimal onHandGte;
     private BigDecimal onHandLte;

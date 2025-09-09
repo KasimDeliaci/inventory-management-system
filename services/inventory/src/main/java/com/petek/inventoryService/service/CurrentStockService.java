@@ -20,6 +20,7 @@ import com.petek.inventoryService.entity.CurrentStock;
 import com.petek.inventoryService.entity.StockMovement;
 import com.petek.inventoryService.mapper.CurrentStockMapper;
 import com.petek.inventoryService.repository.CurrentStockRepository;
+import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.repository.StockMovementRepository;
 import com.petek.inventoryService.spec.CurrentStockSpecifications;
 import com.petek.inventoryService.utils.SortUtils;
@@ -35,6 +36,7 @@ public class CurrentStockService {
     private final CurrentStockMapper mapper;
 
     private final StockMovementRepository stockMovementRepository;
+    private final ProductRepository productRepository;
     private final ProductService productService;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
@@ -68,7 +70,33 @@ public class CurrentStockService {
     }
 
     /**
-     * Get a Current Stock of product.
+     * Get current stock of product.
+     */
+    public CurrentStockResponse getCurrentStockById(Long productId) {
+        productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
+        
+        Optional<CurrentStock> currentStockOpt = repository.findById(productId);
+
+        CurrentStock currentStock = null;
+
+        if(!currentStockOpt.isPresent()) {
+            currentStock = repository.save(CurrentStock.builder()
+                .productId(productId)
+                .quantityOnHand(BigDecimal.ZERO)
+                .quantityReserved(BigDecimal.ZERO)
+                .quantityAvailable(BigDecimal.ZERO)
+                .lastUpdated(Instant.now())
+                .build());
+        } else {
+            currentStock = currentStockOpt.get();
+        }
+
+        return mapper.toCurrentStockResponse(currentStock);
+    }
+
+    /**
+     * Get a Available Quantity of product.
      */
     public BigDecimal getAvailableQuantityById(Long productId) {
         Optional<CurrentStock> currentStock = repository.findById(productId);

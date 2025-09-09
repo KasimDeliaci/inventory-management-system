@@ -21,8 +21,10 @@ import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
 import com.petek.inventoryService.dto.product.ProductSupplierItemResponse;
 import com.petek.inventoryService.dto.product.ProductUpdateRequest;
+import com.petek.inventoryService.dto.stock.CurrentStockResponse;
 import com.petek.inventoryService.dto.stock.StockMovementFilterRequest;
 import com.petek.inventoryService.dto.stock.StockMovementResponse;
+import com.petek.inventoryService.service.CurrentStockService;
 import com.petek.inventoryService.service.ProductService;
 import com.petek.inventoryService.service.ProductSupplierService;
 import com.petek.inventoryService.service.StockMovementService;
@@ -38,6 +40,7 @@ public class ProductController {
     private final ProductService service;
     private final ProductSupplierService productSupplierService;
     private final StockMovementService stockMovementService;
+    private final CurrentStockService currentStockService;
 
     /**
      * Get all products.
@@ -112,6 +115,16 @@ public class ProductController {
     ) {
         request.setProductId(List.of(productId));
         return ResponseEntity.ok(stockMovementService.getAllStockMovements(request));
+    }
+
+    /**
+     * Get current stock.
+     */
+    @GetMapping("/{productId}/stock")
+    public ResponseEntity<CurrentStockResponse> getCurrentStock(
+        @PathVariable Long productId
+    ) {
+        return ResponseEntity.ok(currentStockService.getCurrentStockById(productId));
     }
 
 }
