@@ -1,3 +1,7 @@
+### Get Purchase Order Item By Id
+
+GET http://localhost:8000/api/v1/purchase-orders/1
+
 ### Create Purchase Order Item
 
 POST http://localhost:8000/api/v1/purchase-orders/1/items

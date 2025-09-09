@@ -38,7 +38,7 @@ public class PurchaseOrderItemService {
             .orElseThrow(() -> new EntityNotFoundException("Purches Order not found with id: " + purchaseOrderId));
         
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + purchaseOrderId));
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + request.getProductId()));
         
         PurchaseOrderItem purchaseOrderItem = mapper.toPurchaseOrderItem(request, product);
         purchaseOrderItem.setPurchaseOrder(purchaseOrder);
@@ -48,6 +48,15 @@ public class PurchaseOrderItemService {
         purchaseOrderItem.setCreatedAt(Instant.now());
         
         return mapper.toPurchaseOrderItemItemResponse(repository.save(purchaseOrderItem));
+    }
+
+    /**
+     * Get purchase order item by id.
+     */
+    public PurchaseOrderItemResponse getPurchaseOrderItemById(Long purchaseOrderId) {
+        return repository.findById(purchaseOrderId)
+            .map(mapper::toPurchaseOrderItemItemResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Purches Order not found with id: " + purchaseOrderId));
     }
 
 }
