@@ -1,0 +1,85 @@
+.layout { 
+  display: grid; 
+  grid-template-columns: 72px 1fr; 
+  min-height: 100dvh; 
+}
+
+.content { 
+  display: grid; 
+  grid-template-rows: auto 1fr; 
+  background: #fafbfd; 
+}
+
+// Ensure proper overflow handling for the order content area
+.order-content {
+  overflow: auto;
+  min-height: 0;
+}
+
+// Fix any global button styling conflicts
+button {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.primary {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1px solid #2563eb !important;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+  }
+}
+
+.danger {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #fecaca !important;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.filter {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e5e7eb !important;
+  }
+}
+
+// Ensure search input styling is consistent
+.search {
+  input {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+  }
+}

@@ -2,8 +2,12 @@ package com.petek.inventoryService.mapper;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.ProductSupplierCreateRequest;
-import com.petek.inventoryService.dto.ProductSupplierResponse;
+import com.petek.inventoryService.dto.product.ProductSupplierItemResponse;
+import com.petek.inventoryService.dto.product.ProductSupplierItemResponse.SupplierItem;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierCreateRequest;
+import com.petek.inventoryService.dto.productSupplier.ProductSupplierResponse;
+import com.petek.inventoryService.dto.supplier.SupplierProductItemResponse;
+import com.petek.inventoryService.dto.supplier.SupplierProductItemResponse.ProductItem;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.entity.Supplier;
@@ -41,6 +45,34 @@ public class ProductSupplierMapper {
             .lastDeliveryDate(productSupplier.getLastDeliveryDate())
             .createdAt(productSupplier.getCreatedAt())
             .updatedAt(productSupplier.getUpdatedAt())
+            .build();
+    }
+
+    /**
+     * Map ProductSupplier entity to ProductSupplierItemResponse.
+     */
+    public ProductSupplierItemResponse toProductSupplierItemResponse(ProductSupplier productSupplier) {
+        return ProductSupplierItemResponse.builder()
+            .supplier(SupplierItem.builder()
+                .supplierId(productSupplier.getSupplier().getSupplierId())
+                .supplierName(productSupplier.getSupplier().getSupplierName())
+                .city(productSupplier.getSupplier().getCity())
+                .build())
+            .link(toProductSupplierResponse(productSupplier))
+            .build();
+    }
+
+    /**
+     * Map ProductSupplier entity to SupplierProductItemResponse.
+     */
+    public SupplierProductItemResponse toSupplierProductItemResponse(ProductSupplier productSupplier) {
+        return SupplierProductItemResponse.builder()
+            .product(ProductItem.builder()
+                .productId(productSupplier.getProduct().getProductId())
+                .productName(productSupplier.getProduct().getProductName())
+                .category(productSupplier.getProduct().getCategory())
+                .build())   
+            .link(toProductSupplierResponse(productSupplier))
             .build();
     }
 

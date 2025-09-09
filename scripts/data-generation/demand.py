@@ -143,6 +143,7 @@ def _ar1(n: int, rho: float, sigma: float, rng: np.random.Generator) -> List[flo
     return vals
 
 
+
 def _offer_pressure_by_date(world: Dict, calendar_df: pd.DataFrame, offers_df: Optional[pd.DataFrame]) -> Dict[date, float]:
     """Compute a weighted daily average percentOff across customers with active offers.
 
@@ -194,7 +195,6 @@ def _offer_pressure_by_date(world: Dict, calendar_df: pd.DataFrame, offers_df: O
 
     return result
 
-
 def _sample_nb(mean: float, dispersion: float, rng: np.random.Generator) -> int:
     """Sample Negative Binomial with given mean and shape k (dispersion).
 
@@ -222,6 +222,7 @@ def _ema(series: List[float], alpha: float) -> List[float]:
     return s
 
 
+
 def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df: Optional[pd.DataFrame], offers_df: Optional[pd.DataFrame], product_ids: List[int], outdir) -> List[str]:
     profiles = _default_profiles(world)
     meta = world.get('meta', {})
@@ -236,6 +237,7 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
 
     # Precompute daily offer pressure (effective average percent-off across the customer base)
     offer_pressure = _offer_pressure_by_date(world, calendar_df, offers_df)
+
 
     start = pd.to_datetime(meta['start_date']).date()
     end = pd.to_datetime(meta['end_date']).date()
@@ -265,6 +267,7 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
             mu *= _events_mult_from_row(crow, profile, pid)
             pct = _campaign_daily_percent(pid, crow['date'], product_campaigns_df) if product_campaigns_df is not None else 0.0
             mu *= _promo_mult(pct, profile.promo_strength)
+
             # Offer multiplier: 1 + alpha * (effective offer percent / 100), capped
             eff_offer_pct = float(offer_pressure.get(crow['date'], 0.0))
             m_offer = 1.0 + offer_alpha * (eff_offer_pct / 100.0)

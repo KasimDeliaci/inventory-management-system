@@ -13,6 +13,7 @@ meta:
   # Correlated latent factor (AR(1)) controlling runs/persistence in daily demand
   latent_rho: 0.7    # persistence (0..1)
   latent_sigma: 0.15  # innovation std (typical 0.1–0.3)
+
   # Global effect of customer offers on demand (applied daily across all products)
   offer_effect_alpha: 0.65     # sensitivity: +alpha * (weighted offer %)
   offer_effect_cap_pct: 30.0  # cap the uplift at +cap% per day

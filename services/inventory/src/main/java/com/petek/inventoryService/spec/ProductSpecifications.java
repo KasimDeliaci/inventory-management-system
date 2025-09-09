@@ -6,7 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
-import com.petek.inventoryService.dto.ProductFilterRequest;
+import com.petek.inventoryService.dto.product.ProductFilterRequest;
 import com.petek.inventoryService.entity.Product;
 
 import java.util.ArrayList;

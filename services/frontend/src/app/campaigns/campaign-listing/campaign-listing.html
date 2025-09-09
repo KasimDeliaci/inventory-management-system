@@ -1,0 +1,28 @@
+<section class="list-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th class="chk">
+          <input type="checkbox"
+                 [checked]="allSelected"
+                 (change)="toggleAll($any($event.target).checked)" />
+        </th>
+        <th>ID</th>
+        <th>NAME</th>
+        <th>PRODUCTS/CUSTOMERS</th>
+        <th>TYPE</th>
+        <th>START</th>
+        <th>END</th>
+        <th>PERCENTAGE</th>
+      </tr>
+    </thead>
+    <tbody>
+      <app-campaign
+        *ngFor="let c of campaigns"
+        [campaign]="c"
+        (rowClick)="edit.emit($event)"
+        (toggle)="selectionChange.emit()">
+      </app-campaign>
+    </tbody>
+  </table>
+</section>

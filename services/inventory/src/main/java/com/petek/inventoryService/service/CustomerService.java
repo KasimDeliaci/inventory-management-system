@@ -1,19 +1,30 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.petek.inventoryService.dto.CustomerCreateRequest;
-import com.petek.inventoryService.dto.CustomerResponse;
-import com.petek.inventoryService.dto.CustomerUpdateRequest;
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
+import com.petek.inventoryService.dto.customer.CustomerCreateRequest;
+import com.petek.inventoryService.dto.customer.CustomerFilterRequest;
+import com.petek.inventoryService.dto.customer.CustomerResponse;
+import com.petek.inventoryService.dto.customer.CustomerUpdateRequest;
 import com.petek.inventoryService.entity.Customer;
 import com.petek.inventoryService.mapper.CustomerMapper;
 import com.petek.inventoryService.repository.CustomerRepository;
+import com.petek.inventoryService.spec.CustomerSpecifications;
+import com.petek.inventoryService.utils.SortUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,6 +34,35 @@ public class CustomerService {
     private final CustomerRepository repository;
     private final CustomerMapper mapper;
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "customerId", "customerName", "customerSegment", "email", "city", "updatedAt"
+    );
+
+    /**
+     * Get all customers.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<CustomerResponse> getCustomers(CustomerFilterRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+        Specification<Customer> spec = CustomerSpecifications.withFilters(request);
+
+        Page<Customer> customerPage = repository.findAll(spec, pageable);
+
+        List<CustomerResponse> customerResponses = customerPage.getContent()
+            .stream()
+            .map(mapper::toCustomerResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            customerPage.getNumber(),
+            customerPage.getSize(),
+            customerPage.getTotalElements(),
+            customerPage.getTotalPages()
+        );
+
+        return new PageResponse<CustomerResponse>(customerResponses, pageInfo);
+    }
+
     /**
      * Create a new customer.
      */
@@ -30,7 +70,7 @@ public class CustomerService {
         Customer customer = mapper.toCustomer(request);
         customer.setCreatedAt(Instant.now());
         customer.setUpdatedAt(Instant.now());
-        return mapper.toResponse(repository.save(customer));
+        return mapper.toCustomerResponse(repository.save(customer));
     }
 
     /**
@@ -38,8 +78,8 @@ public class CustomerService {
      */
     public CustomerResponse getCustomerById(Long customerId) {
         return repository.findById(customerId)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found with id: " + customerId));
+                .map(mapper::toCustomerResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
     }
 
     /**
@@ -47,7 +87,7 @@ public class CustomerService {
      */
     public CustomerResponse updateCustomer(Long customerId, CustomerUpdateRequest request) {
         Customer existingCustomer = repository.findById(customerId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
 
         Optional.ofNullable(request.getCustomerName())
             .filter(name -> !name.trim().isEmpty())
@@ -68,7 +108,7 @@ public class CustomerService {
             .filter(city -> !city.trim().isEmpty())
             .ifPresent(existingCustomer::setCity);
 
-        return mapper.toResponse(repository.save(existingCustomer));
+        return mapper.toCustomerResponse(repository.save(existingCustomer));
     }
 
     /**
@@ -76,7 +116,7 @@ public class CustomerService {
      */
     public void deleteCustomer(Long customerId) {
         Customer existingCustomer = repository.findById(customerId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
         repository.delete(existingCustomer);
     }
 

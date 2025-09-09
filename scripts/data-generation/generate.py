@@ -36,6 +36,7 @@ from campaigns import (
 from orders import generate_orders
 
 
+
 def sql_str(value: str) -> str:
     """Escape single quotes for SQL and wrap in quotes."""
     return "'" + value.replace("'", "''") + "'"

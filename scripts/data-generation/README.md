@@ -53,6 +53,7 @@ This writes:
    Outputs:
    - `out/plots/monthly/*.png`, `out/plots/yearly/*.png`, `out/plots/all/*.png`
 
+
 5) Sales orders (Phase A)
    The generator now also emits sales orders and items using customer offers and product campaigns (stacked discounts), ignoring stock:
    - SQL: `out/sql/20_sales_orders.sql`, `out/sql/21_sales_order_items.sql`
@@ -70,6 +71,7 @@ This writes:
    - `orders_follow_demand: true` (default in `order_policy`) makes orders consume the daily demand budgets per product/date. Result: `observedSales` ≈ `demand` totals.
    - If you set `orders_follow_demand: false`, orders are generated from per-customer propensities; `observedSales` will differ from `demand` (useful for more stochastic behavior).
    - Customer offers influence both ordering (via `offer_uplift_alpha`) and line discounts (stacked with product campaigns). `offerActiveShare` reports the share of units sold under active offers per product-day.
+
 
 ## Roadmap
 

@@ -1,7 +1,6 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -9,25 +8,24 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
+import com.petek.inventoryService.dto.product.ProductCreateRequest;
+import com.petek.inventoryService.dto.product.ProductFilterRequest;
+import com.petek.inventoryService.dto.product.ProductItemResponse;
+import com.petek.inventoryService.dto.product.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductUpdateRequest;
 import com.petek.inventoryService.dto.PageResponse;
-import com.petek.inventoryService.dto.ProductFilterRequest;
-import com.petek.inventoryService.dto.ProductItemResponse;
-import com.petek.inventoryService.dto.ProductCreateRequest;
-import com.petek.inventoryService.dto.ProductResponse;
-import com.petek.inventoryService.dto.ProductUpdateRequest;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.mapper.ProductMapper;
 import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.spec.ProductSpecifications;
+import com.petek.inventoryService.utils.SortUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -63,28 +61,6 @@ public class ProductService {
             throw new IllegalArgumentException("reorder_gte cannot be greater than reorder_lte");
         }
     }
-    
-    private Sort createSort(List<String> sortParams) {
-        List<Sort.Order> orders = new ArrayList<>();
-        
-        for (String sortParam : sortParams) {
-            Sort.Direction direction = Sort.Direction.ASC;
-            String field = sortParam;
-                
-            if (sortParam.startsWith("-")) {
-                direction = Sort.Direction.DESC;
-                field = sortParam.substring(1);
-            }
-            
-            if (!ALLOWED_SORT_FIELDS.contains(field)) {
-                throw new IllegalArgumentException("Invalid sort field: " + field);
-            }
-            
-            orders.add(new Sort.Order(direction, field));
-        }
-        
-        return Sort.by(orders);
-    }
 
     /**
      * Get all products.
@@ -93,7 +69,7 @@ public class ProductService {
     public PageResponse<ProductItemResponse> getAllProducts(ProductFilterRequest request) {
         validateSortRequest(request);
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), createSort(request.getSort()));
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
         Specification<Product> spec = ProductSpecifications.withFilters(request);
         
         Page<Product> productPage = repository.findAll(spec, pageable);
@@ -130,7 +106,7 @@ public class ProductService {
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
                 .map(mapper::toProductResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found with id: " + productId));    
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));    
     }
 
     /**
@@ -139,7 +115,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
 
         Optional.ofNullable(request.getProductName())
             .filter(name -> !name.trim().isEmpty())
@@ -176,7 +152,7 @@ public class ProductService {
      */
     public void deleteProduct(Long productId) {
         Product existingProduct = repository.findById(productId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
         repository.delete(existingProduct);
     }
 

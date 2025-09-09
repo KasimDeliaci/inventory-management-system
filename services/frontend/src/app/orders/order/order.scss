@@ -1,0 +1,126 @@
+/* order-row.scss */
+:host { 
+  display: contents; 
+}
+
+tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+tr.canceled { 
+  background: #fef2f2; 
+  opacity: 0.8;
+}
+
+td, th {
+  padding: .9rem .8rem;
+  border-bottom: 1px solid #e7ebf1;
+  font-size: .92rem;
+  color: #2a2f36;
+  vertical-align: middle;
+}
+
+td.chk { 
+  width: 42px; 
+}
+
+td.type {
+  width: 60px;
+  text-align: center;
+}
+
+.type-badge {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 24px;
+  text-align: center;
+  
+  &.purchase {
+    background: #ff9900;
+  }
+  
+  &.sales {
+    background: #0db257;
+  }
+}
+
+td.order-id {
+  font-family: monospace;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+td.supplier-customer {
+  min-width: 180px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+td.date {
+  min-width: 100px;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+td.quantity {
+  text-align: right;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+td.price {
+  text-align: right;
+  font-weight: 600;
+  min-width: 120px;
+  color: #16a34a;
+}
+
+td.status { 
+  width: 120px; 
+  text-align: center;
+}
+
+.status-dot { 
+  width: 16px; 
+  height: 16px; 
+  border-radius: 50%; 
+  display: inline-block; 
+  margin-right: 8px;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.status-dot.clickable {
+  cursor: pointer;
+  transform: scale(1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-dot.clickable:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.status-dot.clickable:active {
+  transform: scale(0.95);
+}
+
+.status-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}

@@ -1,0 +1,50 @@
+.sidenav {
+  width: 72px;
+  background: #0f2940;
+  color: #dfe8f4;
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  justify-items: center;
+  padding-top: .5rem;
+  height: 100vh;      
+  position: fixed;     
+  top: 0;
+  left: 0;
+}
+
+.brand {
+  margin-bottom: 2rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+li {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  margin: 4px;
+}
+
+li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+li.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 3px 0 0 #4a90e2;
+}
+
+li img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1); /* Makes icons white */
+}
