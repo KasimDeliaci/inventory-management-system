@@ -42,4 +42,13 @@ public class PurchaseOrderService {
         return mapper.toPurchaseOrderResponse(repository.save(purchaseOrder));
     }
 
+    /**
+     * Get a purchase order by id.
+     */
+    public PurchaseOrderResponse getPurchaseOrderById(Long purchaseOrderId) {
+        return repository.findById(purchaseOrderId)
+            .map(mapper::toPurchaseOrderResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Purchase Order not found with id: " + purchaseOrderId));
+    }
+
 }

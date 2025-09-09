@@ -8,3 +8,7 @@ content-type: application/json
     "orderDate": "2025-09-09",
     "expectedDelivery": "2025-09-09"
 }
+
+### Get Purchase Order By Id
+
+GET http://localhost:8000/api/v1/purchase-orders/1

@@ -1,6 +1,7 @@
 package com.petek.inventoryService.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,6 +46,16 @@ public class PurchaseOrderController {
         @RequestBody @Valid PurchaseOrderItemCreateRequest request
     ) {
         return ResponseEntity.ok(purchaseOrderItemService.createPurchaseOrderItem(purchaseOrderId, request));
+    }
+
+    /**
+     * Get a purchase order by id.
+     */
+    @GetMapping("/{purchaseOrderId}")
+    public ResponseEntity<PurchaseOrderResponse> getPurchaseOrderById(
+        @PathVariable Long purchaseOrderId
+    ) {
+        return ResponseEntity.ok(service.getPurchaseOrderById(purchaseOrderId));
     }
 
 }
