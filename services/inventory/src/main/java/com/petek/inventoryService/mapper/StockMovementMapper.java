@@ -6,24 +6,14 @@ import com.petek.inventoryService.dto.stock.StockMovementCreateRequest;
 import com.petek.inventoryService.dto.stock.StockMovementResponse;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.StockMovement;
-import com.petek.inventoryService.repository.ProductRepository;
-
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class StockMovementMapper {
-    
-    private final ProductRepository productRepository;
 
     /**
      * Map StockMovementCreateRequest to StockMovement entity.
      */
-    public StockMovement toStockMovement(StockMovementCreateRequest request) {
-        Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + request.getProductId()));
-
+    public StockMovement toStockMovement(StockMovementCreateRequest request, Product product) {
         return StockMovement.builder()
             .product(product)
             .movementKind(request.getMovementKind())

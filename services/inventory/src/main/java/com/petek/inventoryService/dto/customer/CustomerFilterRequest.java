@@ -3,7 +3,6 @@ package com.petek.inventoryService.dto.customer;
 import java.time.Instant;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.petek.inventoryService.entity.Customer.CustomerSegment;
 
 import jakarta.validation.constraints.Min;
@@ -34,7 +33,5 @@ public class CustomerFilterRequest {
     private String q;
     private CustomerSegment segment;
     private String city;
-
-    @JsonProperty("updated_after")
     private Instant updatedAfter;
 }

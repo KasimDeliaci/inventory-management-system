@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 import com.petek.inventoryService.dto.product.ProductCreateRequest;
 import com.petek.inventoryService.dto.product.ProductItemResponse;
 import com.petek.inventoryService.dto.product.ProductResponse;
+import com.petek.inventoryService.dto.product.ProductItemResponse.InventoryStatus;
+import com.petek.inventoryService.dto.stock.CurrentStockResponse;
 import com.petek.inventoryService.entity.Product;
 
 import jakarta.persistence.EntityNotFoundException;
-
 @Service
 public class ProductMapper {
-
 
     private SupplierMapper supplierMapper = new SupplierMapper();
 
@@ -78,13 +78,24 @@ public class ProductMapper {
     /**
      * Map Product entity to ProductItemResponse.
      */
-    public ProductItemResponse toProductItemResponse(Product product) {
+    public ProductItemResponse toProductItemResponse(Product product, CurrentStockResponse currentStockResponse) {
+        BigDecimal quantityAvailable = currentStockResponse.getQuantityAvailable();
+
+        InventoryStatus inventoryStatus;
+        if (quantityAvailable.compareTo(product.getSafetyStock()) < 0) {
+        inventoryStatus = ProductItemResponse.InventoryStatus.RED;
+        } else if (quantityAvailable.compareTo(product.getReorderPoint()) > 0) {
+        inventoryStatus = ProductItemResponse.InventoryStatus.GREEN;
+        } else {
+        inventoryStatus = ProductItemResponse.InventoryStatus.YELLOW;
+        }
+
         return ProductItemResponse.builder()
             .productId(product.getProductId())
             .productName(product.getProductName())
             .category(product.getCategory())
             .unitOfMeasure(product.getUnitOfMeasure())
-            .quantityAvailable(BigDecimal.ZERO) // Placeholder, replace with actual available quantity
+            .quantityAvailable(currentStockResponse.getQuantityAvailable())
             .activeSuppliers(product.getProductSuppliers() != null ? 
                 product.getProductSuppliers().stream()
                     .filter(ps -> ps.getActive())
@@ -117,7 +128,7 @@ public class ProductMapper {
                         }
                     })
                     .orElse(null) : null)
-            .inventoryStatus(ProductItemResponse.InventoryStatus.GREEN) // Placeholder, replace with actual logic
+            .inventoryStatus(inventoryStatus) // Placeholder, replace with actual logic
             .build();
     }
 

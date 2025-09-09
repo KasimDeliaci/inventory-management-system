@@ -33,12 +33,14 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProductSupplierService {
     
     private final ProductSupplierRepository repository;
+    private final ProductSupplierMapper mapper;
+
     private final ProductService productService;
     private final SupplierService supplierService;
-    private final ProductSupplierMapper mapper;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "productSupplierId", "product", "supplier", "minOrderQuantity", "avgLeadTimeDays", "avgDelayDays", "totalOrdersCount", "delayedOrdersCount", "lastDeliveryDate", "updatedAt"
@@ -120,7 +122,6 @@ public class ProductSupplierService {
     /**
      * Update a productSupplier.
      */
-    @Transactional
     public ProductSupplierResponse updateProductSupplier(Long productSupplierId, ProductSupplierUpdateRequest request) {
         ProductSupplier existingProductSupplier = repository.findById(productSupplierId)
             .orElseThrow(() -> new EntityNotFoundException("ProductSupplier not found with id: " + productSupplierId));

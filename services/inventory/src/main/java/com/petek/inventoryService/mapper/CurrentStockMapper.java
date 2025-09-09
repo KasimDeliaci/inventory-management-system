@@ -17,7 +17,7 @@ public class CurrentStockMapper {
             .quantityOnHand(currentStock.getQuantityOnHand())
             .quantityReserved(currentStock.getQuantityReserved())
             .quantityAvailable(currentStock.getQuantityAvailable())
-            .lastMovementId(currentStock.getLastMovement().getMovementId())
+            .lastMovementId(currentStock.getLastMovement() != null ? currentStock.getLastMovement().getMovementId() : null)
             .lastUpdated(currentStock.getLastUpdated())
             .build();
     }
