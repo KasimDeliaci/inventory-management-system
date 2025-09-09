@@ -4,12 +4,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderCreateRequest;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderResponse;
+import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderUpdateRequest;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemCreateRequest;
 import com.petek.inventoryService.dto.purchaseOrderItem.PurchaseOrderItemResponse;
 import com.petek.inventoryService.service.PurchaseOrderItemService;
@@ -56,6 +58,17 @@ public class PurchaseOrderController {
         @PathVariable Long purchaseOrderId
     ) {
         return ResponseEntity.ok(service.getPurchaseOrderById(purchaseOrderId));
+    }
+
+    /**
+     * Update a purchase order by id.
+     */
+    @PutMapping("/{purchaseOrderId}")
+    public ResponseEntity<PurchaseOrderResponse> updatePurchaseOrderById(
+        @PathVariable Long purchaseOrderId,
+        @RequestBody @Valid PurchaseOrderUpdateRequest request
+    ) {
+        return ResponseEntity.ok(service.updatePurchaseOrder(purchaseOrderId, request));
     }
 
 }

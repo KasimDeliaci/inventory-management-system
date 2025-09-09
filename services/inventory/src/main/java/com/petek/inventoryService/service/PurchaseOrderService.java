@@ -1,11 +1,13 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderCreateRequest;
 import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderResponse;
+import com.petek.inventoryService.dto.purchaseOrder.PurchaseOrderUpdateRequest;
 import com.petek.inventoryService.entity.PurchaseOrder;
 import com.petek.inventoryService.entity.Supplier;
 import com.petek.inventoryService.entity.PurchaseOrder.PurchaseOrderStatus;
@@ -49,6 +51,24 @@ public class PurchaseOrderService {
         return repository.findById(purchaseOrderId)
             .map(mapper::toPurchaseOrderResponse)
             .orElseThrow(() -> new EntityNotFoundException("Purchase Order not found with id: " + purchaseOrderId));
+    }
+
+    /**
+     * Update purchase order.
+     */
+    public PurchaseOrderResponse updatePurchaseOrder(Long purchaseOrderId, PurchaseOrderUpdateRequest request) {
+        PurchaseOrder existingPurchaseOrder = repository.findById(purchaseOrderId)
+            .orElseThrow(() -> new EntityNotFoundException("Purchase Order not found with id: " + purchaseOrderId));
+        
+        Optional.ofNullable(request.getActualDelivery())
+            .ifPresent(existingPurchaseOrder::setActualDelivery);
+            
+        Optional.ofNullable(request.getStatus())
+            .ifPresent(existingPurchaseOrder::setStatus);
+
+        existingPurchaseOrder.setUpdatedAt(Instant.now());
+
+        return mapper.toPurchaseOrderResponse(repository.save(existingPurchaseOrder));
     }
 
 }
