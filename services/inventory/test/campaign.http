@@ -1,0 +1,13 @@
+### Create Campaign
+
+POST http://localhost:8000/api/v1/campaigns
+content-type: application/json
+
+{
+    "campaignName": "Test",
+    "campaignType": "BXGY_SAME_PRODUCT",
+    "buyQty": 1,
+    "getQty": 1,
+    "startDate": "2025-09-10",
+    "endDate": "2025-09-10"
+}
