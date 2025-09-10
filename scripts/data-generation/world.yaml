@@ -2,21 +2,34 @@ meta:
   name: demo-world-tr
   country: TR
   seed: 42
-  start_date: 2023-01-01
-  end_date: 2025-12-31
+  start_date: 2020-01-01
+  end_date: 2025-06-30
   # Optional: globally scale demand levels (1.0 = baseline). Example: 10.0 to roughly 10x volumes
   demand_scale: 10.0
   # Smoothing to reduce day-to-day jitter (EMA): lower alpha = smoother (0.3 default)
   smooth_alpha: 0.2
   # Increase dispersion_scale (>1) to reduce variance (NB shape k is multiplied)
-  dispersion_scale: 1.5
+  dispersion_scale: 2
   # Correlated latent factor (AR(1)) controlling runs/persistence in daily demand
   latent_rho: 0.7    # persistence (0..1)
   latent_sigma: 0.15  # innovation std (typical 0.1–0.3)
 
   # Global effect of customer offers on demand (applied daily across all products)
-  offer_effect_alpha: 0.65     # sensitivity: +alpha * (weighted offer %)
+  offer_effect_alpha: 1.6     # sensitivity: +alpha * (weighted offer %)
   offer_effect_cap_pct: 30.0  # cap the uplift at +cap% per day
+
+  # Global effect scaler for product campaign promotions (multiplies per-product promo_strength)
+  promo_effect_alpha: 1.75
+
+  # Post-sample soft shrink (quiet days): gently pull extreme sampled counts toward a DOW-aware reference
+  sample_soft_shrink_on_quiet_days: true
+  sample_soft_shrink_lambda: 0.5   # 0..1; 0 = snap to reference, 1 = no shrink
+  clamp_window_days: 7             # history window length
+  clamp_band_pct: 0.10             # ±10% band around reference
+  clamp_use_same_dow: true         # reference uses last same weekday occurrences
+  clamp_max_campaign_pct_for_clamp: 10.0   # treat as quiet if campaign pct <= this
+  clamp_max_offer_pressure_pct_for_clamp: 10.0  # treat as quiet if offer pressure <= this
+  clamp_skip_specials: true       # allow clamping even on special days if desired
 
 order_policy:
   orders_follow_demand: true
@@ -71,6 +84,7 @@ products:
   - id: 1001
     name: Sunscreen SPF50 200ml
     category: Personal Care
+    description: High-protection SPF50 sunscreen in a 200ml bottle; strongly seasonal with summer demand peaks.
     uom: şişe
     safety_stock: 20
     reorder_point: 50
@@ -78,6 +92,7 @@ products:
   - id: 1002
     name: Air Conditioner 12000 BTU
     category: Appliances
+    description: 12,000 BTU split air conditioner; strong summer demand, price-sensitive with promotions.
     uom: adet
     safety_stock: 2
     reorder_point: 10
@@ -85,6 +100,7 @@ products:
   - id: 1003
     name: Ski Board All-Mountain
     category: Sports
+    description: All-mountain ski board for winter sports; peak demand in winter season and holidays.
     uom: adet
     safety_stock: 2
     reorder_point: 8
@@ -92,6 +108,7 @@ products:
   - id: 1004
     name: Thermo Flask 500ml
     category: Home & Kitchen
+    description: Stainless 500ml thermal flask for hot/cold beverages; mild winter bias, steady baseline.
     uom: adet
     safety_stock: 10
     reorder_point: 30
@@ -99,6 +116,7 @@ products:
   - id: 1005
     name: Dates (Medjool) 1kg
     category: Grocery
+    description: Premium Medjool dates in 1kg packs; strong Ramadan seasonality and Eid uplift.
     uom: kg
     safety_stock: 15
     reorder_point: 40
@@ -106,6 +124,7 @@ products:
   - id: 1006
     name: Assorted Chocolates 250g
     category: Confectionery
+    description: Gift-friendly 250g assorted chocolates; spikes on Valentine’s, Mother’s, and special days.
     uom: paket
     safety_stock: 20
     reorder_point: 60
@@ -113,6 +132,7 @@ products:
   - id: 1007
     name: Eau de Parfum 50ml
     category: Fragrance
+    description: 50ml eau de parfum; gifting item with uplift on romantic and family holidays.
     uom: şişe
     safety_stock: 5
     reorder_point: 20
@@ -120,6 +140,7 @@ products:
   - id: 1008
     name: Potato Chips 50g
     category: Snacks
+    description: Single-serve 50g potato chips; weekend and social-occasion uplift, frequent BXGY promos.
     uom: paket
     safety_stock: 80
     reorder_point: 200
@@ -127,6 +148,7 @@ products:
   - id: 1009
     name: Energy Drink 250ml Can
     category: Beverages
+    description: 250ml canned energy drink; strong weekend and late-hour demand, promo-responsive.
     uom: şişe
     safety_stock: 60
     reorder_point: 150
@@ -134,6 +156,7 @@ products:
   - id: 1010
     name: School Notebook A4 80 pages
     category: Stationery
+    description: A4 size, 80-page school notebook; back-to-school peaks with minor Teachers’ Day uplift.
     uom: adet
     safety_stock: 40
     reorder_point: 120
@@ -141,6 +164,7 @@ products:
   - id: 1011
     name: Turkish Flag 70x105 cm
     category: Occasions
+    description: 70x105 cm national flag; demand spikes on national holidays and commemorations.
     uom: adet
     safety_stock: 10
     reorder_point: 30
@@ -148,6 +172,7 @@ products:
   - id: 1012
     name: Black Tea 1kg
     category: Grocery
+    description: Traditional loose-leaf black tea, 1kg pack; steady demand with mild winter bias.
     uom: paket
     safety_stock: 30
     reorder_point: 80

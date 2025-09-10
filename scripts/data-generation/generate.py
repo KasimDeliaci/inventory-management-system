@@ -46,12 +46,13 @@ def emit_products(products):
     lines = []
     for p in products:
         cols = [
-            'product_id', 'product_name', 'category', 'unit_of_measure',
+            'product_id', 'product_name', 'description', 'category', 'unit_of_measure',
             'safety_stock', 'reorder_point', 'current_price'
         ]
         vals = [
             str(int(p['id'])),
             sql_str(p['name']),
+            sql_str(p.get('description', '')),
             sql_str(p['category']),
             sql_str(p['uom']),
             str(float(p['safety_stock'])),
