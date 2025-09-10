@@ -11,3 +11,7 @@ content-type: application/json
     "startDate": "2025-09-10",
     "endDate": "2025-09-10"
 }
+
+### Get Campaign By Id
+
+GET http://localhost:8000/api/v1/campaigns/1

@@ -3,6 +3,7 @@ package com.petek.inventoryService.service;
 import java.time.Instant;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
@@ -11,7 +12,7 @@ import com.petek.inventoryService.entity.Campaign.CampaignType;
 import com.petek.inventoryService.mapper.CampaignMapper;
 import com.petek.inventoryService.repository.CampaignRepository;
 
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -45,6 +46,16 @@ public class CampaignService {
         campaign.setUpdatedAt(Instant.now());
 
         return mapper.toCampaignResponse(repository.save(campaign));
+    }
+
+    /**
+     * Get campaign by id.
+     */
+    @Transactional(readOnly = true)
+    public CampaignResponse getCampaignById(Long campaignId) {
+        return repository.findById(campaignId)
+            .map(mapper::toCampaignResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
     }
 
 }
