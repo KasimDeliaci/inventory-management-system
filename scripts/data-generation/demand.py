@@ -234,6 +234,7 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
     latent_sigma = float(meta.get('latent_sigma', 0.15))
     offer_alpha = float(meta.get('offer_effect_alpha', 0.6))
     offer_cap_pct = float(meta.get('offer_effect_cap_pct', 30.0))
+    promo_alpha = float(meta.get('promo_effect_alpha', 1.0))
 
     # Precompute daily offer pressure (effective average percent-off across the customer base)
     offer_pressure = _offer_pressure_by_date(world, calendar_df, offers_df)
@@ -266,7 +267,8 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
                 mu *= profile.weekend_mult
             mu *= _events_mult_from_row(crow, profile, pid)
             pct = _campaign_daily_percent(pid, crow['date'], product_campaigns_df) if product_campaigns_df is not None else 0.0
-            mu *= _promo_mult(pct, profile.promo_strength)
+            # Apply product campaign multiplier with global promo scaler
+            mu *= _promo_mult(pct, profile.promo_strength * promo_alpha)
 
             # Offer multiplier: 1 + alpha * (effective offer percent / 100), capped
             eff_offer_pct = float(offer_pressure.get(crow['date'], 0.0))
@@ -290,11 +292,77 @@ def generate_demand(world: Dict, calendar_df: pd.DataFrame, product_campaigns_df
 
         rows = []
         k = max(1e-6, float(profile.dispersion) * max(0.1, dispersion_scale))
-        for mu, pct, d, l in zip(smoothed, promo_pcts, dates_list, lat):
-            mu_scaled = mu * demand_scale
-            # Latent multiplier (log-normal-like), centered near 1
-            mu_scaled *= float(np.exp(profile.latent_amp * l))
+
+        # Post-sample soft-shrink config
+        sample_soft = bool(meta.get('sample_soft_shrink_on_quiet_days', True))
+        soft_lambda = float(meta.get('sample_soft_shrink_lambda', 0.5))
+        win = int(meta.get('clamp_window_days', 7))
+        band_pct = float(meta.get('clamp_band_pct', 0.10))
+        use_same_dow = bool(meta.get('clamp_use_same_dow', True))
+        max_campaign_for_clamp = float(meta.get('clamp_max_campaign_pct_for_clamp', 0.0))
+        max_offer_for_clamp = float(meta.get('clamp_max_offer_pressure_pct_for_clamp', 0.0))
+        skip_specials = bool(meta.get('clamp_skip_specials', False))
+
+        # Precompute post-latent means (before scaling) to build same-DOW references
+        mu_lat_pre = [float(mu * np.exp(profile.latent_amp * l)) for mu, l in zip(smoothed, lat)]
+
+        for i, (mu_pre, pct, d) in enumerate(zip(mu_lat_pre, promo_pcts, dates_list)):
+            mu_scaled = mu_pre * demand_scale
             y = _sample_nb(mu_scaled, k, rng)
+
+            if sample_soft:
+                # Quiet day check
+                is_quiet = True
+                if pct is not None and float(pct) > max_campaign_for_clamp:
+                    is_quiet = False
+                eff_offer_pct = float(offer_pressure.get(d, 0.0))
+                if eff_offer_pct > max_offer_for_clamp:
+                    is_quiet = False
+                if skip_specials:
+                    crow = cal.iloc[i]
+                    special_flags = [
+                        bool(crow.get('is_official_holiday', False)),
+                        bool(crow.get('is_ramadan', False)),
+                        bool(crow.get('is_eid_fitr', False)),
+                        bool(crow.get('is_eid_adha', False)),
+                        bool(crow.get('is_valentines', False)),
+                        bool(crow.get('is_mothers_day', False)),
+                        bool(crow.get('is_teachers_day', False)),
+                        bool(crow.get('is_ataturk_memorial', False)),
+                        bool(crow.get('is_black_friday', False)),
+                        bool(crow.get('is_back_to_school', False)),
+                    ]
+                    if any(special_flags):
+                        is_quiet = False
+
+                if is_quiet:
+                    # Build same-DOW reference over post-latent means
+                    ref_vals: List[float] = []
+                    if use_same_dow:
+                        target_dow = pd.Timestamp(d).weekday()
+                        j = i - 1
+                        while j >= 0 and len(ref_vals) < win:
+                            if pd.Timestamp(dates_list[j]).weekday() == target_dow:
+                                v = mu_lat_pre[j]
+                                if v > 0:
+                                    ref_vals.append(v)
+                            j -= 1
+                    else:
+                        for j in range(max(0, i - win), i):
+                            v = mu_lat_pre[j]
+                            if v > 0:
+                                ref_vals.append(v)
+
+                    if ref_vals:
+                        logs = np.log(np.array(ref_vals, dtype=float))
+                        ref = float(np.exp(np.median(logs))) * demand_scale
+                        lower = (1.0 - band_pct) * ref
+                        upper = (1.0 + band_pct) * ref
+                        if y < lower or y > upper:
+                            y = int(round(ref + soft_lambda * (y - ref)))
+                            if y < 0:
+                                y = 0
+
             rows.append({'date': d, 'productId': pid, 'demand': y, 'promoPct': pct})
 
         df = pd.DataFrame(rows)
