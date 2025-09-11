@@ -94,4 +94,16 @@ public class CampaignController {
         return ResponseEntity.noContent().header("X-Assign-Description", "Assigned").build();
     }
 
+    /**
+     * Delete a campaign product by id.
+     */
+    @DeleteMapping("/{campaignId}/products/{productId}")
+    public ResponseEntity<Void> deleteCampaignProductById(
+        @PathVariable Long campaignId,
+        @PathVariable Long productId
+    ) {
+        service.deleteCampaignProduct(campaignId, productId);
+        return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
 }

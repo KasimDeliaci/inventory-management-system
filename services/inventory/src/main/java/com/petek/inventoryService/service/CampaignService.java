@@ -122,4 +122,24 @@ public class CampaignService {
         repository.save(campaign);
     }
 
+    /**
+     * Delete Campaign Product.
+     */
+    public void deleteCampaignProduct(Long campaignId, Long productId) {
+        Campaign campaign = repository.findById(campaignId)
+            .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
+
+        if (!campaign.getProducts().contains(product)) {
+            throw new EntityNotFoundException("Product not found with id: " + productId + " in Campaign with id: " + campaignId);
+        }
+
+        campaign.removeProduct(product);
+
+        campaign.setUpdatedAt(Instant.now());
+        repository.save(campaign);
+    }
+
 }
