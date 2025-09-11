@@ -1,6 +1,7 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -11,8 +12,10 @@ import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.entity.Campaign;
 import com.petek.inventoryService.entity.Campaign.CampaignType;
+import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.mapper.CampaignMapper;
 import com.petek.inventoryService.repository.CampaignRepository;
+import com.petek.inventoryService.repository.ProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,8 @@ public class CampaignService {
     
     private final CampaignRepository repository;
     private final CampaignMapper mapper;
+
+    private final ProductRepository productRepository;
 
     /**
      * Create campaign.
@@ -100,6 +105,21 @@ public class CampaignService {
         Campaign campaign = repository.findById(campaignId)
             .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
         repository.delete(campaign);
+    }
+
+    /**
+     * Create Campaign Product.
+     */
+    public void assignCampaignProduct(Long campaignId, List<Long> productIds) {
+        Campaign campaign = repository.findById(campaignId)
+            .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
+        
+        List<Product> products = productRepository.findAllById(productIds);
+
+        products.forEach(campaign::addProduct);
+
+        campaign.setUpdatedAt(Instant.now());
+        repository.save(campaign);
     }
 
 }

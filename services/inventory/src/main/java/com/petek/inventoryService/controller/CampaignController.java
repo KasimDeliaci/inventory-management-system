@@ -1,5 +1,7 @@
 package com.petek.inventoryService.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
+import com.petek.inventoryService.dto.campaign.CampaignProductCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.service.CampaignService;
@@ -65,6 +68,30 @@ public class CampaignController {
     ) {
         service.deleteCampaign(campaignId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Create campaign product.
+     */
+    @PostMapping("/{campaignId}/products")
+    public ResponseEntity<Void> assignCampaignProduct(
+        @PathVariable Long campaignId,
+        @RequestBody @Valid CampaignProductCreateRequest request
+    ) {
+        service.assignCampaignProduct(campaignId, request.getProductIds());
+        return ResponseEntity.noContent().header("X-Assign-Description", "Assigned").build();
+    }
+
+    /**
+     * Create campaign product by id.
+     */
+    @PostMapping("/{campaignId}/products/{productId}")
+    public ResponseEntity<Void> assignCampaignProductById(
+        @PathVariable Long campaignId,
+        @PathVariable Long productId
+    ) {
+        service.assignCampaignProduct(campaignId, List.of(productId));
+        return ResponseEntity.noContent().header("X-Assign-Description", "Assigned").build();
     }
 
 }

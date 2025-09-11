@@ -76,4 +76,12 @@ public class Campaign {
         DISCOUNT,
         BXGY_SAME_PRODUCT
     }
+
+    public void addProduct(Product product) {
+        this.products.add(product);
+    }
+
+    public void removeProduct(Product product) {
+        this.products.remove(product);
+    }
 }

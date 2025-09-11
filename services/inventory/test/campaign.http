@@ -32,3 +32,18 @@ content-type: application/json
 ### Delete Campaign By Id
 
 DELETE  http://localhost:8000/api/v1/campaigns/2
+
+### Assign Campaign Product
+
+POST http://localhost:8000/api/v1/campaigns/1/products
+content-type: application/json
+
+{
+    "productIds": [
+        1
+    ]
+}
+
+### Assign Campaign Product By Id
+
+POST http://localhost:8000/api/v1/campaigns/1/products/1
