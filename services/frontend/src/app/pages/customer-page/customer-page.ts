@@ -1,11 +1,12 @@
-import { Component, computed, signal, inject } from '@angular/core';
+// updated-customer-page.ts
+import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Header } from '../../shared/header/header';
 import { SideNav } from '../../shared/side-nav/side-nav';
 import { CustomerListingComponent } from '../../customers/customer-listing/customer-listing';
 import { CustomerEditorComponent } from '../../customers/customer-editor/customer-editor';
 import { Customer, CustomerSegment } from '../../models/customer.model';
-import { MockDataService } from '../mock-data.service';
+import { DataService } from '../data.service'; // Import the new DataService
 
 @Component({
   selector: 'app-customer-page',
@@ -20,8 +21,9 @@ import { MockDataService } from '../mock-data.service';
   templateUrl: './customer-page.html',
   styleUrls: ['./customer-page.scss'],
 })
-export class CustomerPageComponent {
-  private mockDataService = inject(MockDataService);
+export class CustomerPageComponent implements OnInit {
+  private dataService = inject(DataService); // Use DataService instead of MockDataService
+  private destroyRef = inject(DestroyRef);
 
   query = signal('');
   editorOpen = signal(false);
@@ -30,6 +32,9 @@ export class CustomerPageComponent {
   // Filter states
   filterOpen = signal(false);
   segmentFilter = signal<CustomerSegment | 'all'>('all');
+  
+  // Loading state
+  loading = signal(false);
 
   private selectionTick = signal(0);
   
@@ -37,8 +42,8 @@ export class CustomerPageComponent {
     this.selectionTick.update((n) => n + 1);
   }
 
-  // Initialize with mock data
-  private all = signal<Customer[]>(this.mockDataService.getCustomers());
+  // Initialize with signals
+  private all = signal<Customer[]>([]);
 
   readonly customers = computed(() => {
     let filtered = this.all();
@@ -72,6 +77,31 @@ export class CustomerPageComponent {
     this.selectionTick();
     return this.all().filter((c) => c.selected).length;
   });
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  private loadData() {
+    this.loading.set(true);
+    
+    // Load customers from backend
+    const customersSubscription = this.dataService.getCustomers().subscribe({
+      next: (customers) => {
+        this.all.set(customers);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading customers:', err);
+        this.loading.set(false);
+      },
+    });
+
+    // Cleanup subscriptions
+    this.destroyRef.onDestroy(() => {
+      customersSubscription.unsubscribe();
+    });
+  }
 
   // Header event handlers
   onAddCustomer() {
@@ -118,15 +148,42 @@ export class CustomerPageComponent {
 
   // Editor event handlers
   handleSave(updated: Customer) {
-    if (updated.id && this.all().some((c) => c.id === updated.id)) {
+    // Validate required fields
+    if (!updated.name?.trim() || !updated.email?.trim() || !updated.phone?.trim() || !updated.city?.trim()) {
+      console.error('Missing required fields');
+      return;
+    }
+
+    // Ensure we have clean data
+    const cleanUpdated: Customer = {
+      id: updated.id?.trim() || '',
+      name: updated.name.trim(),
+      segment: updated.segment,
+      email: updated.email.trim(),
+      phone: updated.phone.trim(),
+      city: updated.city.trim(),
+      selected: updated.selected || false,
+    };
+
+    // Check if this is an update (existing customer with ID) or new customer
+    const isUpdate = cleanUpdated.id && this.all().some((c) => c.id === cleanUpdated.id);
+    
+    if (isUpdate) {
       // Update existing customer
       this.all.update((list) => 
-        list.map((c) => (c.id === updated.id ? { ...c, ...updated } : c))
+        list.map((c) => (c.id === cleanUpdated.id ? { ...c, ...cleanUpdated } : c))
       );
     } else {
-      // Add new customer
-      const id = updated.id?.trim() || `CUS-${String(this.all().length + 1).padStart(3, '0')}`;
-      this.all.update((list) => [{ ...updated, id, selected: false }, ...list]);
+      // Add new customer - generate ID if empty
+      const maxIdNumber = Math.max(
+        ...this.all().map(c => {
+          const match = c.id.match(/CUST-(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        }),
+        500 // Start from 501 to match backend pattern
+      );
+      const id = cleanUpdated.id || `CUST-${String(maxIdNumber + 1).padStart(3, '0')}`;
+      this.all.update((list) => [{ ...cleanUpdated, id, selected: false }, ...list]);
     }
     this.closeEditor();
   }
@@ -141,5 +198,10 @@ export class CustomerPageComponent {
   closeEditor() {
     this.editorOpen.set(false);
     this.editing.set(null);
+  }
+
+  // Refresh data method
+  refreshData() {
+    this.loadData();
   }
 }
