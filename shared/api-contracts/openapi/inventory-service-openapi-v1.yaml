@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Inventory Service API
-  version: 1.0.0
+  version: 1.1.0
   description: >-
     CRUD for master data (Products, Suppliers, Customers) with comprehensive filtering support.
     Integer IDs, no auth. Timestamps are read-only and maintained in app code (e.g., JPA auditing).
