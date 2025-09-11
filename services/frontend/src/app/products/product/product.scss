@@ -1,7 +1,16 @@
 // Existing styles - PROTECTED
 :host { display: contents; }
 
+tr:hover {
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
 tr.low { background: #eeb7bf33; } /* light red tint for critical rows */
+
+tr.low:hover {
+  background: #eeb7bf66; /* slightly darker red tint on hover */
+}
 
 td, th {
   padding: .9rem .8rem;

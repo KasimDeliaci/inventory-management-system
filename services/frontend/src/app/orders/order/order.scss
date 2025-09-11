@@ -3,19 +3,17 @@
   display: contents; 
 }
 
-tr {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
 tr:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
 }
 
-tr.canceled { 
-  background: #fef2f2; 
-  opacity: 0.8;
+tr.canceled { background: #eeb7bf33; }
+
+tr.canceled:hover { 
+  background: #eeb7bf66; /* slightly darker red tint on hover */
 }
+
 
 td, th {
   padding: .9rem .8rem;

@@ -1,5 +1,10 @@
 :host { display: contents; }
 
+tr:hover {
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
 td, th {
   padding: .9rem .8rem;
   border-bottom: 1px solid #e7ebf1;
@@ -8,8 +13,3 @@ td, th {
 }
 td.chk { width: 42px; }
 td.name { min-width: 200px; }
-
-tr:hover {
-  background: #f0f2f5;
-  cursor: pointer;
-}
