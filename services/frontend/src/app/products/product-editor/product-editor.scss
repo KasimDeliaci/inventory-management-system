@@ -23,14 +23,19 @@
 }
 
 .close {
-  position: absolute; 
-  top: 10px; 
+  position: absolute;
+  top: 10px;
   right: 12px;
-  background: transparent; 
-  border: 0; 
-  font-size: 22px; 
-  cursor: pointer; 
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  cursor: pointer;
   color: #163a5a;
+  z-index: 10;
+}
+
+.close:hover {
+  color: #d64545;
 }
 
 .grid { 

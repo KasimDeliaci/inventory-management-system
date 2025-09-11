@@ -36,6 +36,10 @@
   color: #163a5a;
 }
 
+.close:hover {
+  color: #d64545;
+}
+
 .grid { 
   display: grid; 
   grid-template-columns: 1fr; 
@@ -83,14 +87,9 @@
   padding: 4px 0;
 }
 
-.date-button {
-  cursor: pointer;
-  text-align: left;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: inherit;
-  color: inherit;
+.date-input {
+  background: transparent;
+  border: 1px solid #cccccc00;
 }
 
 .dropdown-arrow {
