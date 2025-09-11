@@ -8,60 +8,88 @@ import { Product, ProductStatus } from '../../models/product.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './product.html',
-  styleUrls: ['./product.scss']
+  styleUrls: ['./product.scss'],
 })
 export class ProductComponent {
   @Input({ required: true }) product!: Product;
   @Output() toggle = new EventEmitter<boolean>();
   @Output() rowClick = new EventEmitter<Product>();
-  @Output() statusChange = new EventEmitter<{ product: Product, newStatus: ProductStatus }>();
+  @Output() statusChange = new EventEmitter<{ product: Product; newStatus: ProductStatus }>();
+
+  showTooltip = false;
+  tooltipTimeout?: number;
 
   get statusClass() {
     return {
       ok: this.product.status === 'ok',
       warning: this.product.status === 'warning',
-      critical: this.product.status === 'critical'
+      critical: this.product.status === 'critical',
     };
   }
 
   // Method to get other suppliers (excluding preferred)
   get otherSupplierIds() {
-    return this.product.activeSupplierIds?.filter(
-      id => id !== this.product.preferredSupplierId
-    ) || [];
+    return (
+      this.product.activeSupplierIds?.filter((id) => id !== this.product.preferredSupplierId) || []
+    );
   }
 
   // Method to format supplier display
   get supplierDisplay() {
     const preferred = this.product.preferredSupplierId;
     const others = this.otherSupplierIds;
-    
+
     if (others.length === 0) {
       return preferred;
     }
     return `${preferred}, ${others.join(', ')}`;
   }
 
-  onStatusClick(event: Event) {
-    event.stopPropagation(); // Prevent row click
-    
-    // Cycle through statuses: ok -> warning -> critical -> ok
-    let newStatus: ProductStatus;
+  // Get tooltip message based on status
+  get tooltipMessage() {
     switch (this.product.status) {
       case 'ok':
-        newStatus = 'warning';
-        break;
+        return 'Sufficient stock.';
       case 'warning':
-        newStatus = 'critical';
-        break;
+        return 'Reorder advised.';
       case 'critical':
-        newStatus = 'ok';
-        break;
+        return 'Critical – restock!';
       default:
-        newStatus = 'ok';
+        return '';
     }
-    
-    // Emit the status change event
-    this.statusChange.emit({ product: this.product, newStatus });
+  }
+
+  onStatusClick(event: Event) {
+    event.stopPropagation(); // Prevent row click
+
+    // Toggle tooltip visibility
+    if (this.showTooltip) {
+      this.hideTooltip();
+    } else {
+      this.showTooltip = true;
+
+      // Clear any existing timeout
+      if (this.tooltipTimeout) {
+        clearTimeout(this.tooltipTimeout);
+      }
+
+      // Auto-hide tooltip after 3 seconds
+      this.tooltipTimeout = window.setTimeout(() => {
+        this.showTooltip = false;
+      }, 5000);
+    }
+  }
+
+  hideTooltip() {
+    this.showTooltip = false;
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
   }
 }

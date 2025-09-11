@@ -12,9 +12,19 @@
   <td>{{ product.currentStock }}</td>
   <td>{{ supplierDisplay }}</td>
   <td class="status">
-    <span class="dot clickable" 
-          [ngClass]="statusClass" 
-          [title]="'Click to change status (currently: ' + product.status + ')'"
-          (click)="onStatusClick($event)"></span>
+    <div class="status-container">
+      <span class="dot clickable" 
+            [ngClass]="statusClass" 
+            [title]="'Click for status information'"
+            (click)="onStatusClick($event)"></span>
+      
+      <div class="status-tooltip" 
+           *ngIf="showTooltip"
+           [ngClass]="'tooltip-' + product.status"
+           (click)="hideTooltip()">
+        {{ tooltipMessage }}
+        <div class="tooltip-arrow"></div>
+      </div>
+    </div>
   </td>
 </tr>
