@@ -3,8 +3,10 @@ package com.petek.inventoryService.mapper;
 import org.springframework.stereotype.Service;
 
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
+import com.petek.inventoryService.dto.campaign.CampaignProductItemResponse;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.entity.Campaign;
+import com.petek.inventoryService.entity.Product;
 
 @Service
 public class CampaignMapper {
@@ -27,7 +29,7 @@ public class CampaignMapper {
     }
 
     /**
-     * Map
+     * Map Campaign to CampaignResponse.
      */
     public CampaignResponse toCampaignResponse(Campaign campaign) {
         return CampaignResponse.builder()
@@ -42,6 +44,17 @@ public class CampaignMapper {
             .products(campaign.getProducts() == null ? null : campaign.getProducts().stream().map(productMapper::toProductResponse).toList())
             .createdAt(campaign.getCreatedAt())
             .updatedAt(campaign.getUpdatedAt())
+            .build();
+    }
+
+    /**
+     * Map Product to CampaignProductItemResponse
+     */
+    public CampaignProductItemResponse toCampaignProductItemResponse(Product product) {
+        return CampaignProductItemResponse.builder()
+            .productId(product.getProductId())
+            .productName(product.getProductName())
+            .category(product.getCategory())
             .build();
     }
     

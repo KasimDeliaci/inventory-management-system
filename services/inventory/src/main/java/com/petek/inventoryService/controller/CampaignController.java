@@ -17,6 +17,8 @@ import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignFilterRequest;
 import com.petek.inventoryService.dto.campaign.CampaignProductCreateRequest;
+import com.petek.inventoryService.dto.campaign.CampaignProductFilterRequest;
+import com.petek.inventoryService.dto.campaign.CampaignProductItemResponse;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.service.CampaignService;
@@ -81,6 +83,17 @@ public class CampaignController {
     ) {
         service.deleteCampaign(campaignId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Get all campaign products.
+     */
+    @GetMapping("/{campaignId}/products")
+    public ResponseEntity<PageResponse<CampaignProductItemResponse>> getAllCampaignProducts(
+        @PathVariable Long campaignId,
+        @ModelAttribute @Valid CampaignProductFilterRequest request
+    ) {
+        return ResponseEntity.ok(service.getAllCampaignProducts(campaignId, request));
     }
 
     /**

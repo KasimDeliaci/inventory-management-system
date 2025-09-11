@@ -1,4 +1,4 @@
-### Get ALl Campaigns
+### Get All Campaigns
 
 GET http://localhost:8000/api/v1/campaigns
 ### Create Campaign
@@ -34,7 +34,11 @@ content-type: application/json
 
 ### Delete Campaign By Id
 
-DELETE  http://localhost:8000/api/v1/campaigns/2
+DELETE  http://localhost:8000/api/v1/campaigns/1
+
+### Get All Campaign Products
+
+GET http://localhost:8000/api/v1/campaigns/3/products
 
 ### Assign Campaign Product
 

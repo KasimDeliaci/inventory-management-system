@@ -16,6 +16,8 @@ import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignFilterRequest;
+import com.petek.inventoryService.dto.campaign.CampaignProductFilterRequest;
+import com.petek.inventoryService.dto.campaign.CampaignProductItemResponse;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.entity.Campaign;
@@ -42,8 +44,8 @@ public class CampaignService {
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "campaignId", "campaignName", "campaignType", "startDate", "endDate", "updatedAt"
-    );  
-    
+    );
+
     /**
      * Get all products.
      */
@@ -174,7 +176,33 @@ public class CampaignService {
     }
 
     /**
-     * Create Campaign Product.
+     * Get all campaign product.
+     */
+    public PageResponse<CampaignProductItemResponse> getAllCampaignProducts(Long campaignId, CampaignProductFilterRequest request) {
+        repository.findById(campaignId)
+            .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
+        
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+
+        Page<Product> productPage = repository.findProductsByCampaignIdNative(campaignId, pageable);
+
+        List<CampaignProductItemResponse> campaignProductItemResponses = productPage.getContent()
+            .stream()
+            .map(mapper::toCampaignProductItemResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            productPage.getNumber(),
+            productPage.getSize(),
+            productPage.getTotalElements(),
+            productPage.getTotalPages()
+        );
+
+        return new PageResponse<CampaignProductItemResponse>(campaignProductItemResponses, pageInfo);
+    }
+
+    /**
+     * Create campaign product.
      */
     public void assignCampaignProduct(Long campaignId, List<Long> productIds) {
         Campaign campaign = repository.findById(campaignId)
@@ -189,7 +217,7 @@ public class CampaignService {
     }
 
     /**
-     * Delete Campaign Product.
+     * Delete campaign product.
      */
     public void deleteCampaignProduct(Long campaignId, Long productId) {
         Campaign campaign = repository.findById(campaignId)
