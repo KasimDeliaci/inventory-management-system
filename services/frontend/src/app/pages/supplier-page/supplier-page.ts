@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Header } from '../../shared/header/header';
 import { SideNav } from '../../shared/side-nav/side-nav';
@@ -6,7 +6,7 @@ import { SupplierListingComponent } from '../../suppliers/supplier-listing/suppl
 import { SupplierEditor } from '../../suppliers/supplier-editor/supplier-editor';
 import { Supplier } from '../../models/supplier.model';
 import { Product } from '../../models/product.model';
-import { MockDataService } from '../mock-data.service';
+import { DataService } from '../data.service'; // Import the new DataService
 
 @Component({
   selector: 'app-supplier-page',
@@ -21,8 +21,9 @@ import { MockDataService } from '../mock-data.service';
   templateUrl: './supplier-page.html',
   styleUrls: ['./supplier-page.scss'],
 })
-export class SupplierPageComponent {
-  private mockDataService = inject(MockDataService);
+export class SupplierPageComponent implements OnInit {
+  private dataService = inject(DataService); // Use DataService instead of MockDataService
+  private destroyRef = inject(DestroyRef);
 
   query = signal('');
   editorOpen = signal(false);
@@ -30,6 +31,9 @@ export class SupplierPageComponent {
   
   // Filter states (can be extended later for supplier-specific filters)
   filterOpen = signal(false);
+  
+  // Loading state
+  loading = signal(false);
 
   private selectionTick = signal(0);
   
@@ -37,11 +41,9 @@ export class SupplierPageComponent {
     this.selectionTick.update((n) => n + 1);
   }
 
-  // Initialize with mock data
-  private all = signal<Supplier[]>(
-    this.mockDataService.getSuppliers().map(s => ({ ...s, selected: false }))
-  );
-  private allProducts = signal<Product[]>(this.mockDataService.getProducts());
+  // Initialize with signals
+  private all = signal<Supplier[]>([]);
+  private allProducts = signal<Product[]>([]);
 
   readonly suppliers = computed(() => {
     let filtered = this.all();
@@ -68,6 +70,44 @@ export class SupplierPageComponent {
     this.selectionTick();
     return this.all().filter((s) => s.selected).length;
   });
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  private loadData() {
+    this.loading.set(true);
+    
+    // Load suppliers from backend
+    const suppliersSubscription = this.dataService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        // Ensure all suppliers have selected property set to false
+        const suppliersWithSelection = suppliers.map(s => ({ ...s, selected: false }));
+        this.all.set(suppliersWithSelection);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
+        this.loading.set(false);
+      },
+    });
+
+    // Load products to check relationships
+    const productsSubscription = this.dataService.getProducts().subscribe({
+      next: (products) => {
+        this.allProducts.set(products);
+      },
+      error: (err) => {
+        console.error('Error loading products:', err);
+      },
+    });
+
+    // Cleanup subscriptions
+    this.destroyRef.onDestroy(() => {
+      suppliersSubscription.unsubscribe();
+      productsSubscription.unsubscribe();
+    });
+  }
 
   // Get products associated with a supplier
   getSupplierProducts(supplierId: string): Product[] {
@@ -178,7 +218,14 @@ export class SupplierPageComponent {
       });
     } else {
       // Add new supplier - generate ID if empty
-      const id = cleanUpdated.id || `SUP-${Date.now()}`;
+      const maxIdNumber = Math.max(
+        ...this.all().map(s => {
+          const match = s.id.match(/SUP-(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        }),
+        0
+      );
+      const id = cleanUpdated.id || `SUP-${String(maxIdNumber + 1).padStart(3, '0')}`;
       const newSupplier: Supplier = { 
         ...cleanUpdated, 
         id, 
@@ -232,5 +279,10 @@ export class SupplierPageComponent {
     console.log('Closing editor');
     this.editorOpen.set(false);
     this.editing.set(null);
+  }
+
+  // Refresh data method
+  refreshData() {
+    this.loadData();
   }
 }

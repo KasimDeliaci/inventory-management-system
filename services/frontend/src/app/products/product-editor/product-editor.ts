@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, OnChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { Product } from '../../models/product.model';
@@ -52,10 +52,10 @@ export class ProductEditorComponent implements OnChanges {
     activeSupplierIds: [[] as string[]],
   });
 
-
-  ngOnChanges() {
-    // Populate form when value changes
-    if (this.value) {
+  ngOnChanges(changes: SimpleChanges) {
+    // Check if the value input has changed
+    if (changes['value'] && this.value) {
+      // Always update the form when value changes, regardless of whether it's the same object reference
       this.form.patchValue({
         id: this.value.id || '',
         name: this.value.name || '',
@@ -68,7 +68,7 @@ export class ProductEditorComponent implements OnChanges {
         currentStock: this.value.currentStock,
         preferredSupplierId: this.value.preferredSupplierId || '',
         activeSupplierIds: this.value.activeSupplierIds || [],
-      });
+      }, { emitEvent: false }); // Prevent unnecessary form events
     }
   }
 
