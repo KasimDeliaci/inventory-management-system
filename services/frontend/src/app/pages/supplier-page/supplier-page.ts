@@ -1,4 +1,3 @@
-// updated-supplier-page.ts
 import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Header } from '../../shared/header/header';

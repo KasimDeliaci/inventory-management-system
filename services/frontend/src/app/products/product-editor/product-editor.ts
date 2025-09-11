@@ -55,8 +55,6 @@ export class ProductEditorComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     // Check if the value input has changed
     if (changes['value'] && this.value) {
-      console.log('ProductEditor: Updating form with new value:', this.value);
-      
       // Always update the form when value changes, regardless of whether it's the same object reference
       this.form.patchValue({
         id: this.value.id || '',
@@ -71,13 +69,6 @@ export class ProductEditorComponent implements OnChanges {
         preferredSupplierId: this.value.preferredSupplierId || '',
         activeSupplierIds: this.value.activeSupplierIds || [],
       }, { emitEvent: false }); // Prevent unnecessary form events
-      
-      console.log('ProductEditor: Form updated with values:', {
-        description: this.form.value.description,
-        price: this.form.value.price,
-        safetyStock: this.form.value.safetyStock,
-        reorderPoint: this.form.value.reorderPoint
-      });
     }
   }
 

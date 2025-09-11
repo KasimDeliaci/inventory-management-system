@@ -1,4 +1,3 @@
-// data.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, map, catchError, of } from 'rxjs';
@@ -145,13 +144,13 @@ export class DataService {
   }
 
   private extractNumericId(id: string): string | null {
-    // Handle both formats: "ID-001" -> "1001"
+    // Handle both formats: "ID-001" -> "1" (removes leading zeros)
     if (id.startsWith('ID-')) {
-      const numPart = id.substring(3); // Remove "ID-" prefix (e.g., "001")
-      const numericValue = parseInt(numPart, 10); // Convert to number (e.g., 1)
-      return (numericValue).toString(); // Convert back to string (e.g., "1")
+      const numPart = id.substring(3);
+      const numericValue = parseInt(numPart, 10);
+      return numericValue.toString();
     }
-    return id.match(/^\d+$/) ? id : null; // Return if already numeric, null otherwise
+    return id.match(/^\d+$/) ? id : null;
   }
 
   getProductStock(productId: string): Observable<BackendProductStock | null> {
@@ -170,7 +169,7 @@ export class DataService {
         })
       );
   }
-  
+
   // Supplier-related methods
   getSuppliers(): Observable<Supplier[]> {
     return this.httpClient.get<BackendSupplierResponse>(`${this.baseUrl}/suppliers`).pipe(
