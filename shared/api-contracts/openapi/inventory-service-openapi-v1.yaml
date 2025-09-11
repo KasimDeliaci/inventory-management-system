@@ -1214,6 +1214,56 @@ components:
         page:
           $ref: '#/components/schemas/PageMeta'
 
+    # -----------------------------
+    # Forecasting Views (V8/V9)
+    # -----------------------------
+    ForecastSalesRow:
+      type: object
+      description: Daily sales row aggregated by orderDate and product.
+      properties:
+        date: {type: string, format: date}
+        productId: {type: integer, format: int64}
+        salesUnits: {type: number, format: double}
+        offerActiveShare:
+          type: number
+          format: double
+          description: Unit-weighted share of units sold on orders with an active customer offer (0..1).
+    ForecastPromoRow:
+      type: object
+      description: Daily effective promotion percent per product.
+      properties:
+        date: {type: string, format: date}
+        productId: {type: integer, format: int64}
+        promoPct:
+          type: number
+          format: double
+          description: Effective product promotion percent (DISCOUNT or BXGY as 100*get/(buy+get)).
+
+  parameters:
+    ForecastFromParam:
+      in: query
+      name: from
+      description: Start date (inclusive). Format YYYY-MM-DD.
+      required: true
+      schema: {type: string, format: date}
+    ForecastToParam:
+      in: query
+      name: to
+      description: End date (inclusive). Format YYYY-MM-DD.
+      required: true
+      schema: {type: string, format: date}
+    ForecastProductIdParam:
+      in: query
+      name: product_id
+      description: Optional filter by product IDs. Repeatable.
+      required: false
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+
 paths:
   # -----------------
   # Stock (V7)
@@ -1276,6 +1326,82 @@ paths:
                       totalPages: 1
         '400':
           description: Invalid or unknown parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # -----------------
+  # Reporting (V8 views)
+  # -----------------
+  /api/v1/reporting/product-day-sales:
+    get:
+      tags: [Reporting]
+      summary: Daily product sales (orderDate-based)
+      description: >-
+        Returns aggregated daily sales by orderDate and product. Uses only orders with status=DELIVERED.
+        Includes unit-weighted offerActiveShare (0..1). No pagination for PoC; callers must pass a bounded date range. Results are ordered by date ASC, then productId ASC.
+      parameters:
+        - $ref: '#/components/parameters/ForecastFromParam'
+        - $ref: '#/components/parameters/ForecastToParam'
+        - $ref: '#/components/parameters/ForecastProductIdParam'
+      responses:
+        '200':
+          description: Array of daily sales rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/ForecastSalesRow'}
+              examples:
+                sample:
+                  summary: Sample daily sales rows
+                  value:
+                    - date: '2025-07-01'
+                      productId: 1001
+                      salesUnits: 6.0
+                      offerActiveShare: 0.00
+                    - date: '2025-07-01'
+                      productId: 1008
+                      salesUnits: 42.0
+                      offerActiveShare: 0.15
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/reporting/product-day-promo:
+    get:
+      tags: [Reporting]
+      summary: Daily product promotion percent
+      description: >-
+        Returns effective product promotion percent per day (DISCOUNT or BXGY as 100*get/(buy+get)) for products with active campaigns. No pagination for PoC; callers must pass a bounded date range. Results are ordered by date ASC, then productId ASC.
+      parameters:
+        - $ref: '#/components/parameters/ForecastFromParam'
+        - $ref: '#/components/parameters/ForecastToParam'
+        - $ref: '#/components/parameters/ForecastProductIdParam'
+      responses:
+        '200':
+          description: Array of daily promotion rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/ForecastPromoRow'}
+              examples:
+                sample:
+                  summary: Sample daily promo rows
+                  value:
+                    - date: '2025-07-01'
+                      productId: 1001
+                      promoPct: 0.00
+                    - date: '2025-07-01'
+                      productId: 1008
+                      promoPct: 33.33
+        '400':
+          description: Invalid parameters
           content:
             application/json:
               schema:
