@@ -517,6 +517,31 @@ components:
       description: "Maximum on-hand quantity (inclusive). Maps to quantityOnHand."
       schema: {type: number, format: double}
 
+    # ---- Forecast Parameters ----
+    ForecastFromParam:
+      in: query
+      name: from
+      description: Start date (inclusive). Format YYYY-MM-DD.
+      required: true
+      schema: {type: string, format: date}
+    ForecastToParam:
+      in: query
+      name: to
+      description: End date (inclusive). Format YYYY-MM-DD.
+      required: true
+      schema: {type: string, format: date}
+    ForecastProductIdParam:
+      in: query
+      name: product_id
+      description: Optional filter by product IDs. Repeatable.
+      required: false
+      schema:
+        type: array
+        items: {type: integer, format: int64}
+        minItems: 1
+      style: form
+      explode: true
+
   examples:
     PaginationWindowExceeded:
       summary: "Pagination window exceeded"
@@ -1238,31 +1263,6 @@ components:
           type: number
           format: double
           description: Effective product promotion percent (DISCOUNT or BXGY as 100*get/(buy+get)).
-
-  parameters:
-    ForecastFromParam:
-      in: query
-      name: from
-      description: Start date (inclusive). Format YYYY-MM-DD.
-      required: true
-      schema: {type: string, format: date}
-    ForecastToParam:
-      in: query
-      name: to
-      description: End date (inclusive). Format YYYY-MM-DD.
-      required: true
-      schema: {type: string, format: date}
-    ForecastProductIdParam:
-      in: query
-      name: product_id
-      description: Optional filter by product IDs. Repeatable.
-      required: false
-      schema:
-        type: array
-        items: {type: integer, format: int64}
-        minItems: 1
-      style: form
-      explode: true
 
 paths:
   # -----------------
