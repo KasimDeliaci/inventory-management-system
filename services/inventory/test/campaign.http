@@ -28,3 +28,7 @@ content-type: application/json
     "startDate": "2025-09-10",
     "endDate": "2025-09-10"
 }
+
+### Delete Campaign By Id
+
+DELETE  http://localhost:8000/api/v1/campaigns/2

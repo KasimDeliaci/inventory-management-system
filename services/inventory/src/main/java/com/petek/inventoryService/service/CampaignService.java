@@ -93,4 +93,13 @@ public class CampaignService {
         return mapper.toCampaignResponse(repository.save(existingCampaign));
     }
 
+    /**
+     * Delete campaign by id.
+     */
+    public void deleteCampaign(Long campaignId) {
+        Campaign campaign = repository.findById(campaignId)
+            .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
+        repository.delete(campaign);
+    }
+
 }
