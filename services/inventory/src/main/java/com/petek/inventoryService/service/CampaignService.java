@@ -3,11 +3,19 @@ package com.petek.inventoryService.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
+import com.petek.inventoryService.dto.campaign.CampaignFilterRequest;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.entity.Campaign;
@@ -16,6 +24,8 @@ import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.mapper.CampaignMapper;
 import com.petek.inventoryService.repository.CampaignRepository;
 import com.petek.inventoryService.repository.ProductRepository;
+import com.petek.inventoryService.spec.CampaignSpecifications;
+import com.petek.inventoryService.utils.SortUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +39,62 @@ public class CampaignService {
     private final CampaignMapper mapper;
 
     private final ProductRepository productRepository;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "campaignId", "campaignName", "campaignType", "startDate", "endDate", "updatedAt"
+    );  
+    
+    /**
+     * Get all products.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<CampaignResponse> getAllCampaigns(CampaignFilterRequest request) {
+        // Validate start date range
+        if (request.getStartGte() != null && request.getStartLte() != null &&
+            request.getStartGte().isAfter(request.getStartLte())) {
+            throw new IllegalArgumentException("start_gte cannot be after start_lte");
+        }
+
+        // Validate end date range
+        if (request.getEndGte() != null && request.getEndLte() != null &&
+            request.getEndGte().isAfter(request.getEndLte())) {
+            throw new IllegalArgumentException("end_gte cannot be after end_lte");
+        }
+
+        // Validate active_on falls within start and end dates if provided
+        if (request.getActiveOn() != null) {
+            if (request.getStartGte() != null && request.getActiveOn().isBefore(request.getStartGte())) {
+                throw new IllegalArgumentException("active_on cannot be before start_gte");
+            }
+            if (request.getEndLte() != null && request.getActiveOn().isAfter(request.getEndLte())) {
+                throw new IllegalArgumentException("active_on cannot be after end_lte");
+            }
+        }
+
+        // Validate updatedAfter is not in the future
+        if (request.getUpdatedAfter() != null && request.getUpdatedAfter().isAfter(Instant.now())) {
+            throw new IllegalArgumentException("updated_after cannot be in the future");
+        }
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+        Specification<Campaign> spec = CampaignSpecifications.withFilters(request);
+
+        Page<Campaign> campaignPage = repository.findAll(spec, pageable);
+
+        List<CampaignResponse> campaignResponses = campaignPage.getContent()
+            .stream()
+            .map(mapper::toCampaignResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            campaignPage.getNumber(),
+            campaignPage.getSize(),
+            campaignPage.getTotalElements(),
+            campaignPage.getTotalPages()
+        );
+
+        return new PageResponse<CampaignResponse>(campaignResponses, pageInfo);
+    }
 
     /**
      * Create campaign.

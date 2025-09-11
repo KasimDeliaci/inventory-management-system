@@ -1,3 +1,6 @@
+### Get ALl Campaigns
+
+GET http://localhost:8000/api/v1/campaigns
 ### Create Campaign
 
 POST http://localhost:8000/api/v1/campaigns

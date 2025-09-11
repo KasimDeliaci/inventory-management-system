@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
+import com.petek.inventoryService.dto.campaign.CampaignFilterRequest;
 import com.petek.inventoryService.dto.campaign.CampaignProductCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
 import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
@@ -27,6 +30,16 @@ import lombok.RequiredArgsConstructor;
 public class CampaignController {
     
     private final CampaignService service;
+
+    /**
+     * Get all campaign.
+     */
+    @GetMapping
+    public ResponseEntity<PageResponse<CampaignResponse>> getCampaigns(
+        @ModelAttribute @Valid CampaignFilterRequest request
+    ) {
+        return ResponseEntity.ok(service.getAllCampaigns(request));
+    }
 
     /**
      * Create a new campaign.
