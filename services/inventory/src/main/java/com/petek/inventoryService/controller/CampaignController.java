@@ -4,12 +4,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
+import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.service.CampaignService;
 
 import jakarta.validation.Valid;
@@ -40,6 +42,17 @@ public class CampaignController {
         @PathVariable Long campaignId
     ) {
         return ResponseEntity.ok(service.getCampaignById(campaignId));
+    }
+
+    /**
+     * Update a campaign.
+     */
+    @PutMapping("/{campaignId}")
+    public ResponseEntity<CampaignResponse> updateCampaign(
+        @PathVariable Long campaignId,
+        @RequestBody @Valid CampaignUpdateRequest request
+    ) {
+        return ResponseEntity.ok(service.updateCampaign(campaignId, request));
     }
 
 }

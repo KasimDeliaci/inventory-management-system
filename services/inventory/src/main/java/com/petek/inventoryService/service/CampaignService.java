@@ -1,12 +1,14 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.petek.inventoryService.dto.campaign.CampaignCreateRequest;
 import com.petek.inventoryService.dto.campaign.CampaignResponse;
+import com.petek.inventoryService.dto.campaign.CampaignUpdateRequest;
 import com.petek.inventoryService.entity.Campaign;
 import com.petek.inventoryService.entity.Campaign.CampaignType;
 import com.petek.inventoryService.mapper.CampaignMapper;
@@ -56,6 +58,39 @@ public class CampaignService {
         return repository.findById(campaignId)
             .map(mapper::toCampaignResponse)
             .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
+    }
+
+    /**
+     * Update campaign by id.
+     */
+    public CampaignResponse updateCampaign(Long campaignId, CampaignUpdateRequest request) {
+        Campaign existingCampaign = repository.findById(campaignId)
+            .orElseThrow(() -> new EntityNotFoundException("Campaign not found with id: " + campaignId));
+
+        if (existingCampaign.getCampaignType() == CampaignType.BXGY_SAME_PRODUCT) {
+            Optional.ofNullable(request.getBuyQty())
+                .ifPresent(existingCampaign::setBuyQty);
+
+            Optional.ofNullable(request.getGetQty())
+                .ifPresent(existingCampaign::setGetQty);
+        } else {
+            Optional.ofNullable(request.getDiscountPercentage())
+                .ifPresent(existingCampaign::setDiscountPercentage);
+        }
+
+        Optional.ofNullable(request.getCampaignName())
+            .filter(unit -> !unit.trim().isEmpty())
+            .ifPresent(existingCampaign::setCampaignName);
+        
+        Optional.ofNullable(request.getStartDate())
+            .ifPresent(existingCampaign::setStartDate);
+        
+        Optional.ofNullable(request.getEndDate())
+            .ifPresent(existingCampaign::setEndDate);
+        
+        existingCampaign.setUpdatedAt(Instant.now());
+
+        return mapper.toCampaignResponse(repository.save(existingCampaign));
     }
 
 }

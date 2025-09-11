@@ -15,3 +15,16 @@ content-type: application/json
 ### Get Campaign By Id
 
 GET http://localhost:8000/api/v1/campaigns/1
+
+### Update Campaign
+
+PUT http://localhost:8000/api/v1/campaigns/1
+content-type: application/json
+
+{
+    "campaignName": "Test",
+    "buyQty": 10,
+    "getQty": 10,
+    "startDate": "2025-09-10",
+    "endDate": "2025-09-10"
+}
