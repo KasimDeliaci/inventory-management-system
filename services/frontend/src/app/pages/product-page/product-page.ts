@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Header } from '../../shared/header/header';
 import { SideNav } from '../../shared/side-nav/side-nav';
@@ -6,7 +6,7 @@ import { ProductListingComponent } from '../../products/product-listing/product-
 import { ProductEditorComponent } from '../../products/product-editor/product-editor';
 import { Product, ProductStatus } from '../../models/product.model';
 import { Supplier } from '../../models/supplier.model';
-import { MockDataService } from '../mock-data.service';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-product-page',
@@ -21,8 +21,9 @@ import { MockDataService } from '../mock-data.service';
   templateUrl: './product-page.html',
   styleUrls: ['./product-page.scss'],
 })
-export class ProductPageComponent {
-  private mockDataService = inject(MockDataService);
+export class ProductPageComponent implements OnInit {
+  private dataService = inject(DataService);
+  private destroyRef = inject(DestroyRef);
 
   query = signal('');
   editorOpen = signal(false);
@@ -31,6 +32,10 @@ export class ProductPageComponent {
   // Filter states
   filterOpen = signal(false);
   statusFilter = signal<ProductStatus | 'all'>('all');
+  
+  // Loading state
+  loading = signal(false);
+  detailsLoading = signal(false);
 
   private selectionTick = signal(0);
   
@@ -38,9 +43,9 @@ export class ProductPageComponent {
     this.selectionTick.update((n) => n + 1);
   }
 
-  // Initialize with mock data
-  private all = signal<Product[]>(this.mockDataService.getProducts());
-  suppliers = signal<Supplier[]>(this.mockDataService.getSuppliers());
+  // Initialize with signals
+  private all = signal<Product[]>([]);
+  suppliers = signal<Supplier[]>([]);
 
   readonly products = computed(() => {
     let filtered = this.all();
@@ -72,6 +77,31 @@ export class ProductPageComponent {
     this.selectionTick();
     return this.all().filter((p) => p.selected).length;
   });
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  private loadData() {
+    this.loading.set(true);
+    
+    // Load products from backend
+    const productsSubscription = this.dataService.getProducts().subscribe({
+      next: (products) => {
+        this.all.set(products);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading products:', err);
+        this.loading.set(false);
+      },
+    });
+
+    // Cleanup subscriptions when component is destroyed
+    this.destroyRef.onDestroy(() => {
+      productsSubscription.unsubscribe();
+    });
+  }
 
   // Status change handler
   onStatusChange(event: { product: Product, newStatus: ProductStatus }) {
@@ -125,8 +155,69 @@ export class ProductPageComponent {
   }
 
   openEditorFor(product: Product) {
-    this.editing.set({ ...product });
+    // Set loading state
+    this.detailsLoading.set(true);
     this.editorOpen.set(true);
+    
+    const detailsSubscription = this.dataService.getProductById(product.id).subscribe({
+      next: (detailedProduct) => {
+        if (detailedProduct) {
+          // Use detailed product data with all fields populated
+          this.editing.set(detailedProduct);
+        } else {
+          // Fallback to the basic product data from the list
+          console.warn('Could not load detailed product data, using basic info');
+          this.editing.set({ ...product });
+        }
+        this.detailsLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading product details:', err);
+        // Fallback to basic product data
+        this.editing.set({ ...product });
+        this.detailsLoading.set(false);
+      },
+    });
+
+    const suppliersSubscription = this.dataService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        this.suppliers.set(suppliers);
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
+      },
+    });
+
+    const stockSubscription = this.dataService.getProductStock(product.id).subscribe({
+      next: (stockInfo) => {
+        if (stockInfo) {
+          // Update the editing product with detailed stock information
+          const current = this.editing();
+          if (current) {
+            const updatedProduct = {
+              ...current,
+              currentStock: stockInfo.quantityAvailable,
+              _stockDetails: {
+                onHand: stockInfo.quantityOnHand,
+                reserved: stockInfo.quantityReserved,
+                available: stockInfo.quantityAvailable,
+              }
+            };
+            this.editing.set(updatedProduct);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error loading product stock info:', err);
+      },
+    });
+
+    // Cleanup subscription
+    this.destroyRef.onDestroy(() => {
+      detailsSubscription.unsubscribe();
+      suppliersSubscription.unsubscribe();
+      stockSubscription.unsubscribe();
+    });
   }
 
   // Editor event handlers
@@ -154,5 +245,11 @@ export class ProductPageComponent {
   closeEditor() {
     this.editorOpen.set(false);
     this.editing.set(null);
+    this.detailsLoading.set(false);
+  }
+
+  // Refresh data method
+  refreshData() {
+    this.loadData();
   }
 }
