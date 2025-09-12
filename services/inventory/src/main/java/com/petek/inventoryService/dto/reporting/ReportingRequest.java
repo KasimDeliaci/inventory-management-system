@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDaySalesRequest {
+public class ReportingRequest {
     @NotNull
     private LocalDate from;
 

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.petek.inventoryService.dto.reporting.ProductDaySalesRequest;
+import com.petek.inventoryService.dto.reporting.ReportingRequest;
 import com.petek.inventoryService.entity.ProductDaySales;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -15,7 +15,7 @@ import jakarta.persistence.criteria.Root;
 
 public class ReportingSpecifications {
 
-    public static Specification<ProductDaySales> withFilters(ProductDaySalesRequest request) {
+    public static Specification<ProductDaySales> withFilters(ReportingRequest request) {
         return (Root<ProductDaySales> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             

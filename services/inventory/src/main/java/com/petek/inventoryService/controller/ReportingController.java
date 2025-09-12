@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.petek.inventoryService.dto.reporting.ProductDaySalesRequest;
+import com.petek.inventoryService.dto.reporting.ReportingRequest;
 import com.petek.inventoryService.dto.reporting.ProductDaySalesResponse;
 import com.petek.inventoryService.service.ReportingService;
 
@@ -27,7 +27,7 @@ public class ReportingController {
      */
     @GetMapping("/product-day-sales")
     public ResponseEntity<List<ProductDaySalesResponse>> getAllProductDaySales(
-        @ModelAttribute @Valid ProductDaySalesRequest request
+        @ModelAttribute @Valid ReportingRequest request
     ) {
         return ResponseEntity.ok(service.getAllProductDaySale(request));
     }
