@@ -1,5 +1,5 @@
-from datetime import date
-from typing import List, Optional
+from datetime import date, datetime
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -29,13 +29,28 @@ class DailyForecast(BaseModel):
     yhat: float
 
 
+class PredictionInterval(BaseModel):
+    lowerBound: float
+    upperBound: float
+
+
+class Confidence(BaseModel):
+    score: int
+    level: str
+    factors: Dict[str, Any]
+    recommendation: str
+
+
 class ForecastPerProduct(BaseModel):
     productId: int
     daily: List[DailyForecast]
     sum: float
+    predictionInterval: Optional[PredictionInterval] = None
+    confidence: Optional[Confidence] = None
 
 
 class ForecastResponse(BaseModel):
     forecasts: List[ForecastPerProduct]
     modelVersion: str = "baseline-0.1"
-
+    modelType: Optional[str] = "baseline_ma7"
+    generatedAt: datetime = Field(default_factory=lambda: datetime.utcnow())
