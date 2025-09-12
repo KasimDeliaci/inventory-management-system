@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.reporting.ReportingRequest;
+import com.petek.inventoryService.dto.reporting.DayOfferStatsResponse;
 import com.petek.inventoryService.dto.reporting.ProductDayPromoResponse;
 import com.petek.inventoryService.dto.reporting.ProductDaySalesResponse;
 import com.petek.inventoryService.service.ReportingService;
@@ -43,5 +44,14 @@ public class ReportingController {
         return ResponseEntity.ok(service.getAllProductDayPromos(request));
     }
 
+    /**
+     * Get all day offer stats.
+     */
+    @GetMapping("/day-offer-stats")
+    public ResponseEntity<List<DayOfferStatsResponse>> getAllDayOfferStats(
+        @ModelAttribute @Valid ReportingRequest request
+    ) {
+        return ResponseEntity.ok(service.getDayOfferStats(request));
+    }
 
 }
