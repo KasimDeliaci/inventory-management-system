@@ -96,4 +96,15 @@ public class SalesOrderController {
         return ResponseEntity.status(201).body(salesOrderItemService.createSalesOrderItem(salesOrderId, request));
     }
 
+    /**
+     * Create a sales order item.
+     */
+    @GetMapping("/{salesOrderId}/items/{salesOrderItemId}")
+    public ResponseEntity<SalesOrderItemResponse> getSalesOrderItemById(
+        @PathVariable Long salesOrderId,
+        @PathVariable Long salesOrderItemId
+    ) {
+        return ResponseEntity.ok(salesOrderItemService.getSalesOrderItemById(salesOrderId, salesOrderItemId));
+    }
+
 }

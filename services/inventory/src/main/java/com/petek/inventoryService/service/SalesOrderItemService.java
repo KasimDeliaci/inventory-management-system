@@ -70,4 +70,18 @@ public class SalesOrderItemService {
         return mapper.toSalesOrderItemResponse(repository.save(salesOrderItem));
     }
 
+    /**
+     * Get a new sales order item by id.
+     */
+    public SalesOrderItemResponse getSalesOrderItemById(Long salesOrderId, Long salesOrderItemId) {
+        SalesOrderItem salesOrderItem = repository.findById(salesOrderItemId)
+            .orElseThrow(() -> new EntityNotFoundException("Sales Order Item not found with id: " + salesOrderItemId));
+        
+        if(salesOrderItem.getSalesOrderId() != salesOrderId) {
+            throw new IllegalArgumentException("This SalesOrder dont have this SalesOrderItem");
+        }
+
+        return mapper.toSalesOrderItemResponse(salesOrderItem);            
+    }
+
 }
