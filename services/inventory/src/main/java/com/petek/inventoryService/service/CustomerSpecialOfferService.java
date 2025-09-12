@@ -94,4 +94,13 @@ public class CustomerSpecialOfferService {
         return mapper.toCustomerSpecialOfferResponse(repository.save(existingCustomerSpecialOffer));
     }
 
+    /**
+     * Delete a customer special offer.
+     */
+    public void deleteCustomerSpecialOfferById(Long customerSpecialOfferId) {
+        CustomerSpecialOffer customerSpecialOffer = repository.findById(customerSpecialOfferId)
+            .orElseThrow(() -> new EntityNotFoundException("Customer Special Offer not found with id: " + customerSpecialOfferId));
+        repository.delete(customerSpecialOffer);
+    }
+
 }

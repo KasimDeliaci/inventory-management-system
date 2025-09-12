@@ -24,3 +24,7 @@ content-type: application/json
     "startDate": "2025-09-11",
     "endDate": "2025-09-12"
 }
+
+### Delete Customer Special Offer By Id
+
+DELETE  http://localhost:8000/api/v1/customer-special-offers/1
