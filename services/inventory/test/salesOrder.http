@@ -20,3 +20,7 @@ content-type: application/json
 {
     "status": "DELIVERED"
 }
+
+### Delete Sales Order
+
+DELETE   http://localhost:8000/api/v1/sales-orders/1

@@ -1,6 +1,7 @@
 package com.petek.inventoryService.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +54,17 @@ public class SalesOrderController {
         @RequestBody @Valid SalesOrderUpdateRequest request
     ) {
         return ResponseEntity.ok(service.updateSalesOrder(salesOrderId, request));
+    }
+
+    /**
+     * Delete a sales order.
+     */
+    @DeleteMapping("/{salesOrderId}")
+    public ResponseEntity<Void> deleteSalesOrder(
+        @PathVariable Long salesOrderId
+    ) {
+        service.deleteSalesOrder(salesOrderId);
+        return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
     }
 
 }

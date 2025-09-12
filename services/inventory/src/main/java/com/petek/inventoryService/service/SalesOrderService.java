@@ -86,4 +86,13 @@ public class SalesOrderService {
         return mapper.toSalesOrderResponse(repository.save(existingSalesOrder));
     }
 
+    /**
+     * Delete a sales order.
+     */
+    public void deleteSalesOrder(Long salesOrderId) {
+        SalesOrder existingSalesOrder = repository.findById(salesOrderId)
+            .orElseThrow(() -> new EntityNotFoundException("Sales Order not found with id: " + salesOrderId));
+        repository.delete(existingSalesOrder);
+    }
+
 }
