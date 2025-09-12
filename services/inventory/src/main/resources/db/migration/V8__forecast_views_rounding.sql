@@ -60,3 +60,35 @@ GROUP BY g.d::date, cp.product_id;
 COMMENT ON VIEW inv_forecast.v_product_day_promo IS
   'Daily effective promotion percent per product (DISCOUNT/BXGY); promo_pct rounded to 2 decimals.';
 
+-- ------------------------------------------------------------
+-- Day-level customer offer aggregates (exogenous, product-agnostic)
+--   • purpose: provide per-day signals about customer offers for forecasting
+--   • columns:
+--       date                :: date
+--       active_offers_count :: integer
+--       offer_avg_pct       :: numeric(5,2)
+--       offer_max_pct       :: numeric(5,2)
+-- ------------------------------------------------------------
+CREATE OR REPLACE VIEW inv_forecast.v_day_offer_stats AS
+WITH bounds AS (
+  SELECT MIN(start_date) AS min_d, MAX(end_date) AS max_d
+  FROM customer_special_offers
+), days AS (
+  SELECT g.d::date AS date
+  FROM bounds b
+  CROSS JOIN LATERAL generate_series(b.min_d, b.max_d, interval '1 day') AS g(d)
+)
+SELECT
+  d.date,
+  COUNT(o.special_offer_id)                                             AS active_offers_count,
+  COALESCE(ROUND(AVG(o.percent_off)::numeric, 2), 0.00)::numeric(5,2)   AS offer_avg_pct,
+  COALESCE(ROUND(MAX(o.percent_off)::numeric, 2), 0.00)::numeric(5,2)   AS offer_max_pct
+FROM days d
+LEFT JOIN customer_special_offers o
+  ON o.start_date <= d.date AND o.end_date >= d.date
+GROUP BY d.date
+ORDER BY d.date;
+
+COMMENT ON VIEW inv_forecast.v_day_offer_stats IS
+  'Per-day aggregates of customer special offers (count/avg/max percent_off). Use as exogenous features for forecasting.';
+  
