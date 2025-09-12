@@ -28,3 +28,13 @@ content-type: application/json
 ### Delete Sales Order
 
 DELETE   http://localhost:8000/api/v1/sales-orders/1
+
+### Create Sales Order
+
+POST http://localhost:8000/api/v1/sales-orders/5/items
+content-type: application/json
+
+{
+    "productId": 1001,
+    "quantity": 1
+}

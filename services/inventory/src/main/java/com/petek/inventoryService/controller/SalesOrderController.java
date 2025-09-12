@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderCreateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderFilterRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderItemCreateRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderItemResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderUpdateRequest;
+import com.petek.inventoryService.service.SalesOrderItemService;
 import com.petek.inventoryService.service.SalesOrderService;
 
 import jakarta.validation.Valid;
@@ -27,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 public class SalesOrderController {
     
     private final SalesOrderService service;
+    
+    private final SalesOrderItemService salesOrderItemService;
 
     /**
      * Get all sales order.
@@ -78,6 +83,17 @@ public class SalesOrderController {
     ) {
         service.deleteSalesOrder(salesOrderId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Create a sales order item.
+     */
+    @PostMapping("/{salesOrderId}/items")
+    public ResponseEntity<SalesOrderItemResponse> createSalesOrderItem(
+        @PathVariable Long salesOrderId,
+        @RequestBody @Valid SalesOrderItemCreateRequest request
+    ) {
+        return ResponseEntity.status(201).body(salesOrderItemService.createSalesOrderItem(salesOrderId, request));
     }
 
 }

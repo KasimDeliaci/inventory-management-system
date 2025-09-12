@@ -1,5 +1,7 @@
 package com.petek.inventoryService.repository;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,5 +23,12 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long>, JpaSp
                        "WHERE cp.campaign_id = :campaignId",
            nativeQuery = true)
     Page<Product> findProductsByCampaignIdNative(@Param("campaignId") Long campaignId, Pageable pageable);
+
+    @Query("SELECT c FROM Campaign c JOIN c.products p " +
+           "WHERE p.id = :productId " +
+           "AND :date BETWEEN c.startDate AND c.endDate")
+    Campaign findActiveCampaignsByProductAndDate(
+            @Param("productId") Long productId, 
+            @Param("date") LocalDate date);
 
 }
