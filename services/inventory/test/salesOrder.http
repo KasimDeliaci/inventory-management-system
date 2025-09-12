@@ -1,3 +1,7 @@
+### Get All Sales Order
+
+GET  http://localhost:8000/api/v1/sales-orders
+
 ### Create Sales Order
 
 POST http://localhost:8000/api/v1/sales-orders
