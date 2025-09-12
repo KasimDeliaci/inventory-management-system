@@ -1,0 +1,11 @@
+### Create Customer Special Offer
+
+POST http://localhost:8000/api/v1/customer-special-offers
+content-type: application/json
+
+{
+    "customerId": 1,
+    "percentOff": 100,
+    "startDate": "2025-09-12",
+    "endDate": "2025-09-12"
+}
