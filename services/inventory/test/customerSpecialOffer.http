@@ -13,3 +13,14 @@ content-type: application/json
 ### Get Customer Special Offer By Id
 
 GET  http://localhost:8000/api/v1/customer-special-offers/1
+
+### Update Customer Special Offer
+
+PUT  http://localhost:8000/api/v1/customer-special-offers/1
+content-type: application/json
+
+{
+    "percentOff": 99,
+    "startDate": "2025-09-11",
+    "endDate": "2025-09-12"
+}
