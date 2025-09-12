@@ -28,7 +28,7 @@ public class CustomerSpecialOfferService {
     /**
      * Create customer special offer.
      */
-    public CustomerSpecialOfferResponse createSpecialOffer(CustomerSpecialOfferCreateRequest request) {
+    public CustomerSpecialOfferResponse createCustomerSpecialOffer(CustomerSpecialOfferCreateRequest request) {
         // Validate date range
         if (request.getStartDate() != null && request.getEndDate() != null &&
             request.getStartDate().isAfter(request.getEndDate())) {
@@ -44,6 +44,15 @@ public class CustomerSpecialOfferService {
         customerSpecialOffer.setUpdatedAt(Instant.now());
 
         return mapper.toCustomerSpecialOfferResponse(repository.save(customerSpecialOffer));
+    }
+
+    /**
+     * Get a customer special offer by id.
+     */
+    public CustomerSpecialOfferResponse getCustomerSpecialOfferById(Long customerSpecialOfferId) {
+        return repository.findById(customerSpecialOfferId)
+            .map(mapper::toCustomerSpecialOfferResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Customer Special Offer not found with id: " + customerSpecialOfferId));
     }
 
 }
