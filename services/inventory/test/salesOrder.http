@@ -1,0 +1,9 @@
+### Create Sales Order
+
+POST http://localhost:8000/api/v1/sales-orders
+content-type: application/json
+
+{
+    "customerId": 501,
+    "deliveryDate": "2026-09-12"
+}
