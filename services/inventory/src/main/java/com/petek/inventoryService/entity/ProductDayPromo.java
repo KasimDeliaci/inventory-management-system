@@ -21,8 +21,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @IdClass(ReportingId.class)
-@Table(name = "v_product_day_sales", schema = "inv_forecast")
-public class ProductDaySales {
+@Table(name = "v_product_day_promo", schema = "inv_forecast")
+public class ProductDayPromo {
     @Id
     @Column(name = "date")
     private LocalDate date;
@@ -31,9 +31,6 @@ public class ProductDaySales {
     @Column(name = "product_id")
     private Long productId;
 
-    @Column(name = "sales_units")
-    private BigDecimal salesUnits;
-
-    @Column(name = "offer_active_share", precision = 5, scale = 2)
-    private BigDecimal offerActiveShare;
+    @Column(name = "promo_pct", precision = 5, scale = 2)
+    private BigDecimal promoPct;
 }

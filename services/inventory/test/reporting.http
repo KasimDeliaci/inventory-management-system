@@ -1,3 +1,7 @@
 ### Get All Product Day Sales
 
 GET http://localhost:8000/api/v1/reporting/product-day-sales?from=2019-01-01&to=2026-01-01&productId=1001
+
+### Get All Product Day Promos
+
+GET http://localhost:8000/api/v1/reporting/product-day-promo?from=2019-01-01&to=2026-01-01&productId=1001

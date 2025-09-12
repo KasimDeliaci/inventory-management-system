@@ -16,7 +16,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class ProductDaySalesId implements Serializable {
+public class ReportingId implements Serializable {
     private LocalDate date;
     private Long productId;
 }

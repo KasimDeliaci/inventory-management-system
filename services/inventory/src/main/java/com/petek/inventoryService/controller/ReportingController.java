@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.inventoryService.dto.reporting.ReportingRequest;
+import com.petek.inventoryService.dto.reporting.ProductDayPromoResponse;
 import com.petek.inventoryService.dto.reporting.ProductDaySalesResponse;
 import com.petek.inventoryService.service.ReportingService;
 
@@ -30,6 +31,16 @@ public class ReportingController {
         @ModelAttribute @Valid ReportingRequest request
     ) {
         return ResponseEntity.ok(service.getAllProductDaySale(request));
+    }
+
+    /**
+     * Get all product day promos.
+     */
+    @GetMapping("/product-day-promo")
+    public ResponseEntity<List<ProductDayPromoResponse>> getAllProductDayPromos(
+        @ModelAttribute @Valid ReportingRequest request
+    ) {
+        return ResponseEntity.ok(service.getAllProductDayPromos(request));
     }
 
 
