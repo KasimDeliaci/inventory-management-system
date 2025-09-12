@@ -106,7 +106,7 @@ public class ProductService {
     public ProductResponse getProductById(Long productId) {
         return repository.findById(productId)
             .map(mapper::toProductResponse)
-            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));    
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
     }
 
     /**

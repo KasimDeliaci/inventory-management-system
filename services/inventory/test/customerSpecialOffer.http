@@ -1,0 +1,34 @@
+### Get Customer Special Offer By Id
+
+GET  http://localhost:8000/api/v1/customer-special-offers
+
+### Create Customer Special Offer
+
+POST http://localhost:8000/api/v1/customer-special-offers
+content-type: application/json
+
+{
+    "customerId": 1,
+    "percentOff": 100,
+    "startDate": "2025-09-12",
+    "endDate": "2025-09-12"
+}
+
+### Get Customer Special Offer By Id
+
+GET  http://localhost:8000/api/v1/customer-special-offers/1
+
+### Update Customer Special Offer
+
+PUT  http://localhost:8000/api/v1/customer-special-offers/1
+content-type: application/json
+
+{
+    "percentOff": 99,
+    "startDate": "2025-09-11",
+    "endDate": "2025-09-12"
+}
+
+### Delete Customer Special Offer By Id
+
+DELETE  http://localhost:8000/api/v1/customer-special-offers/1
