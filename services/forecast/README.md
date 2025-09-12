@@ -7,7 +7,7 @@ FastAPI service for daily demand forecasting. Trains models (async) and serves s
 - Daily features: calendar flags (in-service), promoPct, offerActiveShare, lags/MA (builder stub)
 - Models: starts with a simple baseline (MA7) for PoC; upgrade to GBM later
 - Storage: filesystem for model artifacts (Docker volume friendly)
-- Background training: Celery + Redis (minimal)
+- Background training: FastAPI BackgroundTasks (simple, in-process)
 
 ## Run (dev)
 
@@ -17,22 +17,28 @@ FastAPI service for daily demand forecasting. Trains models (async) and serves s
 2) Start API:
    `uvicorn services.forecast.app.main:app --reload --port 8100`
 
-3) Optional: run Celery worker (training tasks):
-   `CELERY_BROKER_URL=redis://localhost:6379/0 \
-   celery -A services.forecast.app.workers.celery_app.celery_app worker --loglevel=INFO`
+3) Training runs as in-process background tasks (no extra worker). For stability while training, prefer a single API worker:
+   `uvicorn services.forecast.app.main:app --port 8100 --workers 1`
 
 ## Env Vars
 - `INVENTORY_BASE_URL` (e.g., http://localhost:8000)
 - `MODEL_DIR` (default: ./services/forecast/models)
 - `FORECAST_DB_DSN` (optional; PoC can skip DB writes)
-- `CELERY_BROKER_URL` (default: redis://localhost:6379/0)
 
 ## API
-- POST `/train` (async): queues training; returns `{taskId}`
+- POST `/train` (async): queues training using BackgroundTasks; returns `{taskId}`
 - GET  `/train/status/{taskId}`
+- GET  `/train/models/active` — returns the active model metadata
+- POST `/train/activate/{modelVersionId}` — sets a model version active
+- GET  `/train/models` — list model versions (desc by trained_at)
+- GET  `/train/models/{modelVersionId}` — get model version details
 - POST `/forecast` (sync): `{productIds, horizonDays, asOfDate?}` → daily[] + sum
 
 ## Notes
 - Calendar flags are computed locally (no CSV), based on the same logic as `calendar_events.py`.
 - For PoC, forecasts use a baseline MA7; swap-in real models incrementally.
+- Confidence and prediction intervals are returned per product using historical volatility and empirical residuals.
 
+## Future Plan
+- Weekly retraining: add a simple cron/K8s Job or CLI that hits `/train` and activates the new version after validation.
+- Backtesting and accuracy tracking: `forecast_accuracy` table is created to log per-product errors when actuals arrive; add a small job to compute and write errors daily.
