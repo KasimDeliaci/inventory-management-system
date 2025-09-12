@@ -2,11 +2,13 @@ package com.petek.inventoryService.service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.saleOrder.SalesOrderCreateRequest;
-import com.petek.inventoryService.dto.saleOrder.SalesOrderResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderCreateRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderUpdateRequest;
 import com.petek.inventoryService.entity.CustomerSpecialOffer;
 import com.petek.inventoryService.entity.SalesOrder;
 import com.petek.inventoryService.entity.SalesOrder.SalesOrderStatus;
@@ -60,6 +62,28 @@ public class SalesOrderService {
         return repository.findById(salesOrderId)
             .map(mapper::toSalesOrderResponse)
             .orElseThrow(() -> new EntityNotFoundException("Sales Order not found with id: " + salesOrderId));
+    }
+
+    /**
+     * Update a sales order.
+     */
+    public SalesOrderResponse updateSalesOrder(Long salesOrderId, SalesOrderUpdateRequest request) {
+        SalesOrder existingSalesOrder = repository.findById(salesOrderId)
+            .orElseThrow(() -> new EntityNotFoundException("Sales Order not found with id: " + salesOrderId));
+
+        Optional.ofNullable(request.getDeliveryDate())
+            .ifPresent(existingSalesOrder::setDeliveryDate);
+        
+        if (request.getStatus() == SalesOrderStatus.DELIVERED && existingSalesOrder.getStatus() != SalesOrderStatus.DELIVERED) {
+            existingSalesOrder.setDeliveredAt(Instant.now());
+        }
+
+        Optional.ofNullable(request.getStatus())
+            .ifPresent(existingSalesOrder::setStatus);
+
+        existingSalesOrder.setUpdatedAt(Instant.now());
+
+        return mapper.toSalesOrderResponse(repository.save(existingSalesOrder));
     }
 
 }

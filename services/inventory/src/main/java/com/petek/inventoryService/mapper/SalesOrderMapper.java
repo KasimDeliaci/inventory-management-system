@@ -2,8 +2,8 @@ package com.petek.inventoryService.mapper;
 
 import org.springframework.stereotype.Service;
 
-import com.petek.inventoryService.dto.saleOrder.SalesOrderCreateRequest;
-import com.petek.inventoryService.dto.saleOrder.SalesOrderResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderCreateRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderResponse;
 import com.petek.inventoryService.entity.SalesOrder;
 
 @Service
@@ -28,6 +28,7 @@ public class SalesOrderMapper {
             .customerId(salesOrder.getCustomerId())
             .orderDate(salesOrder.getOrderDate())
             .deliveryDate(salesOrder.getDeliveryDate())
+            .deliveredAt(salesOrder.getDeliveredAt())
             .status(salesOrder.getStatus())
             .customerSpecialOfferId(salesOrder.getCustomerSpecialOfferId())
             .customerDiscountPctApplied(salesOrder.getCustomerDiscountPctApplied())

@@ -4,12 +4,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.petek.inventoryService.dto.saleOrder.SalesOrderCreateRequest;
-import com.petek.inventoryService.dto.saleOrder.SalesOrderResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderCreateRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderUpdateRequest;
 import com.petek.inventoryService.service.SalesOrderService;
 
 import jakarta.validation.Valid;
@@ -40,6 +42,17 @@ public class SalesOrderController {
         @PathVariable Long salesOrderId
     ) {
         return ResponseEntity.ok(service.getSalesOrderById(salesOrderId));
+    }
+
+    /**
+     * Update a sales order.
+     */
+    @PutMapping("/{salesOrderId}")
+    public ResponseEntity<SalesOrderResponse> updateSalesOrder(
+        @PathVariable Long salesOrderId,
+        @RequestBody @Valid SalesOrderUpdateRequest request
+    ) {
+        return ResponseEntity.ok(service.updateSalesOrder(salesOrderId, request));
     }
 
 }
