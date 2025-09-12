@@ -7,3 +7,7 @@ content-type: application/json
     "customerId": 501,
     "deliveryDate": "2026-09-12"
 }
+
+### Get Sales Order By Id
+
+GET  http://localhost:8000/api/v1/sales-orders/1

@@ -53,4 +53,13 @@ public class SalesOrderService {
         return mapper.toSalesOrderResponse(repository.save(salesOrder));
     }
 
+    /**
+     * Get a sales order by id.
+     */
+    public SalesOrderResponse getSalesOrderById(Long salesOrderId) {
+        return repository.findById(salesOrderId)
+            .map(mapper::toSalesOrderResponse)
+            .orElseThrow(() -> new EntityNotFoundException("Sales Order not found with id: " + salesOrderId));
+    }
+
 }
