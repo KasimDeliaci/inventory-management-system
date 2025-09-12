@@ -3,6 +3,7 @@ package com.petek.inventoryService.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferCreateRequest;
+import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferFilterRequest;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferResponse;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferUpdateRequest;
 import com.petek.inventoryService.service.CustomerSpecialOfferService;
@@ -24,6 +27,16 @@ import lombok.RequiredArgsConstructor;
 public class CustomerSpecialOfferController {
     
     private final CustomerSpecialOfferService service;
+
+    /**
+     * Get all customer special offers.
+     */
+    @GetMapping
+    public ResponseEntity<PageResponse<CustomerSpecialOfferResponse>> getAllCustomerSpecialOffer(
+        @ModelAttribute @Valid CustomerSpecialOfferFilterRequest request
+    ) {
+        return ResponseEntity.ok(service.getAllCustomerSpecialOffer(request));
+    }
 
     /**
      * Create customer special offer.

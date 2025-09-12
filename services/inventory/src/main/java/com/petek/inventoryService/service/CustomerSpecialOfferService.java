@@ -1,20 +1,31 @@
 package com.petek.inventoryService.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferCreateRequest;
+import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferFilterRequest;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferResponse;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferUpdateRequest;
 import com.petek.inventoryService.entity.CustomerSpecialOffer;
 import com.petek.inventoryService.mapper.CustomerSpecialOfferMapper;
 import com.petek.inventoryService.repository.CustomerRepository;
 import com.petek.inventoryService.repository.CustomerSpecialOfferRepository;
+import com.petek.inventoryService.spec.CustomerSpecialOfferSpecification;
+import com.petek.inventoryService.utils.SortUtils;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,6 +37,53 @@ public class CustomerSpecialOfferService {
     private final CustomerSpecialOfferMapper mapper;
 
     private final CustomerRepository customerRepository;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "specialOfferId", "customerId", "percentOff", "startDate", "endDate","updatedAt"
+    );  
+    
+    /**
+     * Get all products.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<CustomerSpecialOfferResponse> getAllCustomerSpecialOffer(CustomerSpecialOfferFilterRequest request) {
+        // Validate percent range
+        if (request.getPercentGte() != null && request.getPercentLte() != null && 
+            request.getPercentGte().compareTo(request.getPercentLte()) > 0) {
+            throw new IllegalArgumentException("percent_gte cannot be greater than percent_lte");
+        }
+
+        // Validate start date range
+        if (request.getStartGte() != null && request.getStartLte() != null && 
+            request.getStartGte().isAfter(request.getStartLte())) {
+            throw new IllegalArgumentException("start_gte cannot be after start_lte");
+        }
+
+        // Validate end date range
+        if (request.getEndGte() != null && request.getEndLte() != null && 
+            request.getEndGte().isAfter(request.getEndLte())) {
+            throw new IllegalArgumentException("end_gte cannot be after end_lte");
+        }
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+        Specification<CustomerSpecialOffer> spec = CustomerSpecialOfferSpecification.withFilters(request);
+
+        Page<CustomerSpecialOffer> customerSpecialOfferPage = repository.findAll(spec, pageable);
+
+        List<CustomerSpecialOfferResponse> customerSpecialOfferResponses = customerSpecialOfferPage.getContent()
+            .stream()
+            .map(mapper::toCustomerSpecialOfferResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            customerSpecialOfferPage.getNumber(),
+            customerSpecialOfferPage.getSize(),
+            customerSpecialOfferPage.getTotalElements(),
+            customerSpecialOfferPage.getTotalPages()
+        );
+
+        return new PageResponse<CustomerSpecialOfferResponse>(customerSpecialOfferResponses, pageInfo);
+    }
 
     /**
      * Create customer special offer.
