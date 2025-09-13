@@ -16,7 +16,10 @@ import com.petek.inventoryService.dto.customer.CustomerCreateRequest;
 import com.petek.inventoryService.dto.customer.CustomerFilterRequest;
 import com.petek.inventoryService.dto.customer.CustomerResponse;
 import com.petek.inventoryService.dto.customer.CustomerUpdateRequest;
+import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferCustomerFilterRequest;
+import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferResponse;
 import com.petek.inventoryService.service.CustomerService;
+import com.petek.inventoryService.service.CustomerSpecialOfferService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 public class CustomerController {
 
     private final CustomerService service;
+
+    private final CustomerSpecialOfferService customerSpecialOfferService;
 
     /**
      * Get all products.
@@ -78,6 +83,17 @@ public class CustomerController {
     ) {
         service.deleteCustomer(customerId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Get all customer special offer
+     */
+    @GetMapping("/{customerId}/special-offers")
+    public ResponseEntity<PageResponse<CustomerSpecialOfferResponse>> getAllCustomerSpecialOffers(
+        @PathVariable Long customerId,
+        @ModelAttribute @Valid CustomerSpecialOfferCustomerFilterRequest request
+    ) {
+        return ResponseEntity.ok(customerSpecialOfferService.getAllCustomerSpecialOfferByCustomerId(customerId, request));
     }
 
 }

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferCreateRequest;
+import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferCustomerFilterRequest;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferFilterRequest;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferResponse;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferUpdateRequest;
@@ -159,6 +160,34 @@ public class CustomerSpecialOfferService {
         CustomerSpecialOffer customerSpecialOffer = repository.findById(customerSpecialOfferId)
             .orElseThrow(() -> new EntityNotFoundException("Customer Special Offer not found with id: " + customerSpecialOfferId));
         repository.delete(customerSpecialOffer);
+    }
+
+    /**
+     * Get all customer special offer with customer id.
+     */
+    public PageResponse<CustomerSpecialOfferResponse> getAllCustomerSpecialOfferByCustomerId(Long customerId, CustomerSpecialOfferCustomerFilterRequest request) {
+        // Validate customer
+        customerRepository.findById(customerId)
+            .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + customerId));
+            
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+        Specification<CustomerSpecialOffer> spec = CustomerSpecialOfferSpecification.withFilters(customerId, request);
+
+        Page<CustomerSpecialOffer> customerSpecialOfferPage = repository.findAll(spec, pageable);
+
+        List<CustomerSpecialOfferResponse> customerSpecialOfferResponses = customerSpecialOfferPage.getContent()
+            .stream()
+            .map(mapper::toCustomerSpecialOfferResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            customerSpecialOfferPage.getNumber(),
+            customerSpecialOfferPage.getSize(),
+            customerSpecialOfferPage.getTotalElements(),
+            customerSpecialOfferPage.getTotalPages()
+        );
+
+        return new PageResponse<CustomerSpecialOfferResponse>(customerSpecialOfferResponses, pageInfo);
     }
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferCustomerFilterRequest;
 import com.petek.inventoryService.dto.customerSpecialOffer.CustomerSpecialOfferFilterRequest;
 import com.petek.inventoryService.entity.CustomerSpecialOffer;
 
@@ -59,6 +60,22 @@ public class CustomerSpecialOfferSpecification {
             // Updated after filter
             if (request.getUpdatedAfter() != null) {
                 predicates.add(cb.greaterThan(root.get("updatedAt"), request.getUpdatedAfter()));
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<CustomerSpecialOffer> withFilters(Long customerId, CustomerSpecialOfferCustomerFilterRequest request) {
+        return (Root<CustomerSpecialOffer> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // CustomerId
+            cb.equal(root.get("customerId"), customerId);
+
+            // Updated after filter
+            if (request.getUpdatedAfter() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("updatedAt"), request.getUpdatedAfter()));
             }
             
             return cb.and(predicates.toArray(new Predicate[0]));
