@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, Any
 
+import numpy as np
 import pandas as pd
 
 
@@ -43,13 +44,21 @@ def calculate_confidence(sales: pd.Series) -> Dict[str, Any]:
     cv_scaled = cv / (cv + 0.5)  # in [0,1)
     volatility_score = max(0.0, 100.0 * (1.0 - min(1.0, cv_scaled)))
 
-    # 3) Recent trend stability (last 30d)
+    # 3) Recent trend stability (last 30d), step-aware
     recent = s.tail(30)
     if len(recent) >= 14:
         x = pd.Series(range(len(recent)), dtype=float)
         y = recent.reset_index(drop=True).astype(float)
-        corr = float(x.corr(y)) if y.std(ddof=1) else 0.0
-        trend_stability = min(100.0, 50.0 + abs(corr) * 50.0)
+        # Spearman (rank) correlation is more robust to step changes
+        try:
+            corr_s = float(x.corr(y, method="spearman")) if y.nunique() > 1 else 0.0
+        except Exception:
+            corr_s = 0.0
+        # Monotonicity ratio on a lightly smoothed series
+        y_smooth = y.ewm(alpha=0.3, adjust=False).mean()
+        diffs = np.sign(np.diff(y_smooth.to_numpy(dtype=float)))
+        monot = float(abs(diffs.sum()) / len(diffs)) if len(diffs) > 0 else 0.0  # in [0,1]
+        trend_stability = min(100.0, 50.0 + 25.0 * abs(corr_s) + 25.0 * monot)
     else:
         trend_stability = 50.0
 
@@ -68,10 +77,16 @@ def calculate_confidence(sales: pd.Series) -> Dict[str, Any]:
     else:
         completeness = min(100.0, 100.0 * len(s) / 365.0)
 
-    # Weighted overall
-    overall = 0.3 * volatility_score + 0.2 * trend_stability + 0.2 * seasonality_score + 0.3 * completeness
+    # Weighted overall (weekly seasonality de-weighted, completeness slightly upweighted)
+    # Weights: volatility 30%, trend 20%, weekly-seasonality 10%, data completeness 40%
+    overall = (
+        0.30 * volatility_score
+        + 0.20 * trend_stability
+        + 0.10 * seasonality_score
+        + 0.4 * completeness
+    )
     score = int(round(overall))
-    level = "high" if score >= 75 else ("medium" if score >= 50 else "low")
+    level = "high" if score >= 65 else ("medium" if score >= 45 else "low")
     recommendation = (
         "reliable_for_planning" if level == "high" else ("use_with_caution" if level == "medium" else "needs_review")
     )
@@ -88,4 +103,3 @@ def calculate_confidence(sales: pd.Series) -> Dict[str, Any]:
         },
         "recommendation": recommendation,
     }
-

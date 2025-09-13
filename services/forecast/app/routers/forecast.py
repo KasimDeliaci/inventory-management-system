@@ -17,6 +17,7 @@ from ..clients.inventory import InventoryClient
 from ..features.calendar import build_calendar
 from ..features.assembler import join_sales_promo_calendar, add_lags_ma
 from ..models.baseline import ma7_forecast
+from ..models.xgb_three import load_artifact, infer_xgb_three
 from ..features.confidence import calculate_confidence
 from ..db import dal
 
@@ -32,11 +33,24 @@ def forecast(req: ForecastRequest) -> ForecastResponse:
         raise HTTPException(status_code=400, detail="productIds must be non-empty")
 
     as_of = req.asOfDate or date.today()
-    start_hist = as_of - timedelta(days=365)
-    end_hist = as_of
     horizon_end = as_of + timedelta(days=req.horizonDays)
 
     inv = InventoryClient()
+
+    # Prefer xgb_three if active (determine early to align history window)
+    mv = dal.get_active_model_version()
+    use_xgb = bool(mv and str(mv.get("algorithm", "")) == "xgb_three" and mv.get("artifact_path"))
+    art = load_artifact(str(mv.get("artifact_path"))) if use_xgb else None
+    if use_xgb and art is None:
+        use_xgb = False
+
+    # History window consistency: align with xgb inference logic when active; fallback to 365d
+    hist_days = 365
+    if use_xgb and art is not None:
+        hist_days = max(365, int(art.training_window_days) // 3)
+    start_hist = as_of - timedelta(days=hist_days)
+    end_hist = as_of
+
     # Pull history for all requested products (single call for efficiency)
     sales_rows = inv.get_product_day_sales(start_hist, end_hist, req.productIds)
     promo_rows_hist = inv.get_product_day_promo(start_hist, end_hist, req.productIds)
@@ -46,67 +60,127 @@ def forecast(req: ForecastRequest) -> ForecastResponse:
     cal = build_calendar(start_hist, horizon_end)
 
     per_product: List[ForecastPerProduct] = []
-    for pid in req.productIds:
-        # Assemble historical frame
-        hist_df = join_sales_promo_calendar(sales_rows, promo_rows_hist, cal, pid)
-        hist_df = add_lags_ma(hist_df, ["salesUnits"])  # currently not used by baseline
+    # Fetch UoMs to decide rounding for countable products
+    COUNTABLE_UOMS = {"adet", "koli", "paket", "çuval", "şişe"}
+    uom_map: dict[int, str] = {}
+    try:
+        uom_map = inv.get_products_uom(req.productIds)
+    except Exception:
+        uom_map = {}
 
-        # Baseline forecast: MA7
-        sdf = hist_df.sort_values("date")
-        yhat = ma7_forecast(sdf, req.horizonDays)
+    def _round_if_countable(pid: int, values: List[float]) -> List[float]:
+        u = (uom_map.get(pid) or "").strip().lower()
+        if u in COUNTABLE_UOMS:
+            return [float(max(0, int(round(v)))) for v in values]
+        return values
 
-        # Confidence based on historical sales series
-        try:
-            series = sdf[["date", "salesUnits"]].copy()
-            series["date"] = pd.to_datetime(series["date"]).dt.normalize()
-            s = series.set_index("date")["salesUnits"].astype(float)
-            conf_dict = calculate_confidence(s)
-        except Exception:
-            conf_dict = {"score": 20, "level": "low", "factors": {"insufficient_data": True}, "recommendation": "needs_review"}
+    # xgb_three path
+    if use_xgb:
+        if art is not None:
+            preds = infer_xgb_three(art, req.productIds, as_of, req.horizonDays)
+            # Build per-product confidence using historical series, as before
+            for pid in req.productIds:
+                # historical frame for confidence
+                hist_df = join_sales_promo_calendar(sales_rows, promo_rows_hist, cal, pid)
+                sdf = hist_df.sort_values("date")
+                try:
+                    series = sdf[["date", "salesUnits"]].copy()
+                    series["date"] = pd.to_datetime(series["date"]).dt.normalize()
+                    s = series.set_index("date")["salesUnits"].astype(float)
+                    conf_dict = calculate_confidence(s)
+                except Exception:
+                    conf_dict = {"score": 20, "level": "low", "factors": {"insufficient_data": True}, "recommendation": "needs_review"}
 
-        # Simple prediction interval via empirical residual quantiles
-        try:
-            tail = sdf.tail(90).copy()
-            tail["date"] = pd.to_datetime(tail["date"]).dt.normalize()
-            tail = tail.set_index("date").sort_index()
-            # MA7 one-step prediction over tail (shifted rolling mean)
-            hist_vals = tail["salesUnits"].astype(float)
-            ma7 = hist_vals.rolling(window=7, min_periods=1).mean().shift(1)
-            residuals = (hist_vals - ma7).dropna()
-            if len(residuals) >= 20:
-                q10 = float(residuals.quantile(0.10))
-                q90 = float(residuals.quantile(0.90))
-            else:
+                pr = preds.get(pid, {"daily": [0.0] * req.horizonDays, "sum": 0.0, "lower": 0.0, "upper": 0.0})
+                # Rounding for countable UoMs
+                daily_vals = _round_if_countable(pid, [float(x) for x in pr.get("daily", [])])
+                sum_val = float(sum(daily_vals)) if daily_vals else float(pr.get("sum", 0.0))
+                lower = float(pr.get("lower", 0.0))
+                upper = float(pr.get("upper", 0.0))
+                # Round PI for countable as well
+                u = (uom_map.get(pid) or "").strip().lower()
+                if u in COUNTABLE_UOMS:
+                    lower = float(max(0, int(round(lower))))
+                    upper = float(max(lower, int(round(upper))))
+                daily = []
+                for i in range(1, req.horizonDays + 1):
+                    d = as_of + timedelta(days=i)
+                    yv = float(daily_vals[i - 1]) if i - 1 < len(daily_vals) else 0.0
+                    daily.append(DailyForecast(date=d, yhat=yv))
+                per_product.append(
+                    ForecastPerProduct(
+                        productId=pid,
+                        daily=(daily if req.returnDaily else []),
+                        sum=sum_val,
+                        predictionInterval=PredictionInterval(lowerBound=lower, upperBound=upper),
+                        confidence=conf_dict,  # type: ignore[arg-type]
+                    )
+                )
+        else:
+            use_xgb = False
+
+    if not use_xgb:
+        for pid in req.productIds:
+            # Assemble historical frame
+            hist_df = join_sales_promo_calendar(sales_rows, promo_rows_hist, cal, pid)
+            hist_df = add_lags_ma(hist_df, ["salesUnits"])  # currently not used by baseline
+
+            # Baseline forecast: MA7
+            sdf = hist_df.sort_values("date")
+            yhat = ma7_forecast(sdf, req.horizonDays)
+
+            # Confidence based on historical sales series
+            try:
+                series = sdf[["date", "salesUnits"]].copy()
+                series["date"] = pd.to_datetime(series["date"]).dt.normalize()
+                s = series.set_index("date")["salesUnits"].astype(float)
+                conf_dict = calculate_confidence(s)
+            except Exception:
+                conf_dict = {"score": 20, "level": "low", "factors": {"insufficient_data": True}, "recommendation": "needs_review"}
+
+            # Simple prediction interval via empirical residual quantiles
+            try:
+                tail = sdf.tail(90).copy()
+                tail["date"] = pd.to_datetime(tail["date"]).dt.normalize()
+                tail = tail.set_index("date").sort_index()
+                hist_vals = tail["salesUnits"].astype(float)
+                ma7 = hist_vals.rolling(window=7, min_periods=1).mean().shift(1)
+                residuals = (hist_vals - ma7).dropna()
+                if len(residuals) >= 20:
+                    q10 = float(residuals.quantile(0.10))
+                    q90 = float(residuals.quantile(0.90))
+                else:
+                    q10 = q90 = 0.0
+            except Exception:
                 q10 = q90 = 0.0
-        except Exception:
-            q10 = q90 = 0.0
 
-        # Build daily dates
-        daily = []
-        for i in range(1, req.horizonDays + 1):
-            d = as_of + timedelta(days=i)
-            daily.append(DailyForecast(date=d, yhat=float(yhat[i - 1])))
+            # Build daily dates with rounding if countable
+            rounded_vals = _round_if_countable(pid, [float(v) for v in yhat])
+            daily = []
+            for i in range(1, req.horizonDays + 1):
+                d = as_of + timedelta(days=i)
+                yv = float(rounded_vals[i - 1]) if i - 1 < len(rounded_vals) else 0.0
+                daily.append(DailyForecast(date=d, yhat=yv))
 
-        # Aggregate prediction interval across horizon (naive sum of residual bounds)
-        sum_y = float(sum(yhat))
-        lower = max(0.0, sum_y + req.horizonDays * q10)
-        upper = max(lower, sum_y + req.horizonDays * q90)
+            # Aggregate prediction interval across horizon
+            sum_y = float(sum(rounded_vals))
+            lower = max(0.0, sum_y + req.horizonDays * q10)
+            upper = max(lower, sum_y + req.horizonDays * q90)
 
-        per_product.append(
-            ForecastPerProduct(
-                productId=pid,
-                daily=(daily if req.returnDaily else []),
-                sum=sum_y,
-                predictionInterval=PredictionInterval(lowerBound=lower, upperBound=upper),
-                confidence=conf_dict,  # type: ignore[arg-type]
+            per_product.append(
+                ForecastPerProduct(
+                    productId=pid,
+                    daily=(daily if req.returnDaily else []),
+                    sum=sum_y,
+                    predictionInterval=PredictionInterval(lowerBound=lower, upperBound=upper),
+                    confidence=conf_dict,  # type: ignore[arg-type]
+                )
             )
-        )
 
     # Optional: persist forecast if DB configured
     fid: Optional[int] = None
-    mv = dal.get_active_model_version()
     try:
-        fid = dal.insert_forecast(as_of.isoformat(), req.horizonDays, (mv or {}).get("model_version_id"), None)
+        fid = dal.insert_forecast(as_of.isoformat(), req.horizonDays, ((mv or {}).get("model_version_id") if mv else None), None)
         if fid:
             items = []
             for fp in per_product:
