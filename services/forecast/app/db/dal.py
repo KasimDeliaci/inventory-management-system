@@ -8,8 +8,11 @@ from typing import Any, Dict, Iterable, Optional
 _PSYCOPG_AVAILABLE = True
 try:
     import psycopg
+    from psycopg.types.json import Json  # psycopg3 JSON adapter
 except Exception:  # pragma: no cover - optional dependency
     psycopg = None  # type: ignore
+    def Json(v):  # type: ignore
+        return v
     _PSYCOPG_AVAILABLE = False
 
 
@@ -42,27 +45,41 @@ def insert_training_run(status: str, scope: str, product_id: Optional[int], para
         if conn is None:
             return None
         with conn.cursor() as cur:
-            cur.execute(sql, (status, scope, product_id, params))
+            cur.execute(sql, (status, scope, product_id, Json(params)))
             rid = cur.fetchone()[0]
             conn.commit()
             return int(rid)
 
 
-def update_training_run(rid: int, status: str, metrics: Optional[Dict[str, Any]] = None, error_message: Optional[str] = None, model_version_id: Optional[int] = None) -> None:
+def update_training_run(
+    rid: int,
+    status: str,
+    metrics: Optional[Dict[str, Any]] = None,
+    error_message: Optional[str] = None,
+    model_version_id: Optional[int] = None,
+) -> None:
     if not init_ok():
         return
     parts = ["status = %s"]
     vals: list[Any] = [status]
     if metrics is not None:
         parts.append("metrics = %s")
-        vals.append(metrics)
+        vals.append(Json(metrics))
     if error_message is not None:
         parts.append("error_message = %s")
         vals.append(error_message)
     if model_version_id is not None:
         parts.append("model_version_id = %s")
         vals.append(model_version_id)
-    sql = f"UPDATE training_runs SET {', '.join(parts)}, finished_at = NOW() WHERE training_run_id = %s"
+    # Timestamp handling:
+    # - When moving to RUNNING, set started_at = NOW() (queue time may differ from actual start)
+    # - Only set finished_at for terminal statuses (SUCCEEDED/FAILED)
+    normalized = (status or "").strip().lower()
+    if normalized == "running":
+        parts.append("started_at = NOW()")
+    if normalized in ("succeeded", "failed"):
+        parts.append("finished_at = NOW()")
+    sql = f"UPDATE training_runs SET {', '.join(parts)} WHERE training_run_id = %s"
     vals.append(rid)
     with get_conn() as conn:
         if conn is None:
@@ -83,7 +100,7 @@ def insert_model_version(model_name: str, version_label: str, algorithm: str, ar
         if conn is None:
             return None
         with conn.cursor() as cur:
-            cur.execute(sql, (model_name, version_label, algorithm, artifact_path, training_window_days, hyperparams, metrics, is_active))
+            cur.execute(sql, (model_name, version_label, algorithm, artifact_path, training_window_days, Json(hyperparams), Json(metrics), is_active))
             mid = cur.fetchone()[0]
             conn.commit()
             return int(mid)
@@ -230,6 +247,7 @@ def insert_forecast_items(forecast_id: int, items: Iterable[dict]) -> None:
             return
         with conn.cursor() as cur:
             for it in items:
+                confidence = it.get("confidence")
                 cur.execute(
                     sql,
                     (
@@ -237,7 +255,7 @@ def insert_forecast_items(forecast_id: int, items: Iterable[dict]) -> None:
                         int(it["productId"]),
                         it["date"],
                         float(it["yhat"]),
-                        it.get("confidence"),
+                        Json(confidence) if confidence is not None else Json({}),
                         it.get("lower"),
                         it.get("upper"),
                     ),
