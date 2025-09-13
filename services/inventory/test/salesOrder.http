@@ -41,13 +41,17 @@ content-type: application/json
 
 ### Get Sales Order Item By Id
 
-GET  http://localhost:8000/api/v1/sales-orders/1/items/1
+GET http://localhost:8000/api/v1/sales-orders/1/items/1
 
 ### Create Sales Order Item
 
-PUT  http://localhost:8000/api/v1/sales-orders/1/items/1
+PUT http://localhost:8000/api/v1/sales-orders/1/items/1
 content-type: application/json
 
 {
     "quantity": 1000
 }
+
+### Delete Sales Order Item
+
+DELETE http://localhost:8000/api/v1/sales-orders/1/items/1

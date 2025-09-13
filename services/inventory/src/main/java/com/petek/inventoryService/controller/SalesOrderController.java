@@ -120,4 +120,16 @@ public class SalesOrderController {
         return ResponseEntity.ok(salesOrderItemService.updateSalesOrderItem(salesOrderId, salesOrderItemId, request));
     }
 
+    /**
+     * Create a sales order item.
+     */
+    @DeleteMapping("/{salesOrderId}/items/{salesOrderItemId}")
+    public ResponseEntity<Void> deleteSalesOrderItem(
+        @PathVariable Long salesOrderId,
+        @PathVariable Long salesOrderItemId
+    ) {
+        salesOrderItemService.deleteSalesOrderItem(salesOrderId, salesOrderItemId);
+        return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
 }
