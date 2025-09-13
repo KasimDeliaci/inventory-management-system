@@ -3,12 +3,14 @@ package com.petek.inventoryService.service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemCreateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderItemUpdateRequest;
 import com.petek.inventoryService.entity.Campaign;
 import com.petek.inventoryService.entity.Product;
 import com.petek.inventoryService.entity.SalesOrderItem;
@@ -82,6 +84,23 @@ public class SalesOrderItemService {
         }
 
         return mapper.toSalesOrderItemResponse(salesOrderItem);            
+    }
+
+    /**
+     * Update a new sales order item.
+     */
+    public SalesOrderItemResponse updateSalesOrderItem(Long salesOrderId, Long salesOrderItemId, SalesOrderItemUpdateRequest request) {
+        SalesOrderItem existingSalesOrderItem = repository.findById(salesOrderItemId)
+            .orElseThrow(() -> new EntityNotFoundException("Sales Order Item not found with id: " + salesOrderItemId));
+        
+        if(existingSalesOrderItem.getSalesOrderId() != salesOrderId) {
+            throw new IllegalArgumentException("This SalesOrder dont have this SalesOrderItem");
+        }
+
+        Optional.ofNullable(request.getQuantity())
+            .ifPresent(existingSalesOrderItem::setQuantity);
+
+        return mapper.toSalesOrderItemResponse(repository.save(existingSalesOrderItem));            
     }
 
 }

@@ -16,6 +16,7 @@ import com.petek.inventoryService.dto.salesOrder.SalesOrderCreateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderFilterRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemCreateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemResponse;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderItemUpdateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderUpdateRequest;
 import com.petek.inventoryService.service.SalesOrderItemService;
@@ -105,6 +106,18 @@ public class SalesOrderController {
         @PathVariable Long salesOrderItemId
     ) {
         return ResponseEntity.ok(salesOrderItemService.getSalesOrderItemById(salesOrderId, salesOrderItemId));
+    }
+
+    /**
+     * Update a sales order item.
+     */
+    @PutMapping("/{salesOrderId}/items/{salesOrderItemId}")
+    public ResponseEntity<SalesOrderItemResponse> updateSalesOrderItem(
+        @PathVariable Long salesOrderId,
+        @PathVariable Long salesOrderItemId,
+        @RequestBody @Valid SalesOrderItemUpdateRequest request
+    ) {
+        return ResponseEntity.ok(salesOrderItemService.updateSalesOrderItem(salesOrderId, salesOrderItemId, request));
     }
 
 }

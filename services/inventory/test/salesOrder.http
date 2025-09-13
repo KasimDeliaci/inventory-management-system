@@ -29,7 +29,7 @@ content-type: application/json
 
 DELETE   http://localhost:8000/api/v1/sales-orders/1
 
-### Create Sales Order
+### Create Sales Order Item
 
 POST http://localhost:8000/api/v1/sales-orders/1/items
 content-type: application/json
@@ -42,3 +42,12 @@ content-type: application/json
 ### Get Sales Order Item By Id
 
 GET  http://localhost:8000/api/v1/sales-orders/1/items/1
+
+### Create Sales Order Item
+
+PUT  http://localhost:8000/api/v1/sales-orders/1/items/1
+content-type: application/json
+
+{
+    "quantity": 1000
+}
