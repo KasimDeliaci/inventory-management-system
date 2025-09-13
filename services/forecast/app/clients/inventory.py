@@ -16,7 +16,8 @@ class InventoryClient:
         params: list[tuple[str, str]] = []
         if product_ids:
             for pid in product_ids:
-                params.append(("product_id", str(int(pid))))
+                # Inventory ReportingRequest expects 'productId' as the query key
+                params.append(("productId", str(int(pid))))
         return params
 
     def get_product_day_sales(self, start: date, end: date, product_ids: Optional[Iterable[int]] = None) -> list[dict]:
@@ -43,3 +44,39 @@ class InventoryClient:
             resp.raise_for_status()
             return resp.json()
 
+    def get_day_offer_stats(self, start: date, end: date) -> list[dict]:
+        """Calls /api/v1/reporting/day-offer-stats and returns a list of rows.
+        Row shape: {date, activeOffersCount, offerAvgPct, offerMaxPct}
+        """
+        url = f"{self.base_url}/api/v1/reporting/day-offer-stats"
+        params: list[tuple[str, str]] = [("from", start.isoformat()), ("to", end.isoformat())]
+        with httpx.Client(timeout=self.timeout) as client:
+            resp = client.get(url, params=params)
+            resp.raise_for_status()
+            return resp.json()
+
+    def get_product(self, product_id: int) -> dict:
+        """Fetch a single product. Useful to read unitOfMeasure for rounding decisions.
+        Response shape includes unitOfMeasure.
+        """
+        url = f"{self.base_url}/api/v1/products/{int(product_id)}"
+        with httpx.Client(timeout=self.timeout) as client:
+            resp = client.get(url)
+            resp.raise_for_status()
+            return resp.json()
+
+    def get_products_uom(self, product_ids: Iterable[int]) -> dict[int, str]:
+        """Return a mapping of productId -> unitOfMeasure for provided ids.
+        Falls back silently on failures per product.
+        """
+        out: dict[int, str] = {}
+        for pid in set(int(p) for p in product_ids or []):
+            try:
+                p = self.get_product(pid)
+                uom = p.get("unitOfMeasure") or p.get("unit_of_measure")
+                if isinstance(uom, str):
+                    out[pid] = uom
+            except Exception:
+                # ignore fetch errors per product
+                pass
+        return out
