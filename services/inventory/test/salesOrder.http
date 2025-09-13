@@ -1,0 +1,61 @@
+### Get All Sales Order
+
+GET  http://localhost:8000/api/v1/sales-orders
+
+### Create Sales Order
+
+POST http://localhost:8000/api/v1/sales-orders
+content-type: application/json
+
+{
+    "customerId": 501,
+    "deliveryDate": "2026-09-12"
+}
+
+### Get Sales Order By Id
+
+GET  http://localhost:8000/api/v1/sales-orders/1
+
+### Update Sales Order
+
+PUT  http://localhost:8000/api/v1/sales-orders/1
+content-type: application/json
+
+{
+    "status": "DELIVERED"
+}
+
+### Delete Sales Order
+
+DELETE   http://localhost:8000/api/v1/sales-orders/1
+
+### Get All Sales Order Item
+
+GET http://localhost:8000/api/v1/sales-orders/1/items
+
+### Create Sales Order Item
+
+POST http://localhost:8000/api/v1/sales-orders/1/items
+content-type: application/json
+
+{
+    "productId": 1001,
+    "quantity": 1
+}
+
+### Get Sales Order Item By Id
+
+GET http://localhost:8000/api/v1/sales-orders/1/items/1
+
+### Create Sales Order Item
+
+PUT http://localhost:8000/api/v1/sales-orders/1/items/1
+content-type: application/json
+
+{
+    "quantity": 1000
+}
+
+### Delete Sales Order Item
+
+DELETE http://localhost:8000/api/v1/sales-orders/1/items/1
