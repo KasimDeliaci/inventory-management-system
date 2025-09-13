@@ -86,7 +86,7 @@ def calculate_confidence(sales: pd.Series) -> Dict[str, Any]:
         + 0.4 * completeness
     )
     score = int(round(overall))
-    level = "high" if score >= 70 else ("medium" if score >= 50 else "low")
+    level = "high" if score >= 65 else ("medium" if score >= 45 else "low")
     recommendation = (
         "reliable_for_planning" if level == "high" else ("use_with_caution" if level == "medium" else "needs_review")
     )
