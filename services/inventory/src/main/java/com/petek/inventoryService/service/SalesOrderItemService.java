@@ -3,12 +3,20 @@ package com.petek.inventoryService.service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.petek.inventoryService.dto.PageResponse;
+import com.petek.inventoryService.dto.PageResponse.PageInfo;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemCreateRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderItemFilterRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemUpdateRequest;
 import com.petek.inventoryService.entity.Campaign;
@@ -19,6 +27,7 @@ import com.petek.inventoryService.repository.CampaignRepository;
 import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.repository.SalesOrderItemRepository;
 import com.petek.inventoryService.repository.SalesOrderRepository;
+import com.petek.inventoryService.utils.SortUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +43,34 @@ public class SalesOrderItemService {
     private final SalesOrderRepository salesOrderRepository;
     private final ProductRepository productRepository;
     private final CampaignRepository campaignRepository;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "salesOrderItemId", "productId", "quantity", "unitPrice", "discountPercentage", "discountAmount", "lineTotal", "createdAt"
+    );  
+    
+    /**
+     * Get all products.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<SalesOrderItemResponse> getAllSalesOrderItem(Long salesOrderId, SalesOrderItemFilterRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), SortUtils.createSort(request.getSort(), ALLOWED_SORT_FIELDS));
+
+        Page<SalesOrderItem> salesOrderItemPage = repository.findBySalesOrderId(salesOrderId, pageable);
+
+        List<SalesOrderItemResponse> salesOrderItemResponses = salesOrderItemPage.getContent()
+            .stream()
+            .map(mapper::toSalesOrderItemResponse)
+            .toList();
+        
+        PageInfo pageInfo = new PageInfo(
+            salesOrderItemPage.getNumber(),
+            salesOrderItemPage.getSize(),
+            salesOrderItemPage.getTotalElements(),
+            salesOrderItemPage.getTotalPages()
+        );
+
+        return new PageResponse<SalesOrderItemResponse>(salesOrderItemResponses, pageInfo);
+    }
 
     /**
      * Create a new sales order item.

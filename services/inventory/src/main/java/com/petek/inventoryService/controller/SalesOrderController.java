@@ -15,6 +15,7 @@ import com.petek.inventoryService.dto.PageResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderCreateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderFilterRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemCreateRequest;
+import com.petek.inventoryService.dto.salesOrder.SalesOrderItemFilterRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemResponse;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderItemUpdateRequest;
 import com.petek.inventoryService.dto.salesOrder.SalesOrderResponse;
@@ -84,6 +85,17 @@ public class SalesOrderController {
     ) {
         service.deleteSalesOrder(salesOrderId);
         return ResponseEntity.noContent().header("X-Delete-Description", "Deleted").build();
+    }
+
+    /**
+     * Get all sales order item.
+     */
+    @GetMapping("/{salesOrderId}/items")
+    public ResponseEntity<PageResponse<SalesOrderItemResponse>> getAllSalesOrderItem(
+        @PathVariable Long salesOrderId,
+        @ModelAttribute @Valid SalesOrderItemFilterRequest request
+    ) {
+        return ResponseEntity.ok(salesOrderItemService.getAllSalesOrderItem(salesOrderId, request));
     }
 
     /**

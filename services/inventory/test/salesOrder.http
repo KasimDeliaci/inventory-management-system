@@ -29,6 +29,10 @@ content-type: application/json
 
 DELETE   http://localhost:8000/api/v1/sales-orders/1
 
+### Get All Sales Order Item
+
+GET http://localhost:8000/api/v1/sales-orders/1/items
+
 ### Create Sales Order Item
 
 POST http://localhost:8000/api/v1/sales-orders/1/items
