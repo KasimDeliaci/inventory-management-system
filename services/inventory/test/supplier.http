@@ -35,4 +35,4 @@ DELETE http://localhost:8000/api/v1/suppliers/1
 
 ### Get Products of Supplier
 
-GET http://localhost:8000/api/v1/suppliers/11/products
+GET http://localhost:8000/api/v1/suppliers/1/products

@@ -26,6 +26,7 @@ import com.petek.inventoryService.entity.ProductSupplier;
 import com.petek.inventoryService.mapper.ProductSupplierMapper;
 import com.petek.inventoryService.repository.ProductRepository;
 import com.petek.inventoryService.repository.ProductSupplierRepository;
+import com.petek.inventoryService.repository.SupplierRepository;
 import com.petek.inventoryService.spec.ProductSupplierSpecifications;
 import com.petek.inventoryService.utils.SortUtils;
 
@@ -41,6 +42,7 @@ public class ProductSupplierService {
     private final ProductSupplierMapper mapper;
 
     private final ProductRepository productRepository;
+    private final SupplierRepository supplierRepository;
     private final ProductService productService;
     private final SupplierService supplierService;
 
@@ -187,6 +189,7 @@ public class ProductSupplierService {
 
         List<ProductSupplierItemResponse> productSupplierItemResponses = productSupplierPage.getContent()
             .stream()
+            .filter(ps -> supplierRepository.findById(ps.getSupplier().getSupplierId()).orElse(null) != null)
             .map(mapper::toProductSupplierItemResponse)
             .toList();
 
