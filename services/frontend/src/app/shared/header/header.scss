@@ -260,3 +260,57 @@ button:disabled {
   z-index: 1000;
   overflow: hidden;
 }
+
+// header.scss - Add these styles to your existing header styles
+
+.type-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+
+  &.discount {
+    background-color: #22c55e; // Green for discount
+  }
+
+  &.promotion {
+    background-color: #3b82f6; // Blue for promotion
+  }
+
+  &.seasonal {
+    background-color: #f59e0b; // Orange for seasonal
+  }
+
+  &.clearance {
+    background-color: #ef4444; // Red for clearance
+  }
+}
+
+.filter-option {
+  &.seasonal {
+    &:hover {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+    }
+
+    &.active {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      border-color: #f59e0b;
+    }
+  }
+
+  &.clearance {
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    &.active {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+  }
+}

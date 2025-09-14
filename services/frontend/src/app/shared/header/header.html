@@ -88,6 +88,96 @@
         </button>
       </div>
       
+      <!-- Campaign Filters -->
+      <div class="filter-dropdown" *ngIf="filterOpen && isCampaignPage">
+        <!-- Assignment Type Filter (First Level) -->
+        <div class="filter-section">
+          <div class="filter-label">Assignment</div>
+          <button
+            class="filter-option"
+            [class.active]="campaignAssignmentFilter === 'all'"
+            (click)="onCampaignAssignmentFilterClick('all')">
+            All Assignments
+          </button>
+          <button
+            class="filter-option"
+            [class.active]="campaignAssignmentFilter === 'product'"
+            (click)="onCampaignAssignmentFilterClick('product')">
+            Product-based
+          </button>
+          <button
+            class="filter-option"
+            [class.active]="campaignAssignmentFilter === 'customer'"
+            (click)="onCampaignAssignmentFilterClick('customer')">
+            Customer-based
+          </button>
+        </div>
+        
+        <!-- Campaign Type Filter (Only for Product-based) -->
+        <div class="filter-section" *ngIf="campaignAssignmentFilter === 'product'">
+          <div class="filter-label">Campaign Type</div>
+          <button
+            class="filter-option"
+            [class.active]="campaignTypeFilter === 'all'"
+            (click)="onCampaignTypeFilterClick('all')">
+            All Types
+          </button>
+          <button
+            class="filter-option discount"
+            [class.active]="campaignTypeFilter === 'discount'"
+            (click)="onCampaignTypeFilterClick('discount')">
+            <span class="type-badge discount"></span>
+            Discount
+          </button>
+          <button
+            class="filter-option promotion"
+            [class.active]="campaignTypeFilter === 'promotion'"
+            (click)="onCampaignTypeFilterClick('promotion')">
+            <span class="type-badge promotion"></span>
+            Promotion
+          </button>
+          <button
+            class="filter-option seasonal"
+            [class.active]="campaignTypeFilter === 'seasonal'"
+            (click)="onCampaignTypeFilterClick('seasonal')">
+            <span class="type-badge seasonal"></span>
+            Seasonal
+          </button>
+          <button
+            class="filter-option clearance"
+            [class.active]="campaignTypeFilter === 'clearance'"
+            (click)="onCampaignTypeFilterClick('clearance')">
+            <span class="type-badge clearance"></span>
+            Clearance
+          </button>
+        </div>
+        
+        <!-- Active/Inactive Filter (Always shown) -->
+        <div class="filter-section">
+          <div class="filter-label">Status</div>
+          <button
+            class="filter-option"
+            [class.active]="campaignActiveFilter === 'all'"
+            (click)="onCampaignActiveFilterClick('all')">
+            All Campaigns
+          </button>
+          <button
+            class="filter-option active"
+            [class.active]="campaignActiveFilter === 'active'"
+            (click)="onCampaignActiveFilterClick('active')">
+            <span class="status-dot active"></span>
+            Active
+          </button>
+          <button
+            class="filter-option inactive"
+            [class.active]="campaignActiveFilter === 'inactive'"
+            (click)="onCampaignActiveFilterClick('inactive')">
+            <span class="status-dot inactive"></span>
+            Inactive
+          </button>
+        </div>
+      </div>
+      
       <!-- Order Filters -->
       <div class="filter-dropdown" *ngIf="filterOpen && isOrderPage">
         <!-- Type Filter -->

@@ -1,5 +1,4 @@
-// campaign-page.ts
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Header } from '../../shared/header/header';
 import { SideNav } from '../../shared/side-nav/side-nav';
@@ -8,7 +7,7 @@ import { CampaignEditorComponent } from '../../campaigns/campaign-editor/campaig
 import { Campaign, CampaignType, AssignmentType } from '../../models/campaign.model';
 import { Product } from '../../models/product.model';
 import { Customer } from '../../models/customer.model';
-import { MockDataService } from '../mock-data.service';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-campaign-page',
@@ -23,8 +22,8 @@ import { MockDataService } from '../mock-data.service';
   templateUrl: './campaign-page.html',
   styleUrls: ['./campaign-page.scss'],
 })
-export class CampaignPageComponent {
-  private mockDataService = inject(MockDataService);
+export class CampaignPageComponent implements OnInit {
+  private dataService = inject(DataService);
 
   query = signal('');
   editorOpen = signal(false);
@@ -32,6 +31,9 @@ export class CampaignPageComponent {
   
   // Filter states
   filterOpen = signal(false);
+  typeFilter = signal<CampaignType | 'all'>('all');
+  assignmentFilter = signal<AssignmentType | 'all'>('all');
+  activeFilter = signal<'active' | 'inactive' | 'all'>('all');
 
   private selectionTick = signal(0);
   
@@ -39,13 +41,73 @@ export class CampaignPageComponent {
     this.selectionTick.update((n) => n + 1);
   }
 
-  // Initialize with mock data
-  private all = signal<Campaign[]>(this.mockDataService.getCampaigns());
-  products = signal<Product[]>(this.mockDataService.getProducts());
-  customers = signal<Customer[]>(this.mockDataService.getCustomers());
+  // Initialize with empty arrays - data will be loaded in ngOnInit
+  private all = signal<Campaign[]>([]);
+  products = signal<Product[]>([]);
+  customers = signal<Customer[]>([]);
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  private loadData() {
+    // Load campaigns
+    this.dataService.getCampaigns().subscribe({
+      next: (campaigns) => {
+        this.all.set(campaigns);
+      },
+      error: (error) => {
+        console.error('Error loading campaigns:', error);
+      }
+    });
+
+    // Load products
+    this.dataService.getProducts().subscribe({
+      next: (products) => {
+        this.products.set(products);
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+      }
+    });
+
+    // Load customers
+    this.dataService.getCustomers().subscribe({
+      next: (customers) => {
+        this.customers.set(customers);
+      },
+      error: (error) => {
+        console.error('Error loading customers:', error);
+      }
+    });
+  }
 
   readonly campaigns = computed(() => {
     let filtered = this.all();
+    
+    // Apply type filter
+    const typeFilter = this.typeFilter();
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(c => c.type === typeFilter);
+    }
+    
+    // Apply assignment filter
+    const assignmentFilter = this.assignmentFilter();
+    if (assignmentFilter !== 'all') {
+      filtered = filtered.filter(c => c.assignmentType === assignmentFilter);
+    }
+    
+    // Apply active filter
+    const activeFilter = this.activeFilter();
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(c => {
+        if (activeFilter === 'active') {
+          return c.isActive;
+        } else {
+          return !c.isActive;
+        }
+      });
+    }
     
     // Apply search query
     const q = this.query().trim().toLowerCase();
@@ -56,7 +118,7 @@ export class CampaignPageComponent {
           c.name,
           c.type,
           c.assignmentType,
-          c.percentage.toString(),
+          c.percentage?.toString() || '',
         ].some((v) => v.toLowerCase().includes(q))
       );
     }
@@ -75,13 +137,16 @@ export class CampaignPageComponent {
     this.editing.set({
       id: '',
       name: '',
+      description: '', // Keep empty since we removed description field
       type: 'discount',
       assignmentType: 'product',
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
       percentage: 0,
-      productIds: [],
-      customerIds: [],
+      buyQty: null,
+      getQty: null,
+      productIds: [], // Will be populated from single selection
+      customerIds: [], // Will be populated from single selection
       isActive: true,
       selected: false,
     });
@@ -90,6 +155,25 @@ export class CampaignPageComponent {
 
   onOpenFilters() {
     this.filterOpen.set(!this.filterOpen());
+  }
+
+  onAssignmentFilterSelect(assignment: AssignmentType | 'all') {
+    this.assignmentFilter.set(assignment);
+    // Reset type filter when changing assignment to non-product-based
+    if (assignment !== 'product') {
+      this.typeFilter.set('all');
+    }
+    this.filterOpen.set(false);
+  }
+
+  onTypeFilterSelect(type: CampaignType | 'all') {
+    this.typeFilter.set(type);
+    this.filterOpen.set(false);
+  }
+
+  onActiveFilterSelect(active: 'active' | 'inactive' | 'all') {
+    this.activeFilter.set(active);
+    this.filterOpen.set(false);
   }
 
   onClear() {

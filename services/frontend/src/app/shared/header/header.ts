@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductStatus } from '../../models/product.model';
 import { CustomerSegment } from '../../models/customer.model';
+import { CampaignType, AssignmentType } from '../../models/campaign.model';
 import { OrderType, PurchaseOrderStatus, SalesOrderStatus } from '../../models/order.model';
 
 @Component({
@@ -23,6 +24,11 @@ export class Header {
   // Customer-specific inputs
   @Input() segmentFilter?: CustomerSegment | 'all';
   
+  // Campaign-specific inputs
+  @Input() campaignTypeFilter?: CampaignType | 'all';
+  @Input() campaignAssignmentFilter?: AssignmentType | 'all';
+  @Input() campaignActiveFilter?: 'active' | 'inactive' | 'all';
+  
   // Order-specific inputs
   @Input() typeFilter?: OrderType | 'all';
   @Input() orderStatusFilter?: PurchaseOrderStatus | SalesOrderStatus | 'all';
@@ -43,6 +49,11 @@ export class Header {
   @Output() segmentFilterSelect = new EventEmitter<CustomerSegment | 'all'>();
   @Output() addCustomer = new EventEmitter<void>();
   
+  // Campaign-specific outputs
+  @Output() campaignTypeFilterSelect = new EventEmitter<CampaignType | 'all'>();
+  @Output() campaignAssignmentFilterSelect = new EventEmitter<AssignmentType | 'all'>();
+  @Output() campaignActiveFilterSelect = new EventEmitter<'active' | 'inactive' | 'all'>();
+  
   // Order-specific outputs
   @Output() typeFilterSelect = new EventEmitter<OrderType | 'all'>();
   @Output() statusFilterSelect = new EventEmitter<PurchaseOrderStatus | SalesOrderStatus | 'all'>();
@@ -60,6 +71,10 @@ export class Header {
     return this.statusFilter !== undefined;
   }
 
+  get isCampaignPage(): boolean {
+    return this.campaignTypeFilter !== undefined;
+  }
+
   get isOrderPage(): boolean {
     return this.typeFilter !== undefined;
   }
@@ -69,6 +84,10 @@ export class Header {
       return this.statusFilter !== 'all';
     } else if (this.isCustomerPage) {
       return this.segmentFilter !== 'all';
+    } else if (this.isCampaignPage) {
+      return this.campaignTypeFilter !== 'all' || 
+             this.campaignAssignmentFilter !== 'all' ||
+             this.campaignActiveFilter !== 'all';
     } else if (this.isOrderPage) {
       return this.typeFilter !== 'all' || this.orderStatusFilter !== 'all';
     }
@@ -85,6 +104,18 @@ export class Header {
     } else if (this.isCustomerPage) {
       this.segmentFilterSelect.emit(filter as CustomerSegment | 'all');
     }
+  }
+
+  onCampaignAssignmentFilterClick(assignment: AssignmentType | 'all') {
+    this.campaignAssignmentFilterSelect.emit(assignment);
+  }
+
+  onCampaignTypeFilterClick(type: CampaignType | 'all') {
+    this.campaignTypeFilterSelect.emit(type);
+  }
+
+  onCampaignActiveFilterClick(active: 'active' | 'inactive' | 'all') {
+    this.campaignActiveFilterSelect.emit(active);
   }
 
   onOrderTypeFilterClick(type: OrderType | 'all') {

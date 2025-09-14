@@ -4,7 +4,7 @@
 <section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
   <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
   <div class="grid">
-    <!-- Top row - ID and Name -->
+    <!-- Top row - ID and Name (full width now) -->
     <div class="row1">
       <label class="box">
         <span class="label">ID</span>
@@ -18,21 +18,14 @@
       </label>
     </div>
     
-    <!-- Description -->
-    <label class="box big">
-      <span class="label">DESCRIPTION</span>
-      <textarea class="textarea" [value]="form.value.description || ''"
-                (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
-    </label>
-    
     <!-- Right sidebar fields -->
     <div class="sidebar">
       <label class="box">
         <span class="label">TYPE</span>
         <select class="input" [value]="form.value.type"
-                (change)="form.controls.type.setValue($any($event.target).value)">
+                (change)="onCampaignTypeChange($any($event.target).value)">
           <option value="discount">Discount</option>
-          <option value="promotion">Promotion</option>
+          <option value="promotion">Buy X Get Y</option>
           <option value="seasonal">Seasonal</option>
           <option value="clearance">Clearance</option>
         </select>
@@ -47,12 +40,30 @@
         </select>
       </label>
       
-      <label class="box">
+      <!-- Percentage field - shown for non-promotion types -->
+      <label class="box" *ngIf="form.value.type !== 'promotion'">
         <span class="label">PERCENTAGE</span>
         <input type="number" class="input" [value]="form.value.percentage ?? ''"
                min="0" max="100"
                (input)="form.controls.percentage.setValue($any($event.target).valueAsNumber || 0)">
       </label>
+      
+      <!-- Buy X Get Y fields - shown only for promotion type -->
+      <ng-container *ngIf="form.value.type === 'promotion'">
+        <label class="box">
+          <span class="label">BUY QTY</span>
+          <input type="number" class="input" [value]="form.value.buyQty ?? ''"
+                 min="1"
+                 (input)="form.controls.buyQty.setValue($any($event.target).valueAsNumber || null)">
+        </label>
+        
+        <label class="box">
+          <span class="label">GET QTY</span>
+          <input type="number" class="input" [value]="form.value.getQty ?? ''"
+                 min="1"
+                 (input)="form.controls.getQty.setValue($any($event.target).valueAsNumber || null)">
+        </label>
+      </ng-container>
       
       <label class="box">
         <span class="label">START DATE</span>
@@ -67,67 +78,112 @@
       </label>
     </div>
     
-    <!-- Assignment table -->
+    <!-- Single Assignment Selection -->
     <div class="assignment">
       <div class="assignment-head">
-        {{ form.value.assignmentType === 'product' ? 'PRODUCTS' : 'CUSTOMERS' }}
+        {{ form.value.assignmentType === 'product' ? 'SELECT PRODUCT' : 'SELECT CUSTOMER' }}
       </div>
-      <div class="table">
-        <div class="thead" *ngIf="form.value.assignmentType === 'product'">
-          <div>SELECT</div>
-          <div>ID</div>
-          <div>NAME</div>
-          <div>CATEGORY</div>
-          <div>CURRENT STOCK</div>
-        </div>
-        <div class="thead" *ngIf="form.value.assignmentType === 'customer'">
-          <div>SELECT</div>
-          <div>ID</div>
-          <div>NAME</div>
-          <div>SEGMENT</div>
-          <div>CITY</div>
-        </div>
-        
-        <div class="table-body">
-          <!-- Product rows -->
-          <ng-container *ngIf="form.value.assignmentType === 'product'">
-            <div class="row2 product-row" *ngFor="let product of products">
-              <div>
-                <input type="checkbox"
-                       [checked]="isItemSelected(product.id)"
-                       (change)="toggleItemSelection(product.id, $event)">
-              </div>
-              <div>{{ product.id }}</div>
-              <div>{{ product.name }}</div>
-              <div>{{ product.category }}</div>
-              <div>{{ product.currentStock }}</div>
-            </div>
-          </ng-container>
+      
+      <!-- Show loading state when data is being fetched -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="loading-spinner">Loading {{ form.value.assignmentType === 'product' ? 'products' : 'customers' }}...</div>
+      </div>
+      
+      <div class="selection-container" *ngIf="!loading">
+        <!-- Product selection -->
+        <ng-container *ngIf="form.value.assignmentType === 'product'">
+          <label class="box">
+            <span class="label">PRODUCT</span>
+            <select class="input" [value]="form.value.selectedProductId || ''"
+                    (change)="form.controls.selectedProductId.setValue($any($event.target).value)">
+              <option value="">Select a product...</option>
+              <option *ngFor="let product of products" [value]="product.id">
+                {{ product.name }} ({{ product.id }}) - {{ product.category }}
+              </option>
+            </select>
+          </label>
           
-          <!-- Customer rows -->
-          <ng-container *ngIf="form.value.assignmentType === 'customer'">
-            <div class="row2 customer-row" *ngFor="let customer of customers">
-              <div>
-                <input type="checkbox"
-                       [checked]="isItemSelected(customer.id)"
-                       (change)="toggleItemSelection(customer.id, $event)">
+          <!-- Show selected product details only when a product is actually selected -->
+          <div class="selected-details" *ngIf="form.value.selectedProductId && getSelectedProduct()">
+            <ng-container *ngFor="let product of products">
+              <div class="detail-item" *ngIf="product.id === form.value.selectedProductId">
+                <div class="detail-row">
+                  <span class="detail-label">ID:</span>
+                  <span class="detail-value">{{ product.id }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Name:</span>
+                  <span class="detail-value">{{ product.name }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Category:</span>
+                  <span class="detail-value">{{ product.category }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Current Stock:</span>
+                  <span class="detail-value">{{ product.currentStock }}</span>
+                </div>
               </div>
-              <div>{{ customer.id }}</div>
-              <div>{{ customer.name }}</div>
-              <div>
-                <span class="segment-badge" [ngClass]="customer.segment">{{ customer.segment }}</span>
+            </ng-container>
+          </div>
+          
+          <!-- Show placeholder when no product is selected -->
+          <div class="no-selection-message" *ngIf="!form.value.selectedProductId">
+            <p>Please select a product to view its details.</p>
+          </div>
+        </ng-container>
+        
+        <!-- Customer selection -->
+        <ng-container *ngIf="form.value.assignmentType === 'customer'">
+          <label class="box">
+            <span class="label">CUSTOMER</span>
+            <select class="input" [value]="form.value.selectedCustomerId || ''"
+                    (change)="form.controls.selectedCustomerId.setValue($any($event.target).value)">
+              <option value="">Select a customer...</option>
+              <option *ngFor="let customer of customers" [value]="customer.id">
+                {{ customer.name }} ({{ customer.id }}) - {{ customer.city }}
+              </option>
+            </select>
+          </label>
+          
+          <!-- Show selected customer details only when a customer is actually selected -->
+          <div class="selected-details" *ngIf="form.value.selectedCustomerId && getSelectedCustomer() as selectedCustomer">
+            <div class="detail-item">
+              <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span class="detail-value">{{ selectedCustomer.id }}</span>
               </div>
-              <div>{{ customer.city }}</div>
+              <div class="detail-row">
+                <span class="detail-label">Name:</span>
+                <span class="detail-value">{{ selectedCustomer.name }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Segment:</span>
+                <span class="detail-value">
+                  <span class="segment-badge" [ngClass]="selectedCustomer.segment">{{ selectedCustomer.segment }}</span>
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">City:</span>
+                <span class="detail-value">{{ selectedCustomer.city }}</span>
+              </div>
             </div>
-          </ng-container>
-        </div>
+          </div>
+          
+          <!-- Show placeholder when no customer is selected -->
+          <div class="no-selection-message" *ngIf="!form.value.selectedCustomerId">
+            <p>Please select a customer to view their details.</p>
+          </div>
+        </ng-container>
       </div>
     </div>
     
     <!-- Actions -->
     <div class="actions">
-      <button class="btn primary" type="button" (click)="onSave()">SAVE</button>
-      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!value?.id">DELETE</button>
+      <button class="btn primary" type="button" (click)="onSave()" [disabled]="loading">
+        {{ loading ? 'Loading...' : 'SAVE' }}
+      </button>
+      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!value?.id || loading">DELETE</button>
     </div>
   </div>
 </section>

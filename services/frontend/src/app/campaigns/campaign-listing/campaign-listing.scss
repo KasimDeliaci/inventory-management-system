@@ -15,3 +15,121 @@ thead th {
   letter-spacing: .02em;
 }
 thead th.chk { width: 42px; }
+
+.list-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.campaigns-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  .header-row {
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+
+    th {
+      padding: 12px 8px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.chk {
+        width: 40px;
+        text-align: center;
+        
+        input[type="checkbox"] {
+          cursor: pointer;
+        }
+      }
+
+      &.id {
+        width: 100px;
+      }
+
+      &.name {
+        min-width: 180px;
+      }
+
+      &.assignment {
+        width: 140px;
+      }
+
+      &.type {
+        width: 100px;
+      }
+
+      &.start-date,
+      &.end-date {
+        width: 100px;
+      }
+
+      &.offer {
+        width: 120px;
+      }
+    }
+  }
+
+  .empty-row {
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      background-color: #fafafa;
+
+      .empty-content {
+        .empty-icon {
+          font-size: 3em;
+          display: block;
+          margin-bottom: 16px;
+        }
+
+        .empty-message {
+          font-size: 1.1em;
+          font-weight: 500;
+          color: #666;
+          margin: 0 0 8px 0;
+        }
+
+        .empty-description {
+          color: #999;
+          margin: 0;
+          font-size: 0.9em;
+        }
+      }
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .campaigns-table {
+    font-size: 12px;
+
+    .header-row th {
+      padding: 8px 4px;
+      
+      &.assignment,
+      &.start-date {
+        display: none;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .campaigns-table {
+    .header-row th {
+      &.end-date {
+        display: none;
+      }
+    }
+  }
+}

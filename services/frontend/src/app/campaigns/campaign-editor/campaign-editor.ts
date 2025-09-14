@@ -1,4 +1,3 @@
-// campaign-editor.ts
 import { Component, EventEmitter, Input, Output, inject, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
@@ -17,10 +16,11 @@ export class CampaignEditorComponent implements OnChanges {
   @Input() value: Campaign | null = null;
   @Input() products: Product[] = [];
   @Input() customers: Customer[] = [];
+  @Input() loading: boolean = false;
 
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<Campaign>();
-  @Output() delete = new EventEmitter<string>(); // id
+  @Output() delete = new EventEmitter<string>();
 
   /** Use inject() so it's available for field initializers */
   private fb = inject(FormBuilder);
@@ -28,18 +28,17 @@ export class CampaignEditorComponent implements OnChanges {
   form = this.fb.group({
     id: [''],
     name: ['', Validators.required],
-    description: [''],
     type: ['discount' as CampaignType],
     assignmentType: ['product' as AssignmentType],
     percentage: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+    buyQty: [null as number | null],
+    getQty: [null as number | null],
     startDate: ['', Validators.required],
     endDate: ['', Validators.required],
-    productIds: [[] as string[]],
-    customerIds: [[] as string[]],
+    selectedProductId: [''],
+    selectedCustomerId: [''],
     isActive: [true],
   });
-
-
 
   ngOnChanges() {
     // Populate form when value changes
@@ -47,66 +46,60 @@ export class CampaignEditorComponent implements OnChanges {
       this.form.patchValue({
         id: this.value.id || '',
         name: this.value.name || '',
-        description: this.value.description || '',
         type: this.value.type || 'discount',
         assignmentType: this.value.assignmentType || 'product',
         percentage: this.value.percentage || 0,
+        buyQty: this.value.buyQty || null,
+        getQty: this.value.getQty || null,
         startDate: this.value.startDate || '',
         endDate: this.value.endDate || '',
-        productIds: this.value.productIds || [],
-        customerIds: this.value.customerIds || [],
+        selectedProductId: this.value.productIds?.[0] || '',
+        selectedCustomerId: this.value.customerIds?.[0] || '',
         isActive: this.value.isActive ?? true,
       });
     }
   }
 
+  // Helper method to get selected product
+  getSelectedProduct(): Product | null {
+    if (!this.form.value.selectedProductId || !this.products) return null;
+    return this.products.find(p => p.id === this.form.value.selectedProductId) || null;
+  }
+
+  // Helper method to get selected customer
+  getSelectedCustomer(): Customer | null {
+    if (!this.form.value.selectedCustomerId || !this.customers) return null;
+    return this.customers.find(c => c.id === this.form.value.selectedCustomerId) || null;
+  }
+
   onAssignmentTypeChange(newType: AssignmentType) {
     this.form.controls.assignmentType.setValue(newType);
-    // Clear the other assignment array when switching types
+    // Clear the other selection when switching types
     if (newType === 'product') {
-      this.form.controls.customerIds.setValue([]);
+      this.form.controls.selectedCustomerId.setValue('');
     } else {
-      this.form.controls.productIds.setValue([]);
+      this.form.controls.selectedProductId.setValue('');
     }
   }
 
-  isItemSelected(itemId: string): boolean {
-    const assignmentType = this.form.value.assignmentType;
-    if (assignmentType === 'product') {
-      const productIds = this.form.value.productIds || [];
-      return productIds.includes(itemId);
-    } else {
-      const customerIds = this.form.value.customerIds || [];
-      return customerIds.includes(itemId);
-    }
-  }
-
-  toggleItemSelection(itemId: string, event: any): void {
-    const isChecked = event.target.checked;
-    const assignmentType = this.form.value.assignmentType;
+  onCampaignTypeChange(newType: CampaignType) {
+    this.form.controls.type.setValue(newType);
     
-    if (assignmentType === 'product') {
-      const currentProductIds = this.form.value.productIds || [];
-      if (isChecked) {
-        if (!currentProductIds.includes(itemId)) {
-          this.form.controls.productIds.setValue([...currentProductIds, itemId]);
-        }
-      } else {
-        this.form.controls.productIds.setValue(
-          currentProductIds.filter(id => id !== itemId)
-        );
+    // Handle different campaign types
+    if (newType === 'promotion') {
+      // For promotion (BXGY), set default values if not set
+      if (!this.form.value.buyQty) {
+        this.form.controls.buyQty.setValue(2);
       }
+      if (!this.form.value.getQty) {
+        this.form.controls.getQty.setValue(1);
+      }
+      // Clear percentage for promotion type
+      this.form.controls.percentage.setValue(0);
     } else {
-      const currentCustomerIds = this.form.value.customerIds || [];
-      if (isChecked) {
-        if (!currentCustomerIds.includes(itemId)) {
-          this.form.controls.customerIds.setValue([...currentCustomerIds, itemId]);
-        }
-      } else {
-        this.form.controls.customerIds.setValue(
-          currentCustomerIds.filter(id => id !== itemId)
-        );
-      }
+      // For discount types, clear buy/get quantities
+      this.form.controls.buyQty.setValue(null);
+      this.form.controls.getQty.setValue(null);
     }
   }
 
@@ -117,6 +110,15 @@ export class CampaignEditorComponent implements OnChanges {
     }
 
     const raw = this.form.getRawValue();
+    
+    // Convert single selections back to arrays for compatibility
+    const productIds = raw.assignmentType === 'product' && raw.selectedProductId 
+      ? [raw.selectedProductId] 
+      : [];
+    const customerIds = raw.assignmentType === 'customer' && raw.selectedCustomerId 
+      ? [raw.selectedCustomerId] 
+      : [];
+
     const out: Campaign = {
       ...(this.value ?? { 
         productIds: [], 
@@ -124,15 +126,17 @@ export class CampaignEditorComponent implements OnChanges {
         selected: false 
       }),
       id: raw.id ?? '',
-      name: raw.name!, // required in form
-      description: raw.description ?? '',
+      name: raw.name!,
+      description: '', // Always empty since we removed description
       type: raw.type!,
       assignmentType: raw.assignmentType!,
       percentage: Number(raw.percentage ?? 0),
+      buyQty: raw.buyQty != null ? Number(raw.buyQty) : null,
+      getQty: raw.getQty != null ? Number(raw.getQty) : null,
       startDate: raw.startDate!,
       endDate: raw.endDate!,
-      productIds: Array.isArray(raw.productIds) ? raw.productIds : [],
-      customerIds: Array.isArray(raw.customerIds) ? raw.customerIds : [],
+      productIds,
+      customerIds,
       isActive: raw.isActive ?? true,
     };
 
@@ -142,12 +146,23 @@ export class CampaignEditorComponent implements OnChanges {
       return;
     }
 
-    // Validate assignment
-    const hasAssignments = (out.assignmentType === 'product' && out.productIds.length > 0) ||
-                          (out.assignmentType === 'customer' && out.customerIds.length > 0);
+    // Validate campaign type specific requirements
+    if (out.type === 'promotion' && (!out.buyQty || !out.getQty || out.buyQty <= 0 || out.getQty <= 0)) {
+      alert('Buy X Get Y campaigns require valid buy and get quantities');
+      return;
+    }
+
+    if (out.type !== 'promotion' && out.percentage <= 0) {
+      alert('Discount campaigns require a valid percentage');
+      return;
+    }
+
+    // Validate assignment - check if something is selected
+    const hasAssignments = (out.assignmentType === 'product' && raw.selectedProductId) ||
+                          (out.assignmentType === 'customer' && raw.selectedCustomerId);
     
     if (!hasAssignments) {
-      alert(`Please select at least one ${out.assignmentType} for this campaign`);
+      alert(`Please select a ${out.assignmentType} for this campaign`);
       return;
     }
 
