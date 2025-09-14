@@ -6,7 +6,8 @@ import { ProductListingComponent } from '../../products/product-listing/product-
 import { ProductEditorComponent } from '../../products/product-editor/product-editor';
 import { Product, ProductStatus } from '../../models/product.model';
 import { Supplier } from '../../models/supplier.model';
-import { DataService } from '../data.service';
+import { ProductService } from '../product.service';
+import { SupplierService } from '../supplier.service';
 
 @Component({
   selector: 'app-product-page',
@@ -22,7 +23,8 @@ import { DataService } from '../data.service';
   styleUrls: ['./product-page.scss'],
 })
 export class ProductPageComponent implements OnInit {
-  private dataService = inject(DataService);
+  private productService = inject(ProductService);
+  private supplierService = inject(SupplierService);
   private destroyRef = inject(DestroyRef);
 
   query = signal('');
@@ -86,7 +88,7 @@ export class ProductPageComponent implements OnInit {
     this.loading.set(true);
     
     // Load products from backend
-    const productsSubscription = this.dataService.getProducts().subscribe({
+    const productsSubscription = this.productService.getProducts().subscribe({
       next: (products) => {
         this.all.set(products);
         this.loading.set(false);
@@ -158,8 +160,8 @@ export class ProductPageComponent implements OnInit {
     // Set loading state
     this.detailsLoading.set(true);
     this.editorOpen.set(true);
-    
-    const detailsSubscription = this.dataService.getProductById(product.id).subscribe({
+
+    const detailsSubscription = this.productService.getProductById(product.id).subscribe({
       next: (detailedProduct) => {
         if (detailedProduct) {
           // Use detailed product data with all fields populated
@@ -179,7 +181,7 @@ export class ProductPageComponent implements OnInit {
       },
     });
 
-    const suppliersSubscription = this.dataService.getSuppliers().subscribe({
+    const suppliersSubscription = this.supplierService.getSuppliers().subscribe({
       next: (suppliers) => {
         this.suppliers.set(suppliers);
       },
@@ -188,7 +190,7 @@ export class ProductPageComponent implements OnInit {
       },
     });
 
-    const stockSubscription = this.dataService.getProductStock(product.id).subscribe({
+    const stockSubscription = this.productService.getProductStock(product.id).subscribe({
       next: (stockInfo) => {
         if (stockInfo) {
           // Update the editing product with detailed stock information
