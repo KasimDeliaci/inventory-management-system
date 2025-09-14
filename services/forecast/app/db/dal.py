@@ -261,3 +261,114 @@ def insert_forecast_items(forecast_id: int, items: Iterable[dict]) -> None:
                     ),
                 )
             conn.commit()
+
+
+def list_forecast_runs_for_product(
+    product_id: int,
+    as_of_from: Optional[str] = None,
+    as_of_to: Optional[str] = None,
+    horizon_days: Optional[int] = None,
+    limit: int = 10,
+    offset: int = 0,
+) -> Optional[list[dict]]:
+    if not init_ok():
+        return None
+    # First param used in JOIN condition
+    vals: list[object] = [int(product_id)]
+    where: list[str] = []
+    if as_of_from:
+        where.append("f.as_of_date >= %s")
+        vals.append(as_of_from)
+    if as_of_to:
+        where.append("f.as_of_date <= %s")
+        vals.append(as_of_to)
+    if horizon_days is not None:
+        where.append("f.horizon_days = %s")
+        vals.append(int(horizon_days))
+    where_sql = (" WHERE " + " AND ".join(where)) if where else ""
+    sql = (
+        "SELECT f.forecast_id, f.as_of_date, f.horizon_days, f.requested_at, mv.version_label, "
+        "COALESCE(SUM(fi.yhat), 0) AS sum_yhat "
+        "FROM forecasts f "
+        "JOIN forecast_items fi ON fi.forecast_id = f.forecast_id AND fi.product_id = %s "
+        "LEFT JOIN model_versions mv ON mv.model_version_id = f.model_version_id "
+        f"{where_sql} "
+        "GROUP BY f.forecast_id, f.as_of_date, f.horizon_days, f.requested_at, mv.version_label "
+        "ORDER BY f.requested_at DESC LIMIT %s OFFSET %s"
+    )
+    vals2 = list(vals) + [int(limit), int(offset)]
+    with get_conn() as conn:
+        if conn is None:
+            return None
+        with conn.cursor() as cur:
+            cur.execute(sql, tuple(vals2))
+            rows = cur.fetchall() or []
+            out: list[dict] = []
+            for r in rows:
+                out.append(
+                    {
+                        "forecast_id": int(r[0]),
+                        "as_of_date": r[1],
+                        "horizon_days": int(r[2]),
+                        "requested_at": r[3],
+                        "version_label": r[4],
+                        "sum_yhat": float(r[5]),
+                    }
+                )
+            return out
+
+
+def get_forecast_items_for_product(forecast_id: int, product_id: int) -> Optional[list[dict]]:
+    if not init_ok():
+        return None
+    sql = (
+        "SELECT forecast_date, yhat, lower_bound, upper_bound, confidence "
+        "FROM forecast_items WHERE forecast_id = %s AND product_id = %s "
+        "ORDER BY forecast_date"
+    )
+    with get_conn() as conn:
+        if conn is None:
+            return None
+        with conn.cursor() as cur:
+            cur.execute(sql, (int(forecast_id), int(product_id)))
+            rows = cur.fetchall() or []
+            out: list[dict] = []
+            for r in rows:
+                out.append(
+                    {
+                        "date": r[0],
+                        "yhat": float(r[1]),
+                        "lower": (float(r[2]) if r[2] is not None else None),
+                        "upper": (float(r[3]) if r[3] is not None else None),
+                        "confidence": r[4],
+                    }
+                )
+            return out
+
+
+def get_latest_forecast_run(product_id: int, as_of_date: str, horizon_days: int) -> Optional[dict]:
+    if not init_ok():
+        return None
+    sql = (
+        "SELECT f.forecast_id, f.as_of_date, f.horizon_days, f.requested_at, mv.version_label "
+        "FROM forecasts f "
+        "JOIN forecast_items fi ON fi.forecast_id = f.forecast_id AND fi.product_id = %s "
+        "LEFT JOIN model_versions mv ON mv.model_version_id = f.model_version_id "
+        "WHERE f.as_of_date = %s AND f.horizon_days = %s "
+        "ORDER BY f.requested_at DESC LIMIT 1"
+    )
+    with get_conn() as conn:
+        if conn is None:
+            return None
+        with conn.cursor() as cur:
+            cur.execute(sql, (int(product_id), as_of_date, int(horizon_days)))
+            r = cur.fetchone()
+            if not r:
+                return None
+            return {
+                "forecast_id": int(r[0]),
+                "as_of_date": r[1],
+                "horizon_days": int(r[2]),
+                "requested_at": r[3],
+                "version_label": r[4],
+            }
