@@ -5,7 +5,7 @@ import { SideNav } from '../../shared/side-nav/side-nav';
 import { CustomerListingComponent } from '../../customers/customer-listing/customer-listing';
 import { CustomerEditorComponent } from '../../customers/customer-editor/customer-editor';
 import { Customer, CustomerSegment } from '../../models/customer.model';
-import { DataService } from '../data.service';
+import { CustomerService } from '../customer.service';
 
 @Component({
   selector: 'app-customer-page',
@@ -21,7 +21,7 @@ import { DataService } from '../data.service';
   styleUrls: ['./customer-page.scss'],
 })
 export class CustomerPageComponent implements OnInit {
-  private dataService = inject(DataService); // Use DataService instead of MockDataService
+  private customerService = inject(CustomerService);
   private destroyRef = inject(DestroyRef);
 
   query = signal('');
@@ -85,7 +85,7 @@ export class CustomerPageComponent implements OnInit {
     this.loading.set(true);
     
     // Load customers from backend
-    const customersSubscription = this.dataService.getCustomers().subscribe({
+    const customersSubscription = this.customerService.getCustomers().subscribe({
       next: (customers) => {
         this.all.set(customers);
         this.loading.set(false);
