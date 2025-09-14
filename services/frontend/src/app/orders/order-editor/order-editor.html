@@ -22,14 +22,75 @@
         </label>
       </div>
 
-      <!-- Product and Supplier/Customer Section -->
+      <!-- Products Section -->
       <div class="row2">
+        <div class="box products-section">
+          <span class="label">PRODUCTS</span>
+          <div class="products-list" *ngIf="hasOrderItems; else noProducts">
+            <div class="product-item" *ngFor="let item of orderItems; let i = index">
+              <div class="product-info">
+                <div class="product-name">{{ getProductName(item.productId) }}</div>
+                <div class="product-details">
+                  <span class="quantity">Qty: {{ item.quantity }}</span>
+                  <span class="unit-price">@ ${{ item.unitPrice.toFixed(2) }}</span>
+                  <span class="line-total">= ${{ item.lineTotal.toFixed(2) }}</span>
+                  <span *ngIf="item.discountPercentage" class="discount">
+                    ({{ item.discountPercentage }}% off)
+                  </span>
+                </div>
+              </div>
+              <div class="product-actions">
+                <button type="button" class="btn-icon edit" (click)="editOrderItem(i)" title="Edit item">
+                  ✏️
+                </button>
+                <button type="button" class="btn-icon remove" (click)="removeOrderItem(i)" title="Remove item">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+          <ng-template #noProducts>
+            <div class="no-products">No products added to this order</div>
+          </ng-template>
+          <button type="button" class="btn secondary add-product" (click)="addOrderItem()">
+            + Add Product
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Section -->
+      <div class="row3">
+        <div class="box date-picker">
+          <span class="label">ORDER DATE</span>
+          <input type="date" class="date-input" [value]="form.value.orderDate || ''"
+            (change)="setOrderDate($event.target.value)" formControlName="orderDate">
+        </div>
+
+        <div class="box date-picker">
+          <span class="label">DELIVERY DATE</span>
+          <input type="date" class="date-input" [value]="form.value.deliveryDate || ''"
+            formControlName="deliveryDate">
+        </div>
+      </div>
+
+      <!-- Quantity, Price, Status, Supplier/Customer Section -->
+      <div class="sidebar">
+        <div class="box calculated-field">
+          <span class="label">TOTAL QUANTITY</span>
+          <div class="calculated-value">{{ getTotalQuantity() }}</div>
+        </div>
+
         <label class="box">
-          <span class="label">PRODUCT</span>
-          <select class="input" formControlName="productId">
-            <option value="">Select Product</option>
-            <option *ngFor="let product of products" [value]="product.id">
-              {{ product.name }} ({{ product.id }})
+          <span class="label">TOTAL PRICE</span>
+          <input type="number" class="input" formControlName="totalPrice" min="0" step="0.01">
+          <div class="calculated-hint">Calculated: ${{ getCalculatedTotal().toFixed(2) }}</div>
+        </label>
+
+        <label class="box">
+          <span class="label">STATUS</span>
+          <select class="input" formControlName="status">
+            <option *ngFor="let status of currentStatuses" [value]="status">
+              {{ status.replace('_', ' ') | titlecase }}
             </option>
           </select>
         </label>
@@ -55,49 +116,6 @@
         </label>
       </div>
 
-      <!-- Date Section with Native Date Inputs -->
-      <div class="row3">
-        <div class="box date-picker">
-          <span class="label">ORDER DATE</span>
-          <input type="date" class="date-input" [value]="form.value.orderDate || ''"
-            (change)="setOrderDate($event.target.value)" formControlName="orderDate">
-        </div>
-
-        <div class="box date-picker">
-          <span class="label">DELIVERY DATE</span>
-          <input type="date" class="date-input" [value]="form.value.deliveryDate || ''"
-            formControlName="deliveryDate">
-        </div>
-      </div>
-
-      <!-- Quantity, Price, Status Section -->
-      <div class="sidebar">
-        <label class="box">
-          <span class="label">QUANTITY</span>
-          <input type="number" class="input" formControlName="quantity" min="1">
-        </label>
-
-        <label class="box">
-          <span class="label">TOTAL PRICE</span>
-          <input type="number" class="input" formControlName="totalPrice" min="0" step="0.01">
-        </label>
-
-        <label class="box">
-          <span class="label">STATUS</span>
-          <select class="input" formControlName="status">
-            <option *ngFor="let status of currentStatuses" [value]="status">
-              {{ status.replace('_', ' ') | titlecase }}
-            </option>
-          </select>
-        </label>
-      </div>
-
-      <!-- Notes Section -->
-      <label class="box big">
-        <span class="label">NOTES</span>
-        <textarea class="textarea" formControlName="notes" placeholder="Optional notes about this order..."></textarea>
-      </label>
-
       <!-- Actions -->
       <div class="actions">
         <button class="btn primary" type="submit" [disabled]="form.invalid">
@@ -110,3 +128,40 @@
     </div>
   </form>
 </section>
+
+<!-- Product Item Editor Modal (if you want inline editing) -->
+<div class="backdrop" *ngIf="editingItemIndex !== -1" (click)="cancelEditItem()"></div>
+<div class="item-editor-modal" *ngIf="editingItemIndex !== -1" (click)="$event.stopPropagation()">
+  <h3>Edit Product Item</h3>
+  <form [formGroup]="itemForm" (ngSubmit)="saveOrderItem()">
+    <label class="box">
+      <span class="label">PRODUCT</span>
+      <select class="input" formControlName="productId" required>
+        <option value="">Select Product</option>
+        <option *ngFor="let product of products" [value]="product.id">
+          {{ product.name }} ({{ product.id }})
+        </option>
+      </select>
+    </label>
+
+    <label class="box">
+      <span class="label">QUANTITY</span>
+      <input type="number" class="input" formControlName="quantity" min="1" required>
+    </label>
+
+    <label class="box">
+      <span class="label">UNIT PRICE</span>
+      <input type="number" class="input" formControlName="unitPrice" min="0" step="0.01" required>
+    </label>
+
+    <label class="box">
+      <span class="label">DISCOUNT %</span>
+      <input type="number" class="input" formControlName="discountPercentage" min="0" max="100" step="0.01">
+    </label>
+
+    <div class="actions">
+      <button type="submit" class="btn primary">Save Item</button>
+      <button type="button" class="btn secondary" (click)="cancelEditItem()">Cancel</button>
+    </div>
+  </form>
+</div>
