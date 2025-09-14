@@ -160,6 +160,15 @@ Forecast Service (FastAPI):
     - Rounding: for countable UoMs (adet, koli, paket, çuval, şişe) daily and sum are rounded to integers; PI bounds rounded ≥ 0.
     - Tip: if Inventory has no recent data (e.g., simulator ended), set `asOfDate` near the last actual date so lags/MA are informative.
 
+  - Forecast history (retrieve previous runs for a product)
+    - `GET /forecast/history` — list summaries
+      - Query: `productId` (required), `asOfFrom?`, `asOfTo?`, `horizonDays?`, `limit?=10`, `offset?=0`
+      - Returns: `[ { forecastId, asOfDate, horizonDays, requestedAt, modelVersion, sumYhat } ]`
+    - `GET /forecast/history/{forecastId}/items?productId=...` — run details with daily items
+      - Returns: `{ forecastId, productId, asOfDate, horizonDays, requestedAt, modelVersion, items: [{date, yhat, lower, upper, confidence}] }`
+    - `GET /forecast/history/latest?productId=...&asOfDate=...&horizonDays=...` — latest run by asOf/horizon
+      - Returns: the same run detail or null if none
+
 External (Inventory Service) — consumed by Forecast:
 - `GET /api/v1/reporting/product-day-sales?from&to&productId` — daily sales by product
 - `GET /api/v1/reporting/product-day-promo?from&to&productId` — daily promo percent by product

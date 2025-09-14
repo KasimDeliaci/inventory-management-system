@@ -215,3 +215,8 @@ config/local/
 context/
 context/*
 
+# Data generation output
+scripts/data-generation/out/
+
+# Forecast models
+services/forecast/models/

@@ -50,6 +50,17 @@ Tips
   - For countable UoMs, daily and sum are rounded to integers; PI bounds are rounded >= 0
   - Tip: if Inventory has no recent data, pass `asOfDate` near last actuals
 
+### Forecast history APIs
+- GET `/forecast/history`
+  - Query: `productId` (required), `asOfFrom?`, `asOfTo?`, `horizonDays?`, `limit?=10`, `offset?=0`
+  - Response: list of run summaries: `{ forecastId, asOfDate, horizonDays, requestedAt, modelVersion, sumYhat }`
+- GET `/forecast/history/{forecastId}/items`
+  - Query: `productId` (required)
+  - Response: run detail with items: `{ forecastId, productId, asOfDate, horizonDays, requestedAt, modelVersion, items: [{date, yhat, lower, upper, confidence}] }`
+- GET `/forecast/history/latest`
+  - Query: `productId`, `asOfDate`, `horizonDays`
+  - Response: latest matching run detail (or null if none)
+
 ### Curl examples
 - Train (36 months, custom params):
 ```
@@ -66,6 +77,18 @@ curl -X POST 'http://127.0.0.1:8100/train/tune?trials=20&trainWindowDays=1095&se
 curl -X POST 'http://127.0.0.1:8100/forecast' \
   -H 'Content-Type: application/json' \
   -d '{"productIds":[1001,1008],"horizonDays":7,"asOfDate":"2025-06-30","returnDaily":true}'
+```
+- Forecast history (list last runs for product):
+```
+curl 'http://127.0.0.1:8100/forecast/history?productId=1001&horizonDays=7&limit=5'
+```
+- Forecast history (items for a run):
+```
+curl 'http://127.0.0.1:8100/forecast/history/123/items?productId=1001'
+```
+- Forecast history (latest by asOf/horizon):
+```
+curl 'http://127.0.0.1:8100/forecast/history/latest?productId=1001&asOfDate=2025-06-30&horizonDays=7'
 ```
 
 ## Notes
