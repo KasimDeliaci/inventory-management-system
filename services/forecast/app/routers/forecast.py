@@ -12,6 +12,9 @@ from ..schemas import (
     ForecastPerProduct,
     DailyForecast,
     PredictionInterval,
+    ForecastRunSummary,
+    ForecastHistoryItem,
+    ForecastRunDetail,
 )
 from ..clients.inventory import InventoryClient
 from ..features.calendar import build_calendar
@@ -209,4 +212,99 @@ def forecast(req: ForecastRequest) -> ForecastResponse:
         forecasts=per_product,
         modelVersion=(mv["version_label"] if mv else "baseline-0.1"),
         modelType=(mv["algorithm"] if mv else "baseline_ma7"),
+    )
+
+
+@router.get("/history", response_model=list[ForecastRunSummary])
+def forecast_history(
+    productId: int,
+    asOfFrom: Optional[date] = None,
+    asOfTo: Optional[date] = None,
+    horizonDays: Optional[int] = None,
+    limit: int = 10,
+    offset: int = 0,
+):
+    rows = dal.list_forecast_runs_for_product(
+        product_id=productId,
+        as_of_from=(asOfFrom.isoformat() if asOfFrom else None),
+        as_of_to=(asOfTo.isoformat() if asOfTo else None),
+        horizon_days=horizonDays,
+        limit=limit,
+        offset=offset,
+    ) or []
+    out: list[ForecastRunSummary] = []
+    for r in rows:
+        out.append(
+            ForecastRunSummary(
+                forecastId=r["forecast_id"],
+                asOfDate=r["as_of_date"],
+                horizonDays=r["horizon_days"],
+                requestedAt=r["requested_at"],
+                modelVersion=r.get("version_label"),
+                sumYhat=r.get("sum_yhat", 0.0),
+            )
+        )
+    return out
+
+
+@router.get("/history/{forecastId}/items", response_model=ForecastRunDetail)
+def forecast_history_items(forecastId: int, productId: int):
+    # Header info
+    header = None
+    rows = dal.list_forecast_runs_for_product(productId, None, None, None, limit=1000, offset=0) or []
+    for r in rows:
+        if int(r["forecast_id"]) == int(forecastId):
+            header = r
+            break
+    if header is None:
+        raise HTTPException(status_code=404, detail="Forecast run not found for product")
+
+    items_rows = dal.get_forecast_items_for_product(forecastId, productId) or []
+    items: list[ForecastHistoryItem] = []
+    for it in items_rows:
+        items.append(
+            ForecastHistoryItem(
+                date=it["date"],
+                yhat=it["yhat"],
+                lower=it.get("lower"),
+                upper=it.get("upper"),
+                confidence=it.get("confidence"),
+            )
+        )
+    return ForecastRunDetail(
+        forecastId=int(forecastId),
+        productId=int(productId),
+        asOfDate=header["as_of_date"],
+        horizonDays=header["horizon_days"],
+        requestedAt=header["requested_at"],
+        modelVersion=header.get("version_label"),
+        items=items,
+    )
+
+
+@router.get("/history/latest", response_model=Optional[ForecastRunDetail])
+def forecast_history_latest(productId: int, asOfDate: date, horizonDays: int):
+    head = dal.get_latest_forecast_run(productId, asOfDate.isoformat(), int(horizonDays))
+    if not head:
+        return None
+    items_rows = dal.get_forecast_items_for_product(head["forecast_id"], productId) or []
+    items: list[ForecastHistoryItem] = []
+    for it in items_rows:
+        items.append(
+            ForecastHistoryItem(
+                date=it["date"],
+                yhat=it["yhat"],
+                lower=it.get("lower"),
+                upper=it.get("upper"),
+                confidence=it.get("confidence"),
+            )
+        )
+    return ForecastRunDetail(
+        forecastId=head["forecast_id"],
+        productId=int(productId),
+        asOfDate=head["as_of_date"],
+        horizonDays=head["horizon_days"],
+        requestedAt=head["requested_at"],
+        modelVersion=head.get("version_label"),
+        items=items,
     )
