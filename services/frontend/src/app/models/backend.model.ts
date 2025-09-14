@@ -101,3 +101,93 @@ export interface BackendCustomerResponse {
     totalPages: number;
   };
 }
+
+// Order backend models - EXAMPLE: http://localhost:8000/api/v1/sales-orders and http://localhost:8000/api/v1/purchase-orders
+export interface BackendSalesOrder {
+  salesOrderId: number;
+  customerId: number;
+  orderDate: string;
+  deliveryDate: string;
+  deliveredAt: string | null;
+  status: 'PENDING' | 'ALLOCATED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELED';
+  customerSpecialOfferId: number | null;
+  customerDiscountPctApplied: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendPurchaseOrder {
+  purchaseOrderId: number;
+  supplierId: number;
+  orderDate: string;
+  expectedDelivery: string;
+  actualDelivery: string | null;
+  status: 'PLACED' | 'IN_TRANSIT' | 'RECEIVED' | 'CANCELED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendSalesOrderResponse {
+  content: BackendSalesOrder[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+export interface BackendPurchaseOrderResponse {
+  content: BackendPurchaseOrder[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+// Campaign backend models - EXAMPLE: http://localhost:8000/api/v1/campaigns
+export interface BackendCampaign {
+  campaignId: number;
+  campaignName: string;
+  campaignType: 'DISCOUNT' | 'BXGY_SAME_PRODUCT';
+  discountPercentage: number | null;
+  buyQty: number | null;
+  getQty: number | null;
+  startDate: string;
+  endDate: string;
+  products: BackendProduct[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendCampaignResponse {
+  content: BackendCampaign[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+export interface BackendCustomerSpecialOffer {
+  specialOfferId: number;
+  customerId: number;
+  percentOff: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendCustomerSpecialOfferResponse {
+  content: BackendCustomerSpecialOffer[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}

@@ -4,17 +4,16 @@ export type AssignmentType = 'product' | 'customer';
 export interface Campaign {
   id: string;
   name: string;
+  description?: string;
   type: CampaignType;
   assignmentType: AssignmentType;
-  startDate: string; 
-  endDate: string; 
-  percentage: number; // discount percentage
-  
-  // Assignment targets
-  productIds: string[]; // assigned product IDs
-  customerIds: string[]; // assigned customer IDs
-  
-  description?: string;
-  isActive?: boolean;
-  selected?: boolean;
+  percentage: number;
+  buyQty?: number | null;
+  getQty?: number | null;
+  startDate: string;
+  endDate: string;
+  productIds: string[];
+  customerIds: string[];
+  isActive: boolean;
+  selected: boolean;
 }
