@@ -54,3 +54,31 @@ class ForecastResponse(BaseModel):
     modelVersion: str = Field(default="xgb_three-latest", description="Model version used", example="xgb_three-20250913125620")
     modelType: Optional[str] = Field(default="xgb_three", description="Model algorithm type", example="xgb_three")
     generatedAt: datetime = Field(default_factory=lambda: datetime.utcnow(), description="Timestamp when forecast was generated")
+
+
+# History schemas
+class ForecastRunSummary(BaseModel):
+    forecastId: int = Field(description="Forecast header id", example=123)
+    asOfDate: Date = Field(description="As-of date used for this forecast", example="2025-06-30")
+    horizonDays: int = Field(description="Horizon length in days (1|7|14)", example=7)
+    requestedAt: datetime = Field(description="Timestamp when this forecast was computed", example="2025-09-13T09:00:00Z")
+    modelVersion: Optional[str] = Field(default=None, description="Version label of the model used", example="xgb_three-20250913125620")
+    sumYhat: float = Field(description="Sum of daily yhat for this product within the run", example=58.0)
+
+
+class ForecastHistoryItem(BaseModel):
+    date: Date = Field(description="Forecast date", example="2025-07-01")
+    yhat: float = Field(description="Predicted units for this date (rounded for countable UoMs)", example=8)
+    lower: Optional[float] = Field(default=None, description="Per-day lower bound (optional)", example=5)
+    upper: Optional[float] = Field(default=None, description="Per-day upper bound (optional)", example=12)
+    confidence: Optional[Dict[str, Any]] = Field(default=None, description="Confidence payload for this item (optional)", example={"score": 62, "level": "medium"})
+
+
+class ForecastRunDetail(BaseModel):
+    forecastId: int = Field(description="Forecast header id", example=123)
+    productId: int = Field(description="Product id for these items", example=1001)
+    asOfDate: Date = Field(description="As-of date the forecast was based on", example="2025-06-30")
+    horizonDays: int = Field(description="Horizon length in days (1|7|14)", example=7)
+    requestedAt: datetime = Field(description="Computation time of the run", example="2025-09-13T09:00:00Z")
+    modelVersion: Optional[str] = Field(default=None, description="Model version label used", example="xgb_three-20250913125620")
+    items: List[ForecastHistoryItem] = Field(description="Daily forecast items for the selected product and run")
