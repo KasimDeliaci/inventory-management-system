@@ -5,7 +5,7 @@ import { SideNav } from '../../shared/side-nav/side-nav';
 import { CustomerListingComponent } from '../../customers/customer-listing/customer-listing';
 import { CustomerEditorComponent } from '../../customers/customer-editor/customer-editor';
 import { Customer, CustomerSegment } from '../../models/customer.model';
-import { DataService } from '../data.service'; // Import the new DataService
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-customer-page',

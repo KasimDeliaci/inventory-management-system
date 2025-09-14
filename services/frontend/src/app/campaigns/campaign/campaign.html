@@ -1,17 +1,24 @@
-<tr (click)="rowClick.emit(campaign)">
+<tr (click)="rowClick.emit(campaign)" 
+    class="campaign-row" 
+    [class.selected]="campaign.selected"
+    [class.inactive]="!campaign.isActive">
   <td class="chk">
     <input type="checkbox"
            [(ngModel)]="campaign.selected"
            (change)="toggle.emit(!!campaign.selected)"
            (click)="$event.stopPropagation()" />
   </td>
-  <td>{{ campaign.id }}</td>
+  <td class="id">{{ campaign.id }}</td>
   <td class="name">{{ campaign.name }}</td>
-  <td>{{ assignmentDisplay }}</td>
-  <td>
+  <td class="assignment">{{ assignmentDisplay }}</td>
+  <td class="type">
     <span class="type-badge" [ngClass]="campaign.type">{{ campaign.type }}</span>
   </td>
-  <td>{{ formatDate(campaign.startDate) }}</td>
-  <td>{{ formatDate(campaign.endDate) }}</td>
-  <td>{{ campaign.percentage }}%</td>
+  <td class="start-date">{{ formatDate(campaign.startDate) }}</td>
+  <td class="end-date">{{ formatDate(campaign.endDate) }}</td>
+  <td class="offer">
+    <span class="offer-value" [ngClass]="'offer-' + campaign.type">
+      {{ offerDisplay }}
+    </span>
+  </td>
 </tr>

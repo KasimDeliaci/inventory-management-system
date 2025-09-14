@@ -1,16 +1,23 @@
-/* order-editor.scss */
-:host { 
-  position: fixed; 
-  inset: 0; 
-  display: grid; 
-  place-items: center; 
-  z-index: 1000; 
+/* ========================================
+   ORDER EDITOR MODAL STYLES
+   ======================================== */
+
+/* ========================================
+   MODAL LAYOUT & BACKDROP
+   ======================================== */
+
+:host {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 1000;
 }
 
-.backdrop { 
-  position: absolute; 
-  inset: 0; 
-  background: rgba(0,0,0,.35); 
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .modal {
@@ -20,76 +27,116 @@
   overflow-y: auto;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
   padding: 24px 24px 18px;
   border: 3px solid #163a5a;
 }
 
 .close {
-  position: absolute; 
-  top: 10px; 
+  position: absolute;
+  top: 10px;
   right: 12px;
-  background: transparent; 
-  border: 0; 
-  font-size: 22px; 
-  cursor: pointer; 
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  cursor: pointer;
   color: #163a5a;
+  
+  &:hover {
+    color: #d64545;
+  }
 }
 
-.close:hover {
-  color: #d64545;
+/* ========================================
+   GRID LAYOUT
+   ======================================== */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.grid { 
-  display: grid; 
-  grid-template-columns: 1fr; 
-  gap: 16px; 
-}
-
-.row1, .row2, .row3 { 
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 20px; 
+.row1,
+.row2,
+.row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
   width: calc(100% - 300px);
 }
+
+.sidebar {
+  position: absolute;
+  top: 50px;
+  right: 24px;
+  width: 260px;
+  display: grid;
+  gap: 16px;
+  margin-bottom: 60px;
+}
+
+/* ========================================
+   FORM ELEMENTS
+   ======================================== */
 
 .box {
-  border: 3px solid #163a5a; 
-  border-radius: 4px; 
-  background: #d4d6d7; 
+  border: 3px solid #163a5a;
+  border-radius: 4px;
+  background: #d4d6d7;
   padding: 8px;
-  display: grid; 
+  display: grid;
   gap: 6px;
   position: relative;
+  
+  &.big {
+    height: 120px;
+    width: calc(100% - 300px);
+  }
 }
 
-.box.big { 
-  height: 120px;
-  width: calc(100% - 300px);
+.label {
+  font-weight: 700;
+  color: #163a5a;
+  font-size: 14px;
 }
+
+.input,
+.date-button {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  padding: 4px 0;
+}
+
+select.input {
+  cursor: pointer;
+}
+
+.textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* ========================================
+   DATE PICKER
+   ======================================== */
 
 .date-picker {
   position: relative;
 }
 
-.label { 
-  font-weight: 700; 
-  color: #163a5a; 
-  font-size: 14px; 
-}
-
-.input, .date-button { 
-  width: 100%; 
-  border: 0; 
-  outline: none; 
-  background: transparent; 
-  font-size: 16px; 
-  padding: 4px 0;
-}
-
 .date-input {
   background: transparent;
-  border: 1px solid #cccccc00;
+  border: 1px solid transparent;
 }
 
 .dropdown-arrow {
@@ -109,6 +156,24 @@
   z-index: 1001;
   max-height: 200px;
   overflow-y: auto;
+  
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #555;
+    }
+  }
 }
 
 .date-options {
@@ -125,108 +190,251 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s ease;
+  
+  &:hover {
+    background: #f0f0f0;
+  }
+  
+  &.selected {
+    background: #163a5a;
+    color: white;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
-.date-option:hover {
-  background: #f0f0f0;
+/* ========================================
+   PRODUCTS SECTION
+   ======================================== */
+
+.products-section {
+  grid-column: span 2;
 }
 
-.date-option.selected {
-  background: #163a5a;
-  color: white;
+.products-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
 }
 
-.date-option:last-child {
-  border-bottom: none;
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
 }
 
-.textarea { 
-  width: 100%; 
-  height: 100%; 
-  resize: none; 
-  border: 0; 
-  outline: none; 
-  background: transparent; 
-  font-size: 16px; 
-  line-height: 1.4; 
+.product-info {
+  flex: 1;
 }
 
-select.input {
+.product-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.product-details {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+  
+  span {
+    background: #e8e8e8;
+    padding: 2px 6px;
+    border-radius: 3px;
+    
+    &.discount {
+      background: #e8f5e8 !important;
+      color: #2e7d2e !important;
+    }
+  }
+}
+
+.product-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.no-products {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-style: italic;
+}
+
+.add-product {
+  width: 100%;
+  padding: 8px;
+  background: #f0f8ff;
+  border: 1px dashed #007acc;
+  color: #007acc;
+  border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background: #e6f3ff;
+  }
 }
 
-.sidebar {
-  position: absolute; 
-  top: 50px; 
-  right: 24px; 
-  width: 260px;
-  display: grid; 
+// CALCULATED FIELDS
+
+.calculated-field {
+  .calculated-value {
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.calculated-hint {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+// BUTTONS
+.actions {
+  margin-top: 80px;
+  display: flex;
   gap: 16px;
+  justify-content: flex-end;
 }
 
-@media (max-width: 1000px) {
-  .sidebar { 
-    position: static; 
-    width: 100%; 
-  }
-  .row1, .row2, .row3, .box.big { 
-    width: 100%; 
-  }
-}
-
-.actions { 
-  margin-top: 14px; 
-  display: flex; 
-  gap: 16px; 
-  justify-content: flex-end; 
-}
-
-.btn { 
-  border: 0; 
-  border-radius: 10px; 
-  padding: 12px 28px; 
-  font-weight: 700; 
-  cursor: pointer; 
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-weight: 700;
+  cursor: pointer;
   transition: all 0.2s ease;
+  
+  &.primary {
+    background: #123a8a;
+    color: #fff;
+    
+    &:hover {
+      background: #0f2f75;
+    }
+  }
+  
+  &.danger {
+    background: #8e1c28;
+    color: #fff;
+    
+    &:hover {
+      background: #7a1822;
+    }
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
-.btn.primary { 
-  background: #123a8a; 
-  color: #fff; 
-}
-
-.btn.primary:hover {
-  background: #0f2f75;
-}
-
-.btn.danger { 
-  background: #8e1c28; 
-  color: #fff; 
-}
-
-.btn.danger:hover {
-  background: #7a1822;
-}
-
-.btn:disabled { 
-  opacity: .6; 
-  cursor: not-allowed; 
-}
-
-/* Custom scrollbar for date dropdown */
-.date-dropdown::-webkit-scrollbar {
-  width: 6px;
-}
-
-.date-dropdown::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.date-dropdown::-webkit-scrollbar-thumb {
-  background: #888;
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
   border-radius: 3px;
+  font-size: 12px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background: #e0e0e0;
+  }
+  
+  &.remove:hover {
+    background: #ffe0e0;
+  }
 }
 
-.date-dropdown::-webkit-scrollbar-thumb:hover {
-  background: #555;
+// ITEM EDITOR SUB-MODAL
+.item-editor-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  min-width: 400px;
+  max-width: 500px;
+  
+  h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .box {
+    margin-bottom: 16px;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+}
+
+// RESPONSIVE DESIGN
+@media (max-width: 1000px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  
+  .row1,
+  .row2,
+  .row3,
+  .box.big {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-section {
+    grid-column: span 1;
+  }
+  
+  .product-details {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .item-editor-modal {
+    min-width: 100px;
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+  }
 }

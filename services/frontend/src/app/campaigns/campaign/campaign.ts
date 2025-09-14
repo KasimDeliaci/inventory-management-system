@@ -25,6 +25,21 @@ export class CampaignComponent {
     return `${count} ${type}`;
   }
 
+  get offerDisplay() {
+    if (this.campaign.type === 'discount') {
+      return `${this.campaign.percentage || 0}%`;
+    } else if (this.campaign.type === 'promotion') {
+      const buyQty = this.campaign.buyQty || 0;
+      const getQty = this.campaign.getQty || 0;
+      return `Buy ${buyQty} Get ${getQty}`;
+    } else if (this.campaign.type === 'seasonal') {
+      return `${this.campaign.percentage || 0}% Off`;
+    } else if (this.campaign.type === 'clearance') {
+      return `${this.campaign.percentage || 0}% Off`;
+    }
+    return '';
+  }
+
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {

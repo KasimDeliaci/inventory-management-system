@@ -1,19 +1,27 @@
-:host { display: contents; }
-
-tr:hover {
-  background: rgba(0, 0, 0, 0.05);
-  cursor: pointer;
+/* Host and base table styles */
+:host {
+  display: contents;
 }
 
+/* Table cell base styles */
 td, th {
-  padding: .9rem .8rem;
+  padding: 0.9rem 0.8rem;
   border-bottom: 1px solid #e7ebf1;
-  font-size: .92rem;
+  font-size: 0.92rem;
   color: #2a2f36;
 }
-td.chk { width: 42px; }
-td.name { min-width: 200px; }
 
+/* Specific column widths */
+td.chk {
+  width: 42px;
+  text-align: center;
+}
+
+td.name {
+  min-width: 200px;
+}
+
+/* Type badges - Updated with matching colors */
 .type-badge {
   padding: 4px 8px;
   border-radius: 4px;
@@ -24,21 +32,166 @@ td.name { min-width: 200px; }
 }
 
 .type-badge.discount {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.type-badge.promotion {
-  background: #dcfce7;
+  background: rgba(34, 197, 94, 0.15);
   color: #16a34a;
 }
 
+.type-badge.promotion {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
 .type-badge.seasonal {
-  background: #fef3c7;
+  background: rgba(245, 158, 11, 0.15);
   color: #d97706;
 }
 
 .type-badge.clearance {
-  background: #fecaca;
+  background: rgba(239, 68, 68, 0.15);
   color: #dc2626;
+}
+
+/* Campaign row styles */
+.campaign-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.campaign-row:hover {
+  background-color: #f8f9fa;
+}
+
+.campaign-row.selected {
+  background-color: #e3f2fd;
+}
+
+/* Campaign row cell specific styles */
+.campaign-row td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.campaign-row td.chk {
+  width: 40px;
+  text-align: center;
+}
+
+.campaign-row td.chk input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.campaign-row td.id {
+  font-family: monospace;
+  font-weight: 600;
+  color: #555;
+}
+
+.campaign-row td.name {
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campaign-row td.assignment {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.campaign-row td.type .type-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Updated type badge colors in campaign rows */
+.campaign-row td.type .type-badge.discount {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.campaign-row td.type .type-badge.promotion {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
+.campaign-row td.type .type-badge.seasonal {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.campaign-row td.type .type-badge.clearance {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.campaign-row td.start-date,
+.campaign-row td.end-date {
+  color: #666;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Updated offer value colors */
+.campaign-row td.offer .offer-value {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.campaign-row td.offer .offer-value.offer-discount {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.campaign-row td.offer .offer-value.offer-promotion {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
+.campaign-row td.offer .offer-value.offer-seasonal {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.campaign-row td.offer .offer-value.offer-clearance {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+/* Inactive campaign states */
+.campaign-row.inactive {
+  opacity: 0.6;
+  color: #6b7280;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.campaign-row.inactive .type-badge,
+.campaign-row.inactive .offer-value {
+  opacity: 0.7;
+}
+
+.campaign-row.inactive:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.campaign-row.inactive.selected {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .campaign-row td {
+    padding: 8px 4px;
+    font-size: 0.9em;
+  }
+  
+  .campaign-row td.assignment,
+  .campaign-row td.start-date {
+    display: none;
+  }
 }

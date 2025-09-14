@@ -15,11 +15,18 @@ export class CampaignListingComponent {
   @Output() edit = new EventEmitter<Campaign>();
   @Output() selectionChange = new EventEmitter<void>();
 
-  allSelected = false;
+  get allSelected(): boolean {
+    return this.campaigns.length > 0 && this.campaigns.every(c => c.selected);
+  }
+
+  get someSelected(): boolean {
+    return this.campaigns.some(c => c.selected) && !this.allSelected;
+  }
 
   toggleAll(checked: boolean) {
-    this.allSelected = checked;
-    for (const c of this.campaigns) c.selected = checked;
+    for (const c of this.campaigns) {
+      c.selected = checked;
+    }
     this.selectionChange.emit();
   }
 }
