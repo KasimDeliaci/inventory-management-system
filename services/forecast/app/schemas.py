@@ -54,6 +54,7 @@ class ForecastResponse(BaseModel):
     modelVersion: str = Field(default="xgb_three-latest", description="Model version used", example="xgb_three-20250913125620")
     modelType: Optional[str] = Field(default="xgb_three", description="Model algorithm type", example="xgb_three")
     generatedAt: datetime = Field(default_factory=lambda: datetime.utcnow(), description="Timestamp when forecast was generated")
+    forecastId: int = Field(description="Forecast run id of this response", example=123)
 
 
 # History schemas

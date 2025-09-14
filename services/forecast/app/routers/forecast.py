@@ -180,38 +180,41 @@ def forecast(req: ForecastRequest) -> ForecastResponse:
                 )
             )
 
-    # Optional: persist forecast if DB configured
-    fid: Optional[int] = None
+    # Persist forecast (strict): DB must be configured, and persistence must succeed
+    if not dal.init_ok():
+        raise HTTPException(status_code=503, detail="Forecast DB not configured; set FORECAST_DB_DSN")
+
+    fid = dal.insert_forecast(as_of.isoformat(), req.horizonDays, ((mv or {}).get("model_version_id") if mv else None), None)
+    if not fid:
+        raise HTTPException(status_code=500, detail="Failed to create forecast run header")
+
+    items = []
+    for fp in per_product:
+        for df in fp.daily:
+            conf_payload = None
+            try:
+                conf_payload = fp.confidence.model_dump() if fp.confidence is not None else None  # type: ignore[attr-defined]
+            except Exception:
+                conf_payload = fp.confidence if fp.confidence is not None else None
+            items.append({
+                "productId": fp.productId,
+                "date": df.date.isoformat(),
+                "yhat": df.yhat,
+                "confidence": conf_payload,
+                "lower": (fp.predictionInterval.lowerBound if fp.predictionInterval else None),
+                "upper": (fp.predictionInterval.upperBound if fp.predictionInterval else None),
+            })
     try:
-        fid = dal.insert_forecast(as_of.isoformat(), req.horizonDays, ((mv or {}).get("model_version_id") if mv else None), None)
-        if fid:
-            items = []
-            for fp in per_product:
-                for df in fp.daily:
-                    conf_payload = None
-                    try:
-                        # pydantic v2
-                        conf_payload = fp.confidence.model_dump() if fp.confidence is not None else None  # type: ignore[attr-defined]
-                    except Exception:
-                        conf_payload = fp.confidence if fp.confidence is not None else None
-                    items.append({
-                        "productId": fp.productId,
-                        "date": df.date.isoformat(),
-                        "yhat": df.yhat,
-                        "confidence": conf_payload,
-                        "lower": (fp.predictionInterval.lowerBound if fp.predictionInterval else None),
-                        "upper": (fp.predictionInterval.upperBound if fp.predictionInterval else None),
-                    })
-            if items:
-                dal.insert_forecast_items(fid, items)
-    except Exception:
-        # Swallow persistence errors in PoC path
-        pass
+        if items:
+            dal.insert_forecast_items(fid, items)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to persist forecast items: {e}")
 
     return ForecastResponse(
         forecasts=per_product,
         modelVersion=(mv["version_label"] if mv else "baseline-0.1"),
         modelType=(mv["algorithm"] if mv else "baseline_ma7"),
+        forecastId=fid,
     )
 
 

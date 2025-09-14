@@ -45,10 +45,11 @@ Tips
 - POST `/train/activate/{modelVersionId}` — activate a specific version (deactivates others)
 - GET  `/train/models` — list model versions (desc by trained_at)
 - GET  `/train/models/{modelVersionId}` — get model version details
-- POST `/forecast` (sync): `{productIds, horizonDays(1|7|14), asOfDate?, returnDaily?}` → per-product {daily[], sum, predictionInterval, confidence}
+- POST `/forecast` (sync): `{productIds, horizonDays(1|7|14), asOfDate?, returnDaily?}` → `{ forecastId, forecasts:[...], modelVersion, modelType, generatedAt }`
   - Uses active xgb_three if present; fallback MA7 otherwise
   - For countable UoMs, daily and sum are rounded to integers; PI bounds are rounded >= 0
   - Tip: if Inventory has no recent data, pass `asOfDate` near last actuals
+  - Response includes non-null top-level `forecastId` (service requires DB persistence)
 
 ### Forecast history APIs
 - GET `/forecast/history`
