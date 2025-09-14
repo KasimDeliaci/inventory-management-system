@@ -74,13 +74,13 @@ This guide explains the big picture, one‑time setup, how to run the service, h
    - `GET /train/models` → list versions with metrics
    - `POST /train/activate/{modelVersionId}` → sets this version active (others inactive)
 
-3) Request forecasts (saved to DB if `FORECAST_DB_DSN` is set)
+3) Request forecasts (requires DB persistence)
    - `POST /forecast`
      - Examples:
        - Next day: `{ "productIds": [1008,1009], "horizonDays": 1, "returnDaily": true }`
        - 7 days: `{ "productIds": [1008,1009], "horizonDays": 7, "returnDaily": true }`
        - 14 days: `{ "productIds": [1008,1009], "horizonDays": 14, "returnDaily": true }`
-   - Response includes per‑product `sum`, optional `daily[]`, `predictionInterval` (sum), and a volatility‑based `confidence` object. Results are written into `forecasts` + `forecast_items` when a DB is configured.
+   - Response includes non‑null top‑level `forecastId`, per‑product `sum`, optional `daily[]`, `predictionInterval` (sum), and a volatility‑based `confidence` object. Results are written into `forecasts` + `forecast_items`.
 
 4) Verify persistence (pgAdmin / psql)
    - `SELECT * FROM model_versions ORDER BY trained_at DESC LIMIT 5;`
@@ -155,7 +155,7 @@ Forecast Service (FastAPI):
 - Forecast
   - `POST /forecast` — Computes forecasts for given products and horizon.
     - Request: `{ "productIds": [..], "horizonDays": 1|7|14, "asOfDate"?: YYYY‑MM‑DD, "returnDaily"?: true }`
-    - Response: `{ forecasts: [ { productId, daily[], sum, predictionInterval, confidence } ], modelVersion, modelType, generatedAt }`
+    - Response: `{ forecastId, forecasts: [ { productId, daily[], sum, predictionInterval, confidence } ], modelVersion, modelType, generatedAt }`
     - Behavior: uses active `xgb_three` if present; otherwise falls back to MA7 baseline.
     - Rounding: for countable UoMs (adet, koli, paket, çuval, şişe) daily and sum are rounded to integers; PI bounds rounded ≥ 0.
     - Tip: if Inventory has no recent data (e.g., simulator ended), set `asOfDate` near the last actual date so lags/MA are informative.
