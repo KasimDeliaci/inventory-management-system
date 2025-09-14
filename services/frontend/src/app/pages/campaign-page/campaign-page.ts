@@ -7,7 +7,9 @@ import { CampaignEditorComponent } from '../../campaigns/campaign-editor/campaig
 import { Campaign, CampaignType, AssignmentType } from '../../models/campaign.model';
 import { Product } from '../../models/product.model';
 import { Customer } from '../../models/customer.model';
-import { DataService } from '../data.service';
+import { CampaignService } from '../campaign.service';
+import { ProductService } from '../product.service';
+import { CustomerService } from '../customer.service';
 
 @Component({
   selector: 'app-campaign-page',
@@ -23,7 +25,9 @@ import { DataService } from '../data.service';
   styleUrls: ['./campaign-page.scss'],
 })
 export class CampaignPageComponent implements OnInit {
-  private dataService = inject(DataService);
+  private campaignService = inject(CampaignService);
+  private productService = inject(ProductService);
+  private customerService = inject(CustomerService);
 
   query = signal('');
   editorOpen = signal(false);
@@ -52,7 +56,7 @@ export class CampaignPageComponent implements OnInit {
 
   private loadData() {
     // Load campaigns
-    this.dataService.getCampaigns().subscribe({
+    this.campaignService.getCampaigns().subscribe({
       next: (campaigns) => {
         this.all.set(campaigns);
       },
@@ -62,7 +66,7 @@ export class CampaignPageComponent implements OnInit {
     });
 
     // Load products
-    this.dataService.getProducts().subscribe({
+    this.productService.getProducts().subscribe({
       next: (products) => {
         this.products.set(products);
       },
@@ -72,7 +76,7 @@ export class CampaignPageComponent implements OnInit {
     });
 
     // Load customers
-    this.dataService.getCustomers().subscribe({
+    this.customerService.getCustomers().subscribe({
       next: (customers) => {
         this.customers.set(customers);
       },

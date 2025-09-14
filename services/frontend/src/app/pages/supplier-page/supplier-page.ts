@@ -6,7 +6,8 @@ import { SupplierListingComponent } from '../../suppliers/supplier-listing/suppl
 import { SupplierEditor } from '../../suppliers/supplier-editor/supplier-editor';
 import { Supplier } from '../../models/supplier.model';
 import { Product } from '../../models/product.model';
-import { DataService } from '../data.service'; // Import the new DataService
+import { SupplierService } from '../supplier.service';
+import { ProductService } from '../product.service';
 
 @Component({
   selector: 'app-supplier-page',
@@ -22,7 +23,8 @@ import { DataService } from '../data.service'; // Import the new DataService
   styleUrls: ['./supplier-page.scss'],
 })
 export class SupplierPageComponent implements OnInit {
-  private dataService = inject(DataService); // Use DataService instead of MockDataService
+  private supplierService = inject(SupplierService);
+  private productService = inject(ProductService);
   private destroyRef = inject(DestroyRef);
 
   query = signal('');
@@ -79,7 +81,7 @@ export class SupplierPageComponent implements OnInit {
     this.loading.set(true);
     
     // Load suppliers from backend
-    const suppliersSubscription = this.dataService.getSuppliers().subscribe({
+    const suppliersSubscription = this.supplierService.getSuppliers().subscribe({
       next: (suppliers) => {
         // Ensure all suppliers have selected property set to false
         const suppliersWithSelection = suppliers.map(s => ({ ...s, selected: false }));
@@ -93,7 +95,7 @@ export class SupplierPageComponent implements OnInit {
     });
 
     // Load products to check relationships
-    const productsSubscription = this.dataService.getProducts().subscribe({
+    const productsSubscription = this.productService.getProducts().subscribe({
       next: (products) => {
         this.allProducts.set(products);
       },

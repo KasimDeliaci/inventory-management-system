@@ -9,7 +9,10 @@ import { Order, OrderType, PurchaseOrderStatus, SalesOrderStatus } from '../../m
 import { Supplier } from '../../models/supplier.model';
 import { Customer } from '../../models/customer.model';
 import { Product } from '../../models/product.model';
-import { DataService } from '../data.service';
+import { OrderService } from '../order.service';
+import { SupplierService } from '../supplier.service';
+import { CustomerService } from '../customer.service';
+import { ProductService } from '../product.service';
 
 // Extended order interface to include items
 interface OrderWithItems extends Order {
@@ -39,7 +42,10 @@ interface OrderWithItems extends Order {
   styleUrls: ['./order-page.scss'],
 })
 export class OrderPageComponent implements OnInit {
-  private dataService = inject(DataService);
+  private orderService = inject(OrderService);
+  private supplierService = inject(SupplierService);
+  private customerService = inject(CustomerService);
+  private productService = inject(ProductService);
   private destroyRef = inject(DestroyRef);
 
   query = signal('');
@@ -114,7 +120,7 @@ export class OrderPageComponent implements OnInit {
     this.loading.set(true);
     
     // Load orders from backend
-    const ordersSubscription = this.dataService.getOrders().subscribe({
+    const ordersSubscription = this.orderService.getOrders().subscribe({
       next: (orders) => {
         this.all.set(orders);
         this.loading.set(false);
@@ -126,7 +132,7 @@ export class OrderPageComponent implements OnInit {
     });
 
     // Load base data for dropdowns (suppliers, customers, products)
-    const suppliersSubscription = this.dataService.getSuppliers().subscribe({
+    const suppliersSubscription = this.supplierService.getSuppliers().subscribe({
       next: (suppliers) => {
         this.suppliers.set(suppliers);
       },
@@ -135,7 +141,7 @@ export class OrderPageComponent implements OnInit {
       },
     });
 
-    const customersSubscription = this.dataService.getCustomers().subscribe({
+    const customersSubscription = this.customerService.getCustomers().subscribe({
       next: (customers) => {
         this.customers.set(customers);
       },
@@ -144,7 +150,7 @@ export class OrderPageComponent implements OnInit {
       },
     });
 
-    const productsSubscription = this.dataService.getProducts().subscribe({
+    const productsSubscription = this.productService.getProducts().subscribe({
       next: (products) => {
         this.products.set(products);
       },
@@ -261,7 +267,7 @@ export class OrderPageComponent implements OnInit {
     this.editorOpen.set(true);
     
     // Fetch detailed order information including related data and items
-    const detailsSubscription = this.dataService.getOrderDetails(order).subscribe({
+    const detailsSubscription = this.orderService.getOrderDetails(order).subscribe({
       next: (orderDetails) => {
         if (orderDetails) {
           // Transform order items to our internal format
