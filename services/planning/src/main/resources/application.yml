@@ -2,6 +2,13 @@ spring:
   application:
     name: planning
 
+  # --- AI (Ollama) ---
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: gemma3:4b
+
   # --- Database (PostgreSQL) ---
   datasource:
     url: jdbc:postgresql://${PLANNING_DB_HOST:localhost}:${PLANNING_DB_PORT:5432}/${PLANNING_DB_NAME:planning_db}

@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS plan_recommendations (
     response_json     JSONB  NOT NULL,
 
     -- Model metadata (for audit/demo)
-    model             VARCHAR(50) NOT NULL DEFAULT 'gemma-4b',
+    model             VARCHAR(50) NOT NULL DEFAULT 'gemma3:4b',
 
     -- Creation timestamp
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
