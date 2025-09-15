@@ -8,98 +8,65 @@
     <div class="row1">
       <label class="box">
         <span class="label">ID</span>
-        <input type="text" class="input" [value]="form.value.id"
-               readonly
-               (input)="form.controls.id.setValue(($any($event.target).value || ''))">
+        <input type="text" class="input" [value]="form.value.id" readonly
+          (input)="form.controls.id.setValue(($any($event.target).value || ''))">
         <small *ngIf="isNewProduct" class="help-text">ID will be generated automatically</small>
       </label>
       <label class="box" [class.error]="isFieldInvalid('name')">
         <span class="label">NAME *</span>
-        <input type="text" 
-               class="input" 
-               [value]="form.value.name"
-               [class.error]="isFieldInvalid('name')"
-               (input)="form.controls.name.setValue(($any($event.target).value || ''))">
+        <input type="text" class="input" [value]="form.value.name" [class.error]="isFieldInvalid('name')"
+          (input)="form.controls.name.setValue(($any($event.target).value || ''))">
         <small *ngIf="isFieldInvalid('name')" class="error-text">{{ getFieldError('name') }}</small>
       </label>
     </div>
-    
+
     <label class="box big">
       <span class="label">DESCRIPTION</span>
-      <textarea class="textarea" 
-                [value]="form.value.description || ''"
-                placeholder="Enter product description..."
-                (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
+      <textarea class="textarea" [value]="form.value.description || ''" placeholder="Enter product description..."
+        (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
     </label>
-    
+
     <!-- Right column small boxes -->
     <div class="sidebar">
       <label class="box">
         <span class="label">PRICE</span>
-        <input type="number" 
-               class="input" 
-               [value]="form.value.price ?? ''"
-               placeholder="0.00"
-               step="0.01"
-               min="0"
-               (input)="form.controls.price.setValue($any($event.target).valueAsNumber || null)">
+        <input type="number" class="input" [value]="form.value.price ?? ''" placeholder="0.00" step="0.01" min="0"
+          (input)="form.controls.price.setValue($any($event.target).valueAsNumber || null)">
       </label>
       <label class="box" [class.error]="isFieldInvalid('category')">
         <span class="label">CATEGORY *</span>
-        <input type="text" 
-               class="input" 
-               [value]="form.value.category || ''"
-               [class.error]="isFieldInvalid('category')"
-               placeholder="e.g. Beverages"
-               (input)="form.controls.category.setValue($any($event.target).value)">
+        <input type="text" class="input" [value]="form.value.category || ''" [class.error]="isFieldInvalid('category')"
+          placeholder="e.g. Beverages" (input)="form.controls.category.setValue($any($event.target).value)">
         <small *ngIf="isFieldInvalid('category')" class="error-text">{{ getFieldError('category') }}</small>
       </label>
       <label class="box" [class.error]="isFieldInvalid('unit')">
         <span class="label">UNIT *</span>
-        <input type="text" 
-               class="input" 
-               [value]="form.value.unit || ''"
-               [class.error]="isFieldInvalid('unit')"
-               placeholder="e.g. adet, kg, lt, şişe"
-               (input)="form.controls.unit.setValue($any($event.target).value)">
+        <input type="text" class="input" [value]="form.value.unit || ''" [class.error]="isFieldInvalid('unit')"
+          placeholder="e.g. adet, kg, lt, şişe" (input)="form.controls.unit.setValue($any($event.target).value)">
         <small *ngIf="isFieldInvalid('unit')" class="error-text">{{ getFieldError('unit') }}</small>
       </label>
       <label class="box">
         <span class="label">SAFETY STOCK</span>
-        <input type="number" 
-               class="input" 
-               [value]="form.value.safetyStock ?? ''"
-               placeholder="0"
-               min="0"
-               step="1"
-               (input)="form.controls.safetyStock.setValue($any($event.target).valueAsNumber || null)">
+        <input type="number" class="input" [value]="form.value.safetyStock ?? ''" placeholder="0" min="0" step="1"
+          (input)="form.controls.safetyStock.setValue($any($event.target).valueAsNumber || null)">
       </label>
       <label class="box">
         <span class="label">REORDER POINT</span>
-        <input type="number" 
-               class="input" 
-               [value]="form.value.reorderPoint ?? ''"
-               placeholder="0"
-               min="0"
-               step="1"
-               (input)="form.controls.reorderPoint.setValue($any($event.target).valueAsNumber || null)">
+        <input type="number" class="input" [value]="form.value.reorderPoint ?? ''" placeholder="0" min="0" step="1"
+          (input)="form.controls.reorderPoint.setValue($any($event.target).valueAsNumber || null)">
       </label>
       <label class="box">
         <span class="label">CURRENT STOCK</span>
-        <input type="number" 
-               class="input" 
-               [value]="form.value.currentStock ?? ''"
-               readonly
-               placeholder="0"
-               (input)="form.controls.currentStock.setValue($any($event.target).valueAsNumber || null)">
+        <input type="number" class="input" [value]="form.value.currentStock ?? ''" readonly placeholder="0"
+          (input)="form.controls.currentStock.setValue($any($event.target).valueAsNumber || null)">
         <small class="help-text">Read-only field</small>
       </label>
     </div>
-    
+
     <!-- Supplier section - conditional display -->
     <div class="supplier">
       <div class="supplier-head">SUPPLIERS</div>
-      
+
       <!-- Show suppliers table for existing products with suppliers -->
       <div class="table" *ngIf="shouldShowSuppliers">
         <div class="thead">
@@ -113,17 +80,11 @@
         <div class="table-body">
           <div class="row2" *ngFor="let s of sortedSuppliers">
             <div>
-              <input type="checkbox"
-                     [checked]="isActiveSupplier(s.id)"
-                     (change)="toggleActiveSupplier(s.id, $event)">
+              <input type="checkbox" [checked]="isActiveSupplier(s.id)" (change)="toggleActiveSupplier(s.id, $event)">
             </div>
             <div>
-              <input type="radio"
-                     name="preferred"
-                     [value]="s.id"
-                     [checked]="s.id === form.value.preferredSupplierId"
-                     [disabled]="!isActiveSupplier(s.id)"
-                     (change)="setPreferredSupplier(s.id)">
+                <input type="radio" name="preferred" [value]="s.id" [checked]="s.id === form.value.preferredSupplierId"
+                  (change)="setPreferredSupplier(s.id)">
             </div>
             <div>{{ s.name }}</div>
             <div>{{ s.email }}</div>
@@ -132,11 +93,12 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Show message when suppliers are not available or not shown -->
       <div class="no-suppliers" *ngIf="!shouldShowSuppliers">
         <div class="info-message">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M12 16v-4"></path>
             <path d="M12 8h.01"></path>
@@ -145,24 +107,18 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Actions -->
     <div class="actions">
-      <button class="btn primary" 
-              type="button" 
-              (click)="onSave()"
-              [disabled]="isSaving">
+      <button class="btn primary" type="button" (click)="onSave()" [disabled]="isSaving">
         {{ isSaving ? (isNewProduct ? 'CREATING...' : 'UPDATING...') : 'SAVE' }}
       </button>
-      <button class="btn danger" 
-              type="button" 
-              (click)="onDelete()" 
-              [disabled]="!canDelete || isDeleting || isSaving"
-              *ngIf="!isNewProduct">
+      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!canDelete || isDeleting || isSaving"
+        *ngIf="!isNewProduct">
         {{ isDeleting ? 'DELETING...' : 'DELETE' }}
       </button>
     </div>
-    
+
     <!-- Form validation summary (optional) -->
     <div class="validation-summary" *ngIf="form.invalid && form.touched">
       <p class="error-text">Please fill in all required fields marked with *</p>

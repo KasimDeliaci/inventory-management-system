@@ -34,8 +34,10 @@ export class SupplierPageComponent implements OnInit {
   // Filter states (can be extended later for supplier-specific filters)
   filterOpen = signal(false);
   
-  // Loading state
+  // Loading states
   loading = signal(false);
+  deleting = signal(false);
+  saving = signal(false); // Add saving state
 
   private selectionTick = signal(0);
   
@@ -91,6 +93,7 @@ export class SupplierPageComponent implements OnInit {
       error: (err) => {
         console.error('Error loading suppliers:', err);
         this.loading.set(false);
+        this.showErrorMessage('Failed to load suppliers. Please try again.');
       },
     });
 
@@ -122,17 +125,10 @@ export class SupplierPageComponent implements OnInit {
   // Header event handlers
   onAddSupplier() {
     console.log('Adding new supplier');
-    const newSupplier: Supplier = {
-      id: '',
-      name: '',
-      email: '',
-      phone: '',
-      city: '',
-      selected: false,
-    };
-    this.editing.set(newSupplier);
+    // Set editing to null for new supplier
+    this.editing.set(null);
     this.editorOpen.set(true);
-    console.log('Editor opened with:', newSupplier);
+    console.log('Editor opened for new supplier');
   }
 
   onOpenFilters() {
@@ -168,8 +164,26 @@ export class SupplierPageComponent implements OnInit {
       if (!confirm(warning)) return;
     }
     
-    this.all.update((list) => list.filter((s) => !s.selected));
-    this.bumpSelection();
+    this.deleting.set(true);
+    
+    // Perform HTTP deletion
+    const deleteSubscription = this.supplierService.deleteMultipleSuppliers(deletingIds).subscribe({
+      next: () => {
+        console.log('Successfully deleted suppliers from backend');
+        // Remove from local state only after successful backend deletion
+        this.all.update((list) => list.filter((s) => !s.selected));
+        this.bumpSelection();
+        this.deleting.set(false);
+        this.showSuccessMessage(`Successfully deleted ${deletingIds.length} supplier${deletingIds.length > 1 ? 's' : ''}`);
+      },
+      error: (error) => {
+        console.error('Error deleting suppliers:', error);
+        this.deleting.set(false);
+        this.showErrorMessage('Failed to delete suppliers. Please try again.');
+      }
+    });
+
+    this.destroyRef.onDestroy(() => deleteSubscription.unsubscribe());
   }
 
   openEditorFor(supplier: Supplier) {
@@ -183,73 +197,72 @@ export class SupplierPageComponent implements OnInit {
   }
 
   // Editor event handlers
-  handleSave(updated: Supplier) {
-    console.log('handleSave called with:', updated);
+  handleSave(supplierData: Supplier) {
+    console.log('handleSave called with:', supplierData);
     
     // Validate required fields
-    if (!updated.name?.trim() || !updated.email?.trim() || !updated.phone?.trim() || !updated.city?.trim()) {
+    if (!supplierData.name?.trim() || !supplierData.email?.trim() || 
+        !supplierData.phone?.trim() || !supplierData.city?.trim()) {
       console.error('Missing required fields');
+      this.showErrorMessage('Please fill in all required fields');
       return;
     }
 
     // Ensure we have clean data
-    const cleanUpdated: Supplier = {
-      id: updated.id?.trim() || '',
-      name: updated.name.trim(),
-      email: updated.email.trim(),
-      phone: updated.phone.trim(),
-      city: updated.city.trim(),
-      selected: updated.selected || false,
+    const cleanSupplier: Supplier = {
+      id: supplierData.id?.trim() || '',
+      name: supplierData.name.trim(),
+      email: supplierData.email.trim(),
+      phone: supplierData.phone.trim(),
+      city: supplierData.city.trim(),
+      selected: supplierData.selected || false,
     };
     
-    // Check if this is an update (existing supplier with ID) or new supplier
-    const isUpdate = cleanUpdated.id && this.all().some((s) => s.id === cleanUpdated.id);
-    console.log('Is update:', isUpdate, 'ID:', cleanUpdated.id);
+    this.saving.set(true);
+
+    // Determine if this is an update or create operation
+    const isUpdate = cleanSupplier.id && cleanSupplier.id !== '' && 
+                     this.all().some((s) => s.id === cleanSupplier.id);
     
-    if (isUpdate) {
-      // Update existing supplier
-      console.log('Updating existing supplier');
-      this.all.update((list) => {
-        const newList = list.map((s) => 
-          s.id === cleanUpdated.id 
-            ? { ...cleanUpdated, selected: s.selected } 
-            : s
-        );
-        console.log('New list after update:', newList);
-        return newList;
-      });
-    } else {
-      // Add new supplier - generate ID if empty
-      const maxIdNumber = Math.max(
-        ...this.all().map(s => {
-          const match = s.id.match(/SUP-(\d+)/);
-          return match ? parseInt(match[1]) : 0;
-        }),
-        0
-      );
-      const id = cleanUpdated.id || `SUP-${String(maxIdNumber + 1).padStart(3, '0')}`;
-      const newSupplier: Supplier = { 
-        ...cleanUpdated, 
-        id, 
-        selected: false 
-      };
-      console.log('Adding new supplier:', newSupplier);
-      
-      // Check for duplicate IDs
-      if (this.all().some(s => s.id === id)) {
-        console.warn('Duplicate ID detected, generating new one');
-        newSupplier.id = `SUP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    console.log('Is update:', isUpdate, 'ID:', cleanSupplier.id);
+    
+    const saveOperation = isUpdate 
+      ? this.supplierService.updateSupplier(cleanSupplier)
+      : this.supplierService.createSupplier(cleanSupplier);
+
+    const saveSubscription = saveOperation.subscribe({
+      next: (savedSupplier) => {
+        console.log('Successfully saved supplier:', savedSupplier);
+        
+        if (isUpdate) {
+          // Update existing supplier in local state
+          this.all.update((list) => 
+            list.map((s) => 
+              s.id === cleanSupplier.id 
+                ? { ...savedSupplier, selected: s.selected } 
+                : s
+            )
+          );
+          this.showSuccessMessage('Supplier updated successfully');
+        } else {
+          // Add new supplier to local state
+          const newSupplier = { ...savedSupplier, selected: false };
+          this.all.update((list) => [newSupplier, ...list]);
+          this.showSuccessMessage('Supplier created successfully');
+        }
+        
+        this.saving.set(false);
+        this.closeEditor();
+      },
+      error: (error) => {
+        console.error('Error saving supplier:', error);
+        this.saving.set(false);
+        const action = isUpdate ? 'update' : 'create';
+        this.showErrorMessage(`Failed to ${action} supplier. Please try again.`);
       }
-      
-      this.all.update((list) => {
-        const newList = [newSupplier, ...list];
-        console.log('New list after addition:', newList);
-        return newList;
-      });
-    }
-    
-    this.closeEditor();
-    console.log('Final suppliers list:', this.all());
+    });
+
+    this.destroyRef.onDestroy(() => saveSubscription.unsubscribe());
   }
 
   handleDelete(id: string) {
@@ -272,19 +285,53 @@ export class SupplierPageComponent implements OnInit {
       if (!confirm('Are you sure you want to delete this supplier?')) return;
     }
     
-    this.all.update((list) => list.filter((s) => s.id !== id));
-    this.closeEditor();
-    console.log('Supplier deleted, remaining suppliers:', this.all());
+    this.deleting.set(true);
+    
+    // Perform HTTP deletion
+    const deleteSubscription = this.supplierService.deleteSupplier(id).subscribe({
+      next: () => {
+        console.log('Successfully deleted supplier from backend');
+        // Remove from local state only after successful backend deletion
+        this.all.update((list) => list.filter((s) => s.id !== id));
+        this.closeEditor();
+        this.deleting.set(false);
+        this.showSuccessMessage('Supplier deleted successfully');
+        console.log('Supplier deleted, remaining suppliers:', this.all());
+      },
+      error: (error) => {
+        console.error('Error deleting supplier:', error);
+        this.deleting.set(false);
+        this.showErrorMessage('Failed to delete supplier. Please try again.');
+      }
+    });
+
+    this.destroyRef.onDestroy(() => deleteSubscription.unsubscribe());
   }
 
   closeEditor() {
     console.log('Closing editor');
     this.editorOpen.set(false);
     this.editing.set(null);
+    this.saving.set(false); // Reset saving state when closing
   }
 
   // Refresh data method
   refreshData() {
     this.loadData();
+  }
+
+  // Helper methods for user feedback
+  private showSuccessMessage(message: string) {
+    // Replace with your preferred notification system
+    console.log('Success:', message);
+    // You might want to use a toast library or other notification system
+    // For now, we'll use a simple alert - replace with better UX
+    // alert(message);
+  }
+
+  private showErrorMessage(message: string) {
+    // Replace with your preferred notification system
+    console.error('Error:', message);
+    alert(message); // Replace with better error handling/display
   }
 }

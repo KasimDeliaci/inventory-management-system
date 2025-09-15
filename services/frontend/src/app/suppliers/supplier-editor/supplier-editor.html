@@ -3,7 +3,7 @@
 
 <!-- Modal -->
 <section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-    <button class="close" aria-label="Close" (click)="close.emit()">✕</button>
+    <button class="close" aria-label="Close" (click)="close.emit()" [disabled]="deleting || saving">✕</button>
     
     <form [formGroup]="form" (ngSubmit)="onSave()">
         <div class="grid">
@@ -14,8 +14,8 @@
                     <input 
                         type="text" 
                         formControlName="id"
-                        [readonly]="!isNewSupplier"
-                        placeholder="Auto-generated if empty">
+                        readonly
+                        placeholder="Auto-generated">
                     <div class="error" *ngIf="getFieldError('id')">
                         {{ getFieldError('id') }}
                     </div>
@@ -51,7 +51,8 @@
                         type="text" 
                         formControlName="phone"
                         [class.invalid]="form.controls.phone.invalid && form.controls.phone.touched"
-                        placeholder="Enter phone number">
+                        placeholder="Enter phone number (e.g., +90 202 456 4456)"
+                        (input)="onPhoneInput($event)">
                     <div class="error" *ngIf="getFieldError('phone')">
                         {{ getFieldError('phone') }}
                     </div>
@@ -91,14 +92,14 @@
 
             <!-- Actions -->
             <div class="actions">
-                <button class="btn primary" type="submit" [disabled]="form.invalid">
-                    {{ isNewSupplier ? 'CREATE' : 'SAVE' }}
+                <button class="btn primary" type="submit" [disabled]="form.invalid || deleting || saving">
+                    {{ saving ? 'SAVING...' : (isNewSupplier ? 'CREATE' : 'SAVE') }}
                 </button>
                 <button class="btn danger" 
                         type="button" 
                         (click)="onDelete()" 
-                        [disabled]="isNewSupplier">
-                    DELETE
+                        [disabled]="isNewSupplier || deleting || saving">
+                    {{ deleting ? 'DELETING...' : 'DELETE' }}
                 </button>
             </div>
         </div>
