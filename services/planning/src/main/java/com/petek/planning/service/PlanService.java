@@ -4,6 +4,8 @@ import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petek.planning.dto.PlanRequest;
 import com.petek.planning.dto.PlanResponse;
 import com.petek.planning.entity.PlanRecommendation;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class PlanService {
     
     private final PlanRepository repository;
+    private final ObjectMapper mapper;
 
     private final OllamaService ollamaService;
     private final WebClientService webClientService;
@@ -33,8 +36,16 @@ public class PlanService {
 
         String returnValue = ollamaService.callOllama(product, suppliers, forecasts);
 
+        Long forecastId = Long.valueOf(0);
+        try {
+            JsonNode actualObj = mapper.readTree(forecasts);
+            forecastId = actualObj.path("forecastId").asLong();
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
+
         repository.save(PlanRecommendation.builder()
-            .forecastId(Long.valueOf(1))
+            .forecastId(forecastId)
             .productId(request.getProductId())
             .asOfDate(request.getAsOfDate())
             .horizonDays(Integer.parseInt(request.getHorizonDays()))
