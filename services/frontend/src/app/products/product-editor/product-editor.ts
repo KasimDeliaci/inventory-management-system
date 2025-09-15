@@ -14,6 +14,7 @@ import { Supplier } from '../../models/supplier.model';
 export class ProductEditorComponent implements OnChanges {
   @Input() value: Product | null = null;
   @Input() suppliers: Supplier[] = [];
+  @Input() isDeleting: boolean = false; // New input for delete loading state
 
   /** Returns suppliers sorted: preferred first, then actives, then others */
   get sortedSuppliers(): Supplier[] {

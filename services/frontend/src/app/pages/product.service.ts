@@ -67,6 +67,43 @@ export class ProductService {
       );
   }
 
+  // DELETE PRODUCT - New method for backend deletion
+  deleteProduct(productId: string): Observable<boolean> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of(false);
+    }
+
+    return this.httpClient.delete(`${this.baseUrl}/products/${numericId}`).pipe(
+      map(() => true), // Success - return true
+      catchError((error) => {
+        console.error('Error deleting product:', error);
+        return of(false); // Failure - return false
+      })
+    );
+  }
+
+  // DELETE MULTIPLE PRODUCTS - For bulk deletion
+  deleteMultipleProducts(productIds: string[]): Observable<{ success: string[], failed: string[] }> {
+    const deleteRequests = productIds.map(id => 
+      this.deleteProduct(id).pipe(
+        map(success => ({ id, success }))
+      )
+    );
+
+    return forkJoin(deleteRequests).pipe(
+      map(results => ({
+        success: results.filter(r => r.success).map(r => r.id),
+        failed: results.filter(r => !r.success).map(r => r.id)
+      })),
+      catchError((error) => {
+        console.error('Error in bulk delete operation:', error);
+        return of({ success: [], failed: productIds });
+      })
+    );
+  }
+
   private transformBackendProducts(backendProducts: BackendProduct[]): Product[] {
     return backendProducts.map((backendProduct) => ({
       id: `ID-${backendProduct.productId.toString().padStart(3, '0')}`,

@@ -35,9 +35,11 @@ export class ProductPageComponent implements OnInit {
   filterOpen = signal(false);
   statusFilter = signal<ProductStatus | 'all'>('all');
   
-  // Loading state
+  // Loading states
   loading = signal(false);
   detailsLoading = signal(false);
+  deleting = signal(false);
+  bulkDeleting = signal(false);
 
   private selectionTick = signal(0);
   
@@ -145,15 +147,51 @@ export class ProductPageComponent implements OnInit {
     this.query.set('');
   }
 
+  // Updated bulk delete method with backend API call
   deleteSelected() {
-    const count = this.selectedCount();
+    const selectedProducts = this.all().filter(p => p.selected);
+    const count = selectedProducts.length;
+    
     if (count === 0) return;
     
     const message = `Delete ${count} selected product${count > 1 ? 's' : ''}?`;
     if (!confirm(message)) return;
     
-    this.all.update((list) => list.filter((p) => !p.selected));
-    this.bumpSelection();
+    this.bulkDeleting.set(true);
+    const productIds = selectedProducts.map(p => p.id);
+    
+    const deleteSubscription = this.productService.deleteMultipleProducts(productIds).subscribe({
+      next: (result) => {
+        if (result.success.length > 0) {
+          // Remove successfully deleted products from local state
+          this.all.update((list) => 
+            list.filter((p) => !result.success.includes(p.id))
+          );
+          this.bumpSelection();
+          
+          if (result.success.length === count) {
+            console.log(`Successfully deleted ${result.success.length} product(s)`);
+          } else {
+            console.log(`Deleted ${result.success.length} of ${count} products`);
+            if (result.failed.length > 0) {
+              alert(`Failed to delete ${result.failed.length} product(s). Please try again.`);
+            }
+          }
+        } else {
+          alert('Failed to delete selected products. Please try again.');
+        }
+        this.bulkDeleting.set(false);
+      },
+      error: (err) => {
+        console.error('Error during bulk delete:', err);
+        alert('An error occurred while deleting products. Please try again.');
+        this.bulkDeleting.set(false);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      deleteSubscription.unsubscribe();
+    });
   }
 
   openEditorFor(product: Product) {
@@ -237,21 +275,52 @@ export class ProductPageComponent implements OnInit {
     this.closeEditor();
   }
 
+  // Updated delete method with backend API call
   handleDelete(id: string) {
-    if (confirm('Are you sure you want to delete this product?')) {
-      this.all.update((list) => list.filter((p) => p.id !== id));
-      this.closeEditor();
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
     }
+    
+    this.deleting.set(true);
+    
+    const deleteSubscription = this.productService.deleteProduct(id).subscribe({
+      next: (success) => {
+        if (success) {
+          // Remove from local state only if backend deletion was successful
+          this.all.update((list) => list.filter((p) => p.id !== id));
+          this.closeEditor();
+          console.log(`Product ${id} deleted successfully`);
+        } else {
+          alert('Failed to delete product. Please try again.');
+        }
+        this.deleting.set(false);
+      },
+      error: (err) => {
+        console.error('Error deleting product:', err);
+        alert('An error occurred while deleting the product. Please try again.');
+        this.deleting.set(false);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      deleteSubscription.unsubscribe();
+    });
   }
 
   closeEditor() {
     this.editorOpen.set(false);
     this.editing.set(null);
     this.detailsLoading.set(false);
+    this.deleting.set(false);
   }
 
   // Refresh data method
   refreshData() {
     this.loadData();
+  }
+
+  // Getter for template to check if any delete operation is in progress
+  get isDeletingAny(): boolean {
+    return this.deleting() || this.bulkDeleting();
   }
 }

@@ -96,7 +96,12 @@
     <!-- Actions -->
     <div class="actions">
       <button class="btn primary" type="button" (click)="onSave()">SAVE</button>
-      <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!value?.id">DELETE</button>
+      <button class="btn danger" 
+              type="button" 
+              (click)="onDelete()" 
+              [disabled]="!value?.id || isDeleting">
+        {{ isDeleting ? 'DELETING...' : 'DELETE' }}
+      </button>
     </div>
   </div>
 </section>
