@@ -9,6 +9,7 @@
       <label class="box">
         <span class="label">ID</span>
         <input type="text" class="input" [value]="form.value.id"
+               readonly
                (input)="form.controls.id.setValue(($any($event.target).value || ''))">
       </label>
       <label class="box">
@@ -54,6 +55,7 @@
       <label class="box">
         <span class="label">CURRENT STOCK</span>
         <input type="number" class="input" [value]="form.value.currentStock ?? ''"
+               readonly
                (input)="form.controls.currentStock.setValue($any($event.target).valueAsNumber || null)">
       </label>
     </div>
