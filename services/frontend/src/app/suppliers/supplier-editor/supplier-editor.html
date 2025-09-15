@@ -14,9 +14,9 @@
                     <input 
                         type="text" 
                         formControlName="id"
-                        [readonly]="!isNewSupplier"
+                        readonly
                         [disabled]="deleting"
-                        placeholder="Auto-generated if empty">
+                        placeholder="Auto-generated">
                     <div class="error" *ngIf="getFieldError('id')">
                         {{ getFieldError('id') }}
                     </div>

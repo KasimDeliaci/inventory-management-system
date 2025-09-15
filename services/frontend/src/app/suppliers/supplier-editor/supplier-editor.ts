@@ -24,7 +24,7 @@ export class SupplierEditor implements OnChanges {
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
-    id: [''],
+    id: [{value: '', disabled: true}], // Make ID field disabled
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     phone: ['', Validators.required],

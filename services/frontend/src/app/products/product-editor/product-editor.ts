@@ -170,9 +170,10 @@ export class ProductEditorComponent implements OnChanges {
         this.form.controls.activeSupplierIds.setValue([...currentActive, supplierId]);
       }
     } else {
-      this.form.controls.activeSupplierIds.setValue(
-        currentActive.filter((id) => id !== supplierId)
-      );
+      // Remove from active suppliers
+      const newActive = currentActive.filter((id) => id !== supplierId);
+      this.form.controls.activeSupplierIds.setValue(newActive);
+
       // If removing preferred supplier from active, clear preferred
       if (supplierId === this.form.value.preferredSupplierId) {
         this.form.controls.preferredSupplierId.setValue('');
@@ -182,7 +183,8 @@ export class ProductEditorComponent implements OnChanges {
 
   setPreferredSupplier(supplierId: string): void {
     this.form.controls.preferredSupplierId.setValue(supplierId);
-    // Ensure preferred supplier is also in active suppliers
+
+    // Automatically ensure preferred supplier is also in active suppliers
     const currentActive = this.form.value.activeSupplierIds || [];
     if (!currentActive.includes(supplierId)) {
       this.form.controls.activeSupplierIds.setValue([...currentActive, supplierId]);
