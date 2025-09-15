@@ -28,6 +28,25 @@ interface CreateProductResponse {
   // ... other fields as needed
 }
 
+// Interface for product-supplier assignment
+interface ProductSupplierAssignment {
+  productId: number;
+  supplierId: number;
+  minOrderQuantity: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
+// Interface for getting product suppliers
+interface ProductSupplierResponse {
+  productId: number;
+  supplierId: number;
+  supplierName: string;
+  minOrderQuantity: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -86,6 +105,140 @@ export class ProductService {
       );
   }
 
+  // GET PRODUCT SUPPLIERS - Fetch current supplier assignments for a product
+  getProductSuppliers(productId: string): Observable<ProductSupplierResponse[]> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of([]);
+    }
+
+    return this.httpClient
+      .get<ProductSupplierResponse[]>(`${this.baseUrl}/products/${numericId}/suppliers`)
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching product suppliers:', error);
+          return of([]);
+        })
+      );
+  }
+
+  // ASSIGN SUPPLIER TO PRODUCT - Create product-supplier relationship
+  assignSupplierToProduct(assignment: {
+    productId: string;
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }): Observable<boolean> {
+    const numericProductId = this.extractNumericId(assignment.productId);
+    const numericSupplierId = this.extractNumericId(assignment.supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', assignment);
+      return of(false);
+    }
+
+    const payload: ProductSupplierAssignment = {
+      productId: parseInt(numericProductId, 10),
+      supplierId: parseInt(numericSupplierId, 10),
+      minOrderQuantity: assignment.minOrderQuantity || 0.001,
+      isPreferred: assignment.isPreferred,
+      active: assignment.active,
+    };
+
+    return this.httpClient.post(`${this.baseUrl}/product-suppliers`, payload).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error assigning supplier to product:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // UPDATE PRODUCT-SUPPLIER RELATIONSHIP
+  updateProductSupplier(assignment: {
+    productId: string;
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }): Observable<boolean> {
+    const numericProductId = this.extractNumericId(assignment.productId);
+    const numericSupplierId = this.extractNumericId(assignment.supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', assignment);
+      return of(false);
+    }
+
+    const payload: ProductSupplierAssignment = {
+      productId: parseInt(numericProductId, 10),
+      supplierId: parseInt(numericSupplierId, 10),
+      minOrderQuantity: assignment.minOrderQuantity || 0.001,
+      isPreferred: assignment.isPreferred,
+      active: assignment.active,
+    };
+
+    return this.httpClient.put(`${this.baseUrl}/product-suppliers/${numericProductId}/${numericSupplierId}`, payload).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error updating product-supplier relationship:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // REMOVE SUPPLIER FROM PRODUCT
+  removeSupplierFromProduct(productId: string, supplierId: string): Observable<boolean> {
+    const numericProductId = this.extractNumericId(productId);
+    const numericSupplierId = this.extractNumericId(supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', productId, supplierId);
+      return of(false);
+    }
+
+    return this.httpClient.delete(`${this.baseUrl}/product-suppliers/${numericProductId}/${numericSupplierId}`).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error removing supplier from product:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // BULK ASSIGN SUPPLIERS - For saving multiple supplier assignments at once
+  bulkAssignSuppliersToProduct(productId: string, assignments: {
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }[]): Observable<{ success: string[], failed: string[] }> {
+    const assignmentRequests = assignments.map(assignment => 
+      this.assignSupplierToProduct({
+        productId,
+        ...assignment
+      }).pipe(
+        map(success => ({ supplierId: assignment.supplierId, success }))
+      )
+    );
+
+    return forkJoin(assignmentRequests).pipe(
+      map(results => ({
+        success: results.filter(r => r.success).map(r => r.supplierId),
+        failed: results.filter(r => !r.success).map(r => r.supplierId)
+      })),
+      catchError((error) => {
+        console.error('Error in bulk supplier assignment:', error);
+        return of({ 
+          success: [], 
+          failed: assignments.map(a => a.supplierId) 
+        });
+      })
+    );
+  }
+
   // CREATE PRODUCT - New method for creating products
   createProduct(product: Product): Observable<Product | null> {
     const payload: CreateProductPayload = {
@@ -111,8 +264,8 @@ export class ProductService {
           safetyStock: product.safetyStock || null,
           reorderPoint: product.reorderPoint || null,
           currentStock: 0, // New products start with 0 stock
-          preferredSupplierId: product.preferredSupplierId,
-          activeSupplierIds: product.activeSupplierIds || [],
+          preferredSupplierId: null, // Will be set after supplier assignment
+          activeSupplierIds: [], // Will be populated after supplier assignment
           status: 'ok' as ProductStatus,
           selected: false,
         };
@@ -286,6 +439,12 @@ export class ProductService {
     // Handle both formats: "ID-001" -> "1" (removes leading zeros)
     if (id.startsWith('ID-')) {
       const numPart = id.substring(3);
+      const numericValue = parseInt(numPart, 10);
+      return numericValue.toString();
+    }
+    // Handle supplier IDs: "SUP-001" -> "1"
+    if (id.startsWith('SUP-')) {
+      const numPart = id.substring(4);
       const numericValue = parseInt(numPart, 10);
       return numericValue.toString();
     }

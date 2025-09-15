@@ -15,7 +15,7 @@ export class ProductEditorComponent implements OnChanges {
   @Input() value: Product | null = null;
   @Input() suppliers: Supplier[] = [];
   @Input() isDeleting: boolean = false;
-  @Input() isSaving: boolean = false; // New input for save loading state
+  @Input() isSaving: boolean = false;
 
   /** Returns suppliers sorted: preferred first, then actives, then others */
   get sortedSuppliers(): Supplier[] {
@@ -162,6 +162,24 @@ export class ProductEditorComponent implements OnChanges {
 
   get canDelete(): boolean {
     return !this.isNewProduct && !!this.value?.id;
+  }
+
+  // Check if suppliers should be shown
+  get shouldShowSuppliers(): boolean {
+    // For new products, don't show suppliers until after creation
+    // For existing products, always show suppliers
+    return !this.isNewProduct && this.suppliers.length > 0;
+  }
+
+  // Get message for when suppliers are not shown
+  get supplierMessage(): string {
+    if (this.isNewProduct) {
+      return 'Suppliers can be assigned after creating the product.';
+    }
+    if (this.suppliers.length === 0) {
+      return 'No suppliers available.';
+    }
+    return '';
   }
 
   // Field validation helpers

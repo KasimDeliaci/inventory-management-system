@@ -9,6 +9,14 @@ import { Supplier } from '../../models/supplier.model';
 import { ProductService } from '../product.service';
 import { SupplierService } from '../supplier.service';
 
+// Interface for supplier assignment data
+interface SupplierAssignmentData {
+  supplierId: string;
+  minOrderQuantity?: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
 @Component({
   selector: 'app-product-page',
   standalone: true,
@@ -40,7 +48,7 @@ export class ProductPageComponent implements OnInit {
   detailsLoading = signal(false);
   deleting = signal(false);
   bulkDeleting = signal(false);
-  saving = signal(false); // New saving state
+  saving = signal(false);
 
   private selectionTick = signal(0);
   
@@ -121,7 +129,8 @@ export class ProductPageComponent implements OnInit {
 
   // Header event handlers
   onAddProduct() {
-    // Load suppliers when adding a new product
+    // For new products, only load suppliers but don't set them as assigned
+    // since we need the product to be created first
     const suppliersSubscription = this.supplierService.getSuppliers().subscribe({
       next: (suppliers) => {
         this.suppliers.set(suppliers);
@@ -279,7 +288,75 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
-  // Updated save handler with backend API calls
+  // Helper method to extract supplier assignments from product data
+  private extractSupplierAssignments(product: Product): SupplierAssignmentData[] {
+    const assignments: SupplierAssignmentData[] = [];
+    
+    // Add all active suppliers
+    if (product.activeSupplierIds && product.activeSupplierIds.length > 0) {
+      product.activeSupplierIds.forEach(supplierId => {
+        assignments.push({
+          supplierId,
+          minOrderQuantity: 0.001, // Default value
+          isPreferred: product.preferredSupplierId === supplierId,
+          active: true,
+        });
+      });
+    }
+    
+    return assignments;
+  }
+
+  // Helper method to save supplier assignments for a product
+  private saveSupplierAssignments(productId: string, supplierAssignments: SupplierAssignmentData[]) {
+    if (!productId || supplierAssignments.length === 0) {
+      return; // No assignments to save
+    }
+
+    const bulkAssignSubscription = this.productService.bulkAssignSuppliersToProduct(
+      productId, 
+      supplierAssignments
+    ).subscribe({
+      next: (result) => {
+        if (result.success.length > 0) {
+          console.log(`Successfully assigned ${result.success.length} supplier(s) to product ${productId}`);
+          
+          // Update the product in local state with new supplier assignments
+          this.all.update((list) => 
+            list.map((p) => {
+              if (p.id === productId) {
+                const activeSupplierIds = supplierAssignments
+                  .filter(a => a.active)
+                  .map(a => a.supplierId);
+                const preferredSupplierId = supplierAssignments
+                  .find(a => a.isPreferred)?.supplierId || null;
+                
+                return {
+                  ...p,
+                  activeSupplierIds,
+                  preferredSupplierId,
+                };
+              }
+              return p;
+            })
+          );
+        }
+        
+        if (result.failed.length > 0) {
+          console.warn(`Failed to assign ${result.failed.length} supplier(s) to product ${productId}`);
+        }
+      },
+      error: (err) => {
+        console.error('Error assigning suppliers to product:', err);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      bulkAssignSubscription.unsubscribe();
+    });
+  }
+
+  // Updated save handler with backend API calls and supplier assignment
   handleSave(updated: Product) {
     // Validate required fields
     if (!updated.name?.trim()) {
@@ -300,13 +377,20 @@ export class ProductPageComponent implements OnInit {
     const isNewProduct = !updated.id || !this.all().some((p) => p.id === updated.id);
     
     if (isNewProduct) {
-      // Create new product via API
+      // For new products, first create the product, then assign suppliers
       const createSubscription = this.productService.createProduct(updated).subscribe({
         next: (createdProduct) => {
           if (createdProduct) {
             // Add the new product to the beginning of the list
             this.all.update((list) => [createdProduct, ...list]);
             console.log('Product created successfully:', createdProduct);
+            
+            // Extract supplier assignments and save them
+            const supplierAssignments = this.extractSupplierAssignments(updated);
+            if (supplierAssignments.length > 0) {
+              this.saveSupplierAssignments(createdProduct.id, supplierAssignments);
+            }
+            
             this.closeEditor();
           } else {
             alert('Failed to create product. Please try again.');
@@ -324,7 +408,7 @@ export class ProductPageComponent implements OnInit {
         createSubscription.unsubscribe();
       });
     } else {
-      // Update existing product via API
+      // For existing products, update product and supplier assignments
       const updateSubscription = this.productService.updateProduct(updated).subscribe({
         next: (updatedProduct) => {
           if (updatedProduct) {
@@ -333,6 +417,13 @@ export class ProductPageComponent implements OnInit {
               list.map((p) => (p.id === updated.id ? { ...p, ...updatedProduct } : p))
             );
             console.log('Product updated successfully:', updatedProduct);
+            
+            // Handle supplier assignments for existing product
+            const supplierAssignments = this.extractSupplierAssignments(updated);
+            if (supplierAssignments.length > 0) {
+              this.saveSupplierAssignments(updated.id, supplierAssignments);
+            }
+            
             this.closeEditor();
           } else {
             alert('Failed to update product. Please try again.');
