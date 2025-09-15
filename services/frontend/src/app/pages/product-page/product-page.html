@@ -29,6 +29,8 @@
   *ngIf="editorOpen()"
   [value]="editing()"
   [suppliers]="suppliers()"
+  [isDeleting]="deleting()"
+  [isSaving]="saving()"
   (close)="closeEditor()"
   (save)="handleSave($event)"
   (delete)="handleDelete($event)">

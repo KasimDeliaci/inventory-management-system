@@ -1,3 +1,5 @@
+// Updated product-editor.scss with existing styles and new validation features
+
 :host { 
   position: fixed; 
   inset: 0; 
@@ -65,6 +67,12 @@
   padding: 8px;
   display: grid; 
   gap: 6px;
+  
+  // Error state for validation
+  &.error {
+    border-color: #d64545;
+    background: #f8e6e6;
+  }
 }
 
 .box.big { 
@@ -74,7 +82,15 @@
 .label { 
   font-weight: 700; 
   color: #163a5a; 
-  font-size: 14px; 
+  font-size: 14px;
+  position: relative;
+  
+  // Required field indicator for error states
+  .box.error &:after {
+    content: ' *';
+    color: #d64545;
+    font-weight: bold;
+  }
 }
 
 .input { 
@@ -82,7 +98,27 @@
   border: 0; 
   outline: none; 
   background: transparent; 
-  font-size: 16px; 
+  font-size: 16px;
+  
+  // Error styling
+  &.error {
+    color: #d64545;
+  }
+  
+  // Placeholder styling
+  &::placeholder {
+    color: #888;
+    opacity: 1;
+  }
+  
+  // Focus states
+  &:focus {
+    outline: none;
+  }
+  
+  &:focus.error {
+    background: rgba(214, 69, 69, 0.05);
+  }
 }
 
 .textarea { 
@@ -93,7 +129,27 @@
   outline: none; 
   background: transparent; 
   font-size: 16px; 
-  line-height: 1.4; 
+  line-height: 1.4;
+  
+  // Error styling
+  &.error {
+    color: #d64545;
+  }
+  
+  // Placeholder styling
+  &::placeholder {
+    color: #888;
+    opacity: 1;
+  }
+  
+  // Focus states
+  &:focus {
+    outline: none;
+  }
+  
+  &:focus.error {
+    background: rgba(214, 69, 69, 0.05);
+  }
 }
 
 /* Right column of small boxes */
@@ -236,6 +292,12 @@
   cursor: pointer;
   margin: 0;
   accent-color: #163a5a;
+  
+  // Disabled state
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 /* Actions */
@@ -253,27 +315,160 @@
   font-weight: 700; 
   cursor: pointer; 
   transition: all 0.2s ease;
+  
+  &:disabled { 
+    opacity: .6; 
+    cursor: not-allowed;
+    animation: button-loading 1.5s ease-in-out infinite;
+  }
 }
 
 .btn.primary { 
   background: #123a8a; 
-  color: #fff; 
-}
-
-.btn.primary:hover {
-  background: #0f2f75;
+  color: #fff;
+  
+  &:hover:not(:disabled) {
+    background: #0f2f75;
+  }
 }
 
 .btn.danger { 
   background: #8e1c28; 
-  color: #fff; 
+  color: #fff;
+  
+  &:hover:not(:disabled) {
+    background: #7a1822;
+  }
 }
 
-.btn.danger:hover {
-  background: #7a1822;
+/* New validation and helper styles */
+.error-text {
+  color: #d64545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-weight: 600;
 }
 
-.btn:disabled { 
-  opacity: .6; 
-  cursor: not-allowed; 
+.help-text {
+  color: #666;
+  font-size: 11px;
+  margin-top: 4px;
+  display: block;
+  font-style: italic;
 }
+
+/* Validation summary */
+.validation-summary {
+  background: #f8e6e6;
+  border: 2px solid #d64545;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 16px;
+  
+  .error-text {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+/* No suppliers state */
+.no-suppliers {
+  text-align: center;
+  padding: 32px;
+  color: #666;
+  font-style: italic;
+  background: #f5f5f5;
+  border-radius: 4px;
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+/* Button loading animation */
+@keyframes button-loading {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .validation-summary {
+    font-size: 13px;
+    padding: 10px;
+  }
+  
+  .error-text, .help-text {
+    font-size: 11px;
+  }
+  
+  .modal {
+    padding: 16px;
+  }
+  
+  .actions {
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+  .no-suppliers {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    border: 2px dashed #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
+  }
+  
+  .info-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #6b7280;
+    text-align: center;
+  }
+  
+  .info-message svg {
+    color: #9ca3af;
+  }
+  
+  .info-message p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  .inactive-supplier {
+    opacity: 0.6;
+    background-color: #f9fafb;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-left: 8px;
+    text-transform: uppercase;
+  }
+  
+  .status-badge.inactive {
+    background-color: #fee2e2;
+    color: #dc2626;
+  }
+  
+  .status-badge.preferred {
+    background-color: #dbeafe;
+    color: #2563eb;
+  }

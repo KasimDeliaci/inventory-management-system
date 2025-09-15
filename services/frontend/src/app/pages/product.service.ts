@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map, catchError, of } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of, switchMap } from 'rxjs';
 import { Product, ProductStatus } from '../models/product.model';
 import {
   BackendProduct,
@@ -8,6 +8,44 @@ import {
   BackendDetailedProduct,
   BackendProductStock,
 } from '../models/backend.model';
+
+// Interface for create/update product payload
+interface CreateProductPayload {
+  productName: string;
+  description?: string;
+  category: string;
+  unitOfMeasure: string;
+  safetyStock?: number;
+  reorderPoint?: number;
+  currentPrice?: number;
+}
+
+// Interface for the backend response when creating a product
+interface CreateProductResponse {
+  productId: number;
+  productName: string;
+  category: string;
+  // ... other fields as needed
+}
+
+// Interface for product-supplier assignment
+interface ProductSupplierAssignment {
+  productId: number;
+  supplierId: number;
+  minOrderQuantity: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
+// Interface for getting product suppliers
+interface ProductSupplierResponse {
+  productId: number;
+  supplierId: number;
+  supplierName: string;
+  minOrderQuantity: number;
+  isPreferred: boolean;
+  active: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -65,6 +103,250 @@ export class ProductService {
           return of(null);
         })
       );
+  }
+
+  // GET PRODUCT SUPPLIERS - Fetch current supplier assignments for a product
+  getProductSuppliers(productId: string): Observable<ProductSupplierResponse[]> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of([]);
+    }
+
+    return this.httpClient
+      .get<ProductSupplierResponse[]>(`${this.baseUrl}/products/${numericId}/suppliers`)
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching product suppliers:', error);
+          return of([]);
+        })
+      );
+  }
+
+  // ASSIGN SUPPLIER TO PRODUCT - Create product-supplier relationship
+  assignSupplierToProduct(assignment: {
+    productId: string;
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }): Observable<boolean> {
+    const numericProductId = this.extractNumericId(assignment.productId);
+    const numericSupplierId = this.extractNumericId(assignment.supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', assignment);
+      return of(false);
+    }
+
+    const payload: ProductSupplierAssignment = {
+      productId: parseInt(numericProductId, 10),
+      supplierId: parseInt(numericSupplierId, 10),
+      minOrderQuantity: assignment.minOrderQuantity || 0.001,
+      isPreferred: assignment.isPreferred,
+      active: assignment.active,
+    };
+
+    return this.httpClient.post(`${this.baseUrl}/product-suppliers`, payload).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error assigning supplier to product:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // UPDATE PRODUCT-SUPPLIER RELATIONSHIP
+  updateProductSupplier(assignment: {
+    productId: string;
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }): Observable<boolean> {
+    const numericProductId = this.extractNumericId(assignment.productId);
+    const numericSupplierId = this.extractNumericId(assignment.supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', assignment);
+      return of(false);
+    }
+
+    const payload: ProductSupplierAssignment = {
+      productId: parseInt(numericProductId, 10),
+      supplierId: parseInt(numericSupplierId, 10),
+      minOrderQuantity: assignment.minOrderQuantity || 0.001,
+      isPreferred: assignment.isPreferred,
+      active: assignment.active,
+    };
+
+    return this.httpClient.put(`${this.baseUrl}/product-suppliers/${numericProductId}/${numericSupplierId}`, payload).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error updating product-supplier relationship:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // REMOVE SUPPLIER FROM PRODUCT
+  removeSupplierFromProduct(productId: string, supplierId: string): Observable<boolean> {
+    const numericProductId = this.extractNumericId(productId);
+    const numericSupplierId = this.extractNumericId(supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', productId, supplierId);
+      return of(false);
+    }
+
+    return this.httpClient.delete(`${this.baseUrl}/product-suppliers/${numericProductId}/${numericSupplierId}`).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error removing supplier from product:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // BULK ASSIGN SUPPLIERS - For saving multiple supplier assignments at once
+  bulkAssignSuppliersToProduct(productId: string, assignments: {
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }[]): Observable<{ success: string[], failed: string[] }> {
+    const assignmentRequests = assignments.map(assignment => 
+      this.assignSupplierToProduct({
+        productId,
+        ...assignment
+      }).pipe(
+        map(success => ({ supplierId: assignment.supplierId, success }))
+      )
+    );
+
+    return forkJoin(assignmentRequests).pipe(
+      map(results => ({
+        success: results.filter(r => r.success).map(r => r.supplierId),
+        failed: results.filter(r => !r.success).map(r => r.supplierId)
+      })),
+      catchError((error) => {
+        console.error('Error in bulk supplier assignment:', error);
+        return of({ 
+          success: [], 
+          failed: assignments.map(a => a.supplierId) 
+        });
+      })
+    );
+  }
+
+  // CREATE PRODUCT - New method for creating products
+  createProduct(product: Product): Observable<Product | null> {
+    const payload: CreateProductPayload = {
+      productName: product.name,
+      description: product.description || undefined,
+      category: product.category,
+      unitOfMeasure: product.unit,
+      safetyStock: product.safetyStock || undefined,
+      reorderPoint: product.reorderPoint || undefined,
+      currentPrice: product.price || undefined,
+    };
+
+    return this.httpClient.post<CreateProductResponse>(`${this.baseUrl}/products`, payload).pipe(
+      map((response) => {
+        // Transform the response back to our Product model
+        const createdProduct: Product = {
+          id: `ID-${response.productId.toString().padStart(3, '0')}`,
+          name: response.productName,
+          category: product.category,
+          unit: product.unit,
+          description: product.description || null,
+          price: product.price || null,
+          safetyStock: product.safetyStock || null,
+          reorderPoint: product.reorderPoint || null,
+          currentStock: 0, // New products start with 0 stock
+          preferredSupplierId: null, // Will be set after supplier assignment
+          activeSupplierIds: [], // Will be populated after supplier assignment
+          status: 'ok' as ProductStatus,
+          selected: false,
+        };
+        return createdProduct;
+      }),
+      catchError((error) => {
+        console.error('Error creating product:', error);
+        return of(null);
+      })
+    );
+  }
+
+  // UPDATE PRODUCT - New method for updating existing products
+  updateProduct(product: Product): Observable<Product | null> {
+    const numericId = this.extractNumericId(product.id);
+    if (!numericId) {
+      console.error('Invalid product ID format:', product.id);
+      return of(null);
+    }
+
+    const payload: CreateProductPayload = {
+      productName: product.name,
+      description: product.description || undefined,
+      category: product.category,
+      unitOfMeasure: product.unit,
+      safetyStock: product.safetyStock || undefined,
+      reorderPoint: product.reorderPoint || undefined,
+      currentPrice: product.price || undefined,
+    };
+
+    return this.httpClient.put<CreateProductResponse>(`${this.baseUrl}/products/${numericId}`, payload).pipe(
+      map((response) => {
+        // Return the updated product with preserved local data
+        return {
+          ...product,
+          name: response.productName,
+          // Keep other fields as they were in the form
+        };
+      }),
+      catchError((error) => {
+        console.error('Error updating product:', error);
+        return of(null);
+      })
+    );
+  }
+
+  // DELETE PRODUCT - Existing method for backend deletion
+  deleteProduct(productId: string): Observable<boolean> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of(false);
+    }
+
+    return this.httpClient.delete(`${this.baseUrl}/products/${numericId}`).pipe(
+      map(() => true), // Success - return true
+      catchError((error) => {
+        console.error('Error deleting product:', error);
+        return of(false); // Failure - return false
+      })
+    );
+  }
+
+  // DELETE MULTIPLE PRODUCTS - For bulk deletion
+  deleteMultipleProducts(productIds: string[]): Observable<{ success: string[], failed: string[] }> {
+    const deleteRequests = productIds.map(id => 
+      this.deleteProduct(id).pipe(
+        map(success => ({ id, success }))
+      )
+    );
+
+    return forkJoin(deleteRequests).pipe(
+      map(results => ({
+        success: results.filter(r => r.success).map(r => r.id),
+        failed: results.filter(r => !r.success).map(r => r.id)
+      })),
+      catchError((error) => {
+        console.error('Error in bulk delete operation:', error);
+        return of({ success: [], failed: productIds });
+      })
+    );
   }
 
   private transformBackendProducts(backendProducts: BackendProduct[]): Product[] {
@@ -157,6 +439,12 @@ export class ProductService {
     // Handle both formats: "ID-001" -> "1" (removes leading zeros)
     if (id.startsWith('ID-')) {
       const numPart = id.substring(3);
+      const numericValue = parseInt(numPart, 10);
+      return numericValue.toString();
+    }
+    // Handle supplier IDs: "SUP-001" -> "1"
+    if (id.startsWith('SUP-')) {
+      const numPart = id.substring(4);
       const numericValue = parseInt(numPart, 10);
       return numericValue.toString();
     }

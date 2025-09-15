@@ -9,6 +9,14 @@ import { Supplier } from '../../models/supplier.model';
 import { ProductService } from '../product.service';
 import { SupplierService } from '../supplier.service';
 
+// Interface for supplier assignment data
+interface SupplierAssignmentData {
+  supplierId: string;
+  minOrderQuantity?: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
 @Component({
   selector: 'app-product-page',
   standalone: true,
@@ -35,9 +43,12 @@ export class ProductPageComponent implements OnInit {
   filterOpen = signal(false);
   statusFilter = signal<ProductStatus | 'all'>('all');
   
-  // Loading state
+  // Loading states
   loading = signal(false);
   detailsLoading = signal(false);
+  deleting = signal(false);
+  bulkDeleting = signal(false);
+  saving = signal(false);
 
   private selectionTick = signal(0);
   
@@ -118,13 +129,32 @@ export class ProductPageComponent implements OnInit {
 
   // Header event handlers
   onAddProduct() {
+    // For new products, only load suppliers but don't set them as assigned
+    // since we need the product to be created first
+    const suppliersSubscription = this.supplierService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        this.suppliers.set(suppliers);
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      suppliersSubscription.unsubscribe();
+    });
+
     this.editing.set({
       id: '',
       name: '',
       category: '',
       unit: '',
+      description: null,
+      price: null,
+      safetyStock: null,
+      reorderPoint: null,
       currentStock: 0,
-      preferredSupplierId: '',
+      preferredSupplierId: null,
       activeSupplierIds: [],
       status: 'ok',
       selected: false,
@@ -145,15 +175,51 @@ export class ProductPageComponent implements OnInit {
     this.query.set('');
   }
 
+  // Updated bulk delete method with backend API call
   deleteSelected() {
-    const count = this.selectedCount();
+    const selectedProducts = this.all().filter(p => p.selected);
+    const count = selectedProducts.length;
+    
     if (count === 0) return;
     
     const message = `Delete ${count} selected product${count > 1 ? 's' : ''}?`;
     if (!confirm(message)) return;
     
-    this.all.update((list) => list.filter((p) => !p.selected));
-    this.bumpSelection();
+    this.bulkDeleting.set(true);
+    const productIds = selectedProducts.map(p => p.id);
+    
+    const deleteSubscription = this.productService.deleteMultipleProducts(productIds).subscribe({
+      next: (result) => {
+        if (result.success.length > 0) {
+          // Remove successfully deleted products from local state
+          this.all.update((list) => 
+            list.filter((p) => !result.success.includes(p.id))
+          );
+          this.bumpSelection();
+          
+          if (result.success.length === count) {
+            console.log(`Successfully deleted ${result.success.length} product(s)`);
+          } else {
+            console.log(`Deleted ${result.success.length} of ${count} products`);
+            if (result.failed.length > 0) {
+              alert(`Failed to delete ${result.failed.length} product(s). Please try again.`);
+            }
+          }
+        } else {
+          alert('Failed to delete selected products. Please try again.');
+        }
+        this.bulkDeleting.set(false);
+      },
+      error: (err) => {
+        console.error('Error during bulk delete:', err);
+        alert('An error occurred while deleting products. Please try again.');
+        this.bulkDeleting.set(false);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      deleteSubscription.unsubscribe();
+    });
   }
 
   openEditorFor(product: Product) {
@@ -222,36 +288,208 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
-  // Editor event handlers
-  handleSave(updated: Product) {
-    if (updated.id && this.all().some((p) => p.id === updated.id)) {
-      // Update existing product
-      this.all.update((list) => 
-        list.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
-      );
-    } else {
-      // Add new product
-      const id = updated.id?.trim() || `ID-${String(this.all().length + 1).padStart(3, '0')}`;
-      this.all.update((list) => [{ ...updated, id, selected: false }, ...list]);
+  // Helper method to extract supplier assignments from product data
+  private extractSupplierAssignments(product: Product): SupplierAssignmentData[] {
+    const assignments: SupplierAssignmentData[] = [];
+    
+    // Add all active suppliers
+    if (product.activeSupplierIds && product.activeSupplierIds.length > 0) {
+      product.activeSupplierIds.forEach(supplierId => {
+        assignments.push({
+          supplierId,
+          minOrderQuantity: 0.001, // Default value
+          isPreferred: product.preferredSupplierId === supplierId,
+          active: true,
+        });
+      });
     }
-    this.closeEditor();
+    
+    return assignments;
   }
 
-  handleDelete(id: string) {
-    if (confirm('Are you sure you want to delete this product?')) {
-      this.all.update((list) => list.filter((p) => p.id !== id));
-      this.closeEditor();
+  // Helper method to save supplier assignments for a product
+  private saveSupplierAssignments(productId: string, supplierAssignments: SupplierAssignmentData[]) {
+    if (!productId || supplierAssignments.length === 0) {
+      return; // No assignments to save
     }
+
+    const bulkAssignSubscription = this.productService.bulkAssignSuppliersToProduct(
+      productId, 
+      supplierAssignments
+    ).subscribe({
+      next: (result) => {
+        if (result.success.length > 0) {
+          console.log(`Successfully assigned ${result.success.length} supplier(s) to product ${productId}`);
+          
+          // Update the product in local state with new supplier assignments
+          this.all.update((list) => 
+            list.map((p) => {
+              if (p.id === productId) {
+                const activeSupplierIds = supplierAssignments
+                  .filter(a => a.active)
+                  .map(a => a.supplierId);
+                const preferredSupplierId = supplierAssignments
+                  .find(a => a.isPreferred)?.supplierId || null;
+                
+                return {
+                  ...p,
+                  activeSupplierIds,
+                  preferredSupplierId,
+                };
+              }
+              return p;
+            })
+          );
+        }
+        
+        if (result.failed.length > 0) {
+          console.warn(`Failed to assign ${result.failed.length} supplier(s) to product ${productId}`);
+        }
+      },
+      error: (err) => {
+        console.error('Error assigning suppliers to product:', err);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      bulkAssignSubscription.unsubscribe();
+    });
+  }
+
+  // Updated save handler with backend API calls and supplier assignment
+  handleSave(updated: Product) {
+    // Validate required fields
+    if (!updated.name?.trim()) {
+      alert('Product name is required.');
+      return;
+    }
+    if (!updated.category?.trim()) {
+      alert('Category is required.');
+      return;
+    }
+    if (!updated.unit?.trim()) {
+      alert('Unit of measure is required.');
+      return;
+    }
+
+    this.saving.set(true);
+    
+    const isNewProduct = !updated.id || !this.all().some((p) => p.id === updated.id);
+    
+    if (isNewProduct) {
+      // For new products, first create the product, then assign suppliers
+      const createSubscription = this.productService.createProduct(updated).subscribe({
+        next: (createdProduct) => {
+          if (createdProduct) {
+            // Add the new product to the beginning of the list
+            this.all.update((list) => [createdProduct, ...list]);
+            console.log('Product created successfully:', createdProduct);
+            
+            // Extract supplier assignments and save them
+            const supplierAssignments = this.extractSupplierAssignments(updated);
+            if (supplierAssignments.length > 0) {
+              this.saveSupplierAssignments(createdProduct.id, supplierAssignments);
+            }
+            
+            this.closeEditor();
+          } else {
+            alert('Failed to create product. Please try again.');
+          }
+          this.saving.set(false);
+        },
+        error: (err) => {
+          console.error('Error creating product:', err);
+          alert('An error occurred while creating the product. Please try again.');
+          this.saving.set(false);
+        },
+      });
+
+      this.destroyRef.onDestroy(() => {
+        createSubscription.unsubscribe();
+      });
+    } else {
+      // For existing products, update product and supplier assignments
+      const updateSubscription = this.productService.updateProduct(updated).subscribe({
+        next: (updatedProduct) => {
+          if (updatedProduct) {
+            // Update the product in the local list
+            this.all.update((list) => 
+              list.map((p) => (p.id === updated.id ? { ...p, ...updatedProduct } : p))
+            );
+            console.log('Product updated successfully:', updatedProduct);
+            
+            // Handle supplier assignments for existing product
+            const supplierAssignments = this.extractSupplierAssignments(updated);
+            if (supplierAssignments.length > 0) {
+              this.saveSupplierAssignments(updated.id, supplierAssignments);
+            }
+            
+            this.closeEditor();
+          } else {
+            alert('Failed to update product. Please try again.');
+          }
+          this.saving.set(false);
+        },
+        error: (err) => {
+          console.error('Error updating product:', err);
+          alert('An error occurred while updating the product. Please try again.');
+          this.saving.set(false);
+        },
+      });
+
+      this.destroyRef.onDestroy(() => {
+        updateSubscription.unsubscribe();
+      });
+    }
+  }
+
+  // Updated delete method with backend API call
+  handleDelete(id: string) {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
+    
+    this.deleting.set(true);
+    
+    const deleteSubscription = this.productService.deleteProduct(id).subscribe({
+      next: (success) => {
+        if (success) {
+          // Remove from local state only if backend deletion was successful
+          this.all.update((list) => list.filter((p) => p.id !== id));
+          this.closeEditor();
+          console.log(`Product ${id} deleted successfully`);
+        } else {
+          alert('Failed to delete product. Please try again.');
+        }
+        this.deleting.set(false);
+      },
+      error: (err) => {
+        console.error('Error deleting product:', err);
+        alert('An error occurred while deleting the product. Please try again.');
+        this.deleting.set(false);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      deleteSubscription.unsubscribe();
+    });
   }
 
   closeEditor() {
     this.editorOpen.set(false);
     this.editing.set(null);
     this.detailsLoading.set(false);
+    this.deleting.set(false);
+    this.saving.set(false);
   }
 
   // Refresh data method
   refreshData() {
     this.loadData();
+  }
+
+  // Getter for template to check if any operation is in progress
+  get isOperationInProgress(): boolean {
+    return this.deleting() || this.bulkDeleting() || this.saving();
   }
 }
