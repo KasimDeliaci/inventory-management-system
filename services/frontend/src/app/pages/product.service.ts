@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map, catchError, of } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of, switchMap } from 'rxjs';
 import { Product, ProductStatus } from '../models/product.model';
 import {
   BackendProduct,
