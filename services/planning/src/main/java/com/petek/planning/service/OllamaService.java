@@ -14,7 +14,7 @@ public class OllamaService {
 
     private final OllamaChatModel chatModel;
 
-    public String callOllama(String products, String forecasts) {
+    public String callOllama(String product, String suppliers, String forecasts) {
         String prompt = """
         ## System Prompt
 
@@ -74,9 +74,10 @@ public class OllamaService {
         ## User Prompt
 
         Facts JSON:
-        Products: %s
+        Product: %s
+        Suppliers: %s
         Forecasts: %s
-        """.formatted(products, forecasts);
+        """.formatted(product, suppliers, forecasts);
 
         ChatResponse response = chatModel.call(
             new Prompt(

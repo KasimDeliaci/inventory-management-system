@@ -28,6 +28,6 @@ public class PlanRequest {
     @Builder.Default
     private String horizonDays = "7";
 
-    @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Model name can only contain letters, numbers, underscores, and hyphens")
-    private String model;
+    @Builder.Default
+    private String model = "gemma3:4b";
 }

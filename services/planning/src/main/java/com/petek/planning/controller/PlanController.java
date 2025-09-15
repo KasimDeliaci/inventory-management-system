@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.petek.planning.dto.PlanRequest;
+import com.petek.planning.dto.PlanResponse;
 import com.petek.planning.service.PlanService;
 
 import jakarta.validation.Valid;
@@ -23,7 +24,7 @@ public class PlanController {
      * Get ollama output
      */
     @GetMapping
-    public ResponseEntity<String> getOllamaOutput(
+    public ResponseEntity<PlanResponse> getOllamaOutput(
         @ModelAttribute @Valid PlanRequest request
     ) {
         return ResponseEntity.ok(service.getAiOutput(request));
