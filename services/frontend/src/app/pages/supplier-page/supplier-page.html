@@ -16,6 +16,16 @@
       (clearSearch)="onClear()"
     />
 
+    <!-- Loading indicator -->
+    <div *ngIf="loading()" class="loading-message">
+      Loading suppliers...
+    </div>
+    
+    <!-- Deletion indicator -->
+    <div *ngIf="deleting()" class="deleting-message">
+      Deleting suppliers...
+    </div>
+
     <app-supplier-listing
       [suppliers]="suppliers()"
       (edit)="openEditorFor($event)"
@@ -28,6 +38,7 @@
   *ngIf="editorOpen()"
   [value]="editing()"
   [associatedProducts]="editing() ? getSupplierProducts(editing()!.id) : []"
+  [deleting]="deleting()"
   (close)="closeEditor()"
   (save)="handleSave($event)"
   (delete)="handleDelete($event)">

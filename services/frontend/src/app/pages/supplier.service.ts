@@ -21,6 +21,60 @@ export class SupplierService {
     );
   }
 
+  deleteSupplier(id: string): Observable<void> {
+    const numericId = this.extractNumericId(id);
+    if (!numericId) {
+      console.error('Invalid supplier ID format:', id);
+      return of(void 0);
+    }
+
+    return this.httpClient.delete<void>(`${this.baseUrl}/suppliers/${numericId}`).pipe(
+      catchError((error) => {
+        console.error('Error deleting supplier:', error);
+        throw error; // Re-throw so caller can handle
+      })
+    );
+  }
+
+  deleteMultipleSuppliers(ids: string[]): Observable<void[]> {
+    const deleteRequests = ids.map(id => this.deleteSupplier(id));
+    return this.httpClient.request('POST', `${this.baseUrl}/suppliers/batch-delete`, {
+      body: { supplierIds: ids.map(id => this.extractNumericId(id)).filter(Boolean) }
+    }).pipe(
+      map(() => []), // Return empty array on success
+      catchError((error) => {
+        console.error('Batch delete not supported, falling back to individual deletes');
+        // Fallback to individual delete requests
+        return this.executeSequentialDeletes(ids);
+      })
+    );
+  }
+
+  private executeSequentialDeletes(ids: string[]): Observable<void[]> {
+    return new Observable(observer => {
+      const results: void[] = [];
+      let completed = 0;
+      let hasError = false;
+
+      ids.forEach((id, index) => {
+        this.deleteSupplier(id).subscribe({
+          next: () => {
+            results[index] = void 0;
+            completed++;
+            if (completed === ids.length && !hasError) {
+              observer.next(results);
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            hasError = true;
+            observer.error(error);
+          }
+        });
+      });
+    });
+  }
+
   private transformBackendSuppliers(backendSuppliers: any[]): Supplier[] {
     return backendSuppliers.map((backendSupplier) => ({
       id: `SUP-${backendSupplier.supplierId.toString().padStart(3, '0')}`,

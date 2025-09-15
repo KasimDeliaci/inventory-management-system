@@ -36,6 +36,7 @@ export class SupplierPageComponent implements OnInit {
   
   // Loading state
   loading = signal(false);
+  deleting = signal(false); // Add deletion loading state
 
   private selectionTick = signal(0);
   
@@ -168,8 +169,25 @@ export class SupplierPageComponent implements OnInit {
       if (!confirm(warning)) return;
     }
     
-    this.all.update((list) => list.filter((s) => !s.selected));
-    this.bumpSelection();
+    this.deleting.set(true);
+    
+    // Perform HTTP deletion
+    const deleteSubscription = this.supplierService.deleteMultipleSuppliers(deletingIds).subscribe({
+      next: () => {
+        console.log('Successfully deleted suppliers from backend');
+        // Remove from local state only after successful backend deletion
+        this.all.update((list) => list.filter((s) => !s.selected));
+        this.bumpSelection();
+        this.deleting.set(false);
+      },
+      error: (error) => {
+        console.error('Error deleting suppliers:', error);
+        alert('Failed to delete suppliers. Please try again.');
+        this.deleting.set(false);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => deleteSubscription.unsubscribe());
   }
 
   openEditorFor(supplier: Supplier) {
@@ -272,9 +290,26 @@ export class SupplierPageComponent implements OnInit {
       if (!confirm('Are you sure you want to delete this supplier?')) return;
     }
     
-    this.all.update((list) => list.filter((s) => s.id !== id));
-    this.closeEditor();
-    console.log('Supplier deleted, remaining suppliers:', this.all());
+    this.deleting.set(true);
+    
+    // Perform HTTP deletion
+    const deleteSubscription = this.supplierService.deleteSupplier(id).subscribe({
+      next: () => {
+        console.log('Successfully deleted supplier from backend');
+        // Remove from local state only after successful backend deletion
+        this.all.update((list) => list.filter((s) => s.id !== id));
+        this.closeEditor();
+        this.deleting.set(false);
+        console.log('Supplier deleted, remaining suppliers:', this.all());
+      },
+      error: (error) => {
+        console.error('Error deleting supplier:', error);
+        alert('Failed to delete supplier. Please try again.');
+        this.deleting.set(false);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => deleteSubscription.unsubscribe());
   }
 
   closeEditor() {

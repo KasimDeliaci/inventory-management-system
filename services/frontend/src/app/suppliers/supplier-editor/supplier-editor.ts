@@ -14,6 +14,7 @@ import { Product } from '../../models/product.model';
 export class SupplierEditor implements OnChanges {
   @Input() value: Supplier | null = null;
   @Input() associatedProducts: Product[] = [];
+  @Input() deleting = false; // Add deleting state input
 
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<Supplier>();
@@ -99,7 +100,7 @@ export class SupplierEditor implements OnChanges {
   }
 
   onDelete() {
-    if (this.value?.id) {
+    if (this.value?.id && !this.deleting) {
       this.delete.emit(this.value.id);
     }
   }
