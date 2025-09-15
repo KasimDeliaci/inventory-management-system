@@ -3,39 +3,40 @@ package com.petek.planning.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petek.planning.dto.ForecastRequest;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class WebClientService {
     
-    private final WebClient webClient;
+    private final RestTemplate restTemplate;
+    
+    public WebClientService() {
+        this.restTemplate = new RestTemplate();
+    }
 
     public String getProduct(Long productId) {
-        return webClient.get()
-            .uri("http://localhost:8000/api/v1/products/" + productId)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
+        return restTemplate.getForObject(
+            "http://localhost:8000/api/v1/products/" + productId, 
+            String.class
+        );
     }
 
     public String getSuppliers(Long productId) {
-        return webClient.get()
-            .uri("http://localhost:8000/api/v1/products/" + productId + "/suppliers")
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
+        return restTemplate.getForObject(
+            "http://localhost:8000/api/v1/products/" + productId + "/suppliers", 
+            String.class
+        );
     }
 
-    public String getForecasts(Long productId, int horizonDays, LocalDate asOfDate) {
+    public String getForecasts(Integer productId, int horizonDays, LocalDate asOfDate) {
         ForecastRequest request = ForecastRequest.builder()
             .productIds(List.of(productId))
             .horizonDays(horizonDays)
@@ -43,18 +44,22 @@ public class WebClientService {
             .returnDaily(true)
             .build();
 
-        ObjectMapper mapper = new ObjectMapper();
+        // Set up headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 
-        try {System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));} 
-        catch (Exception exception) {}
+        // Create HTTP entity with request body and headers
+        HttpEntity<ForecastRequest> entity = new HttpEntity<>(request, headers);
 
-        return webClient.post()
-            .uri("http://localhost:8100/forecast")
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
+        // Make the POST request
+        ResponseEntity<String> response = restTemplate.postForEntity(
+            "http://localhost:8100/forecast",
+            entity,
+            String.class
+        );
+
+        return response.getBody();
     }
 
 }

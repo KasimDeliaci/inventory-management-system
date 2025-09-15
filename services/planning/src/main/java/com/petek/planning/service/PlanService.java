@@ -29,7 +29,7 @@ public class PlanService {
         // System.out.println();
         // System.out.println(webClientService.getSuppliers(request.getProductId()));
         // System.out.println();
-        System.out.println(webClientService.getForecasts(request.getProductId(), Integer.parseInt(request.getHorizonDays()), request.getAsOfDate()));
+        System.out.println(webClientService.getForecasts(request.getProductId().intValue(), Integer.parseInt(request.getHorizonDays()), request.getAsOfDate()));
         // DB
 
         return ollamaService.callOllama(products, forecasts);

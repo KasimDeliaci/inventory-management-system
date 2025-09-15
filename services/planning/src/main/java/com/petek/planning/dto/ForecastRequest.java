@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ForecastRequest {
-    private List<Long> productIds;
+    private List<Integer> productIds;
     private Integer horizonDays;
     private String asOfDate;
     private Boolean returnDaily;

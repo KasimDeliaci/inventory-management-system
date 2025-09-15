@@ -83,3 +83,4 @@ class ForecastRunDetail(BaseModel):
     requestedAt: datetime = Field(description="Computation time of the run", example="2025-09-13T09:00:00Z")
     modelVersion: Optional[str] = Field(default=None, description="Model version label used", example="xgb_three-20250913125620")
     items: List[ForecastHistoryItem] = Field(description="Daily forecast items for the selected product and run")
+        
