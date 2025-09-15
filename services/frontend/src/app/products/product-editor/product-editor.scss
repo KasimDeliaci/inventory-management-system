@@ -48,7 +48,7 @@
 
 /* Reserve space for the sidebar (260px + padding) so left-side blocks align */
 .row1,
-.box.big,
+.description-chart-row,
 .supplier { 
   width: calc(100% - 300px); 
 }
@@ -58,6 +58,33 @@
   display: grid; 
   grid-template-columns: 1fr 1fr; 
   gap: 20px; 
+}
+
+/* Description and Chart Row - NEW LAYOUT */
+.description-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  
+  .description-box {
+    height: 200px;
+    
+    .textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+  }
+  
+  .chart-box {
+    height: 215px;
+    padding: 0; /* Remove padding since chart component has its own */
+    
+    app-sales-chart {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+  }
 }
 
 .box {
@@ -167,8 +194,22 @@
     position: static; 
     width: 100%; 
   }
-  .row1, .box.big, .supplier { 
+  .row1, .description-chart-row, .supplier { 
     width: 100%; 
+  }
+  
+  /* Stack description and chart vertically on smaller screens */
+  .description-chart-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    
+    .description-box {
+      height: 120px;
+    }
+    
+    .chart-box {
+      height: 180px;
+    }
   }
 }
 
@@ -417,58 +458,71 @@
       width: 100%;
     }
   }
+  
+  /* Further mobile adjustments for description-chart */
+  .description-chart-row {
+    gap: 12px;
+    
+    .description-box {
+      height: 100px;
+    }
+    
+    .chart-box {
+      height: 160px;
+    }
+  }
 }
 
-  .no-suppliers {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 120px;
-    border: 2px dashed #e5e7eb;
-    border-radius: 8px;
-    background-color: #f9fafb;
-  }
-  
-  .info-message {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    color: #6b7280;
-    text-align: center;
-  }
-  
-  .info-message svg {
-    color: #9ca3af;
-  }
-  
-  .info-message p {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.4;
-  }
-  
-  .inactive-supplier {
-    opacity: 0.6;
-    background-color: #f9fafb;
-  }
-  
-  .status-badge {
-    display: inline-block;
-    padding: 2px 6px;
-    font-size: 10px;
-    font-weight: bold;
-    border-radius: 4px;
-    margin-left: 8px;
-    text-transform: uppercase;
-  }
-  
-  .status-badge.inactive {
-    background-color: #fee2e2;
-    color: #dc2626;
-  }
-  
-  .status-badge.preferred {
-    background-color: #dbeafe;
-    color: #2563eb;
-  }
+.no-suppliers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: 2px dashed #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.info-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.info-message svg {
+  color: #9ca3af;
+}
+
+.info-message p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.inactive-supplier {
+  opacity: 0.6;
+  background-color: #f9fafb;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-left: 8px;
+  text-transform: uppercase;
+}
+
+.status-badge.inactive {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.preferred {
+  background-color: #dbeafe;
+  color: #2563eb;
+}

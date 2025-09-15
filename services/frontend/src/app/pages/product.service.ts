@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, forkJoin, map, catchError, of, switchMap } from 'rxjs';
 import { Product, ProductStatus } from '../models/product.model';
 import {
@@ -45,6 +45,20 @@ interface ProductSupplierResponse {
   minOrderQuantity: number;
   isPreferred: boolean;
   active: boolean;
+}
+
+// Interface for sales data
+interface DailySalesData {
+  date: string;
+  productId: number;
+  salesUnits: number;
+  offerActiveShare: number;
+}
+
+interface WeeklySalesData {
+  week: string;
+  totalSales: number;
+  label: string;
 }
 
 @Injectable({
@@ -103,6 +117,78 @@ export class ProductService {
           return of(null);
         })
       );
+  }
+
+  // SALES DATA METHODS - NEW FUNCTIONALITY
+
+  getProductSalesData(productId: string, fromDate: string, toDate: string): Observable<DailySalesData[]> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of([]);
+    }
+
+    const url = `${this.baseUrl}/reporting/product-day-sales`;
+    const params = new HttpParams()
+      .set('productId', numericId)
+      .set('from', fromDate)
+      .set('to', toDate);
+
+    return this.httpClient.get<DailySalesData[]>(url, { params }).pipe(
+      catchError((error) => {
+        console.error('Error fetching product sales data:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getWeeklySalesData(productId: string): Observable<WeeklySalesData[]> {
+  const today = new Date();
+  const weeks: { start: Date; end: Date; label: string }[] = [];
+  
+  // Calculate the last 3 weeks (Monday to Sunday)
+  for (let i = 0; i < 3; i++) {
+    const weekEnd = new Date(today);
+    // Go back to the end of the week we want (Saturday)
+    weekEnd.setDate(today.getDate() - (7 * i) - 1);
+    // Find the Saturday of that week
+    weekEnd.setDate(weekEnd.getDate() - weekEnd.getDay() + 6);
+    
+    const weekStart = new Date(weekEnd);
+    // Start of week is 6 days before (Sunday)
+    weekStart.setDate(weekEnd.getDate() - 6);
+    
+    weeks.push({
+      start: weekStart,
+      end: weekEnd,
+      label: i === 0 ? 'Last Week' : i === 1 ? '2 Weeks Ago' : '3 Weeks Ago'
+    });
+  }
+
+  // Fetch data for all weeks
+  const requests = weeks.map(week => {
+    const fromDate = this.formatDate(week.start);
+    const toDate = this.formatDate(week.end);
+    
+    return this.getProductSalesData(productId, fromDate, toDate).pipe(
+      map(salesData => ({
+        week: `${fromDate}_${toDate}`,
+        totalSales: salesData.reduce((sum, day) => sum + (day.salesUnits || 0), 0),
+        label: week.label
+      }))
+    );
+  });
+
+  return forkJoin(requests).pipe(
+    map(results => results.reverse()) // Show oldest to newest (3 weeks ago, 2 weeks ago, last week)
+  );
+}
+
+  /**
+   * Format date to YYYY-MM-DD string
+   */
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 
   // GET PRODUCT SUPPLIERS - Fetch current supplier assignments for a product
