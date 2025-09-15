@@ -220,3 +220,4 @@ scripts/data-generation/out/
 
 # Forecast models
 services/forecast/models/
+services/forecast/services/
