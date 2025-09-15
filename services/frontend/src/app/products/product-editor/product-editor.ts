@@ -11,11 +11,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { Product } from '../../models/product.model';
 import { Supplier } from '../../models/supplier.model';
+import { SalesChartComponent } from '../sales-chart/sales-chart';
 
 @Component({
   selector: 'app-product-editor',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, SalesChartComponent],
   templateUrl: './product-editor.html',
   styleUrls: ['./product-editor.scss'],
 })
@@ -216,6 +217,12 @@ export class ProductEditorComponent implements OnChanges {
       return 'No suppliers available.';
     }
     return '';
+  }
+
+  // Check if sales chart should be shown
+  get shouldShowSalesChart(): boolean {
+    // Only show for existing products (not new products)
+    return !this.isNewProduct && !!this.value?.id;
   }
 
   // Field validation helpers

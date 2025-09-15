@@ -20,11 +20,19 @@
       </label>
     </div>
 
-    <label class="box big">
-      <span class="label">DESCRIPTION</span>
-      <textarea class="textarea" [value]="form.value.description || ''" placeholder="Enter product description..."
-        (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
-    </label>
+    <!-- Description and Sales Chart Row -->
+    <div class="description-chart-row">
+      <label class="box description-box">
+        <span class="label">DESCRIPTION</span>
+        <textarea class="textarea" [value]="form.value.description || ''" placeholder="Enter product description..."
+          (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
+      </label>
+      
+      <!-- Sales Chart - Only show for existing products -->
+      <div class="box chart-box" *ngIf="shouldShowSalesChart">
+        <app-sales-chart [productId]="value?.id || null"></app-sales-chart>
+      </div>
+    </div>
 
     <!-- Right column small boxes -->
     <div class="sidebar">
@@ -83,8 +91,8 @@
               <input type="checkbox" [checked]="isActiveSupplier(s.id)" (change)="toggleActiveSupplier(s.id, $event)">
             </div>
             <div>
-                <input type="radio" name="preferred" [value]="s.id" [checked]="s.id === form.value.preferredSupplierId"
-                  (change)="setPreferredSupplier(s.id)">
+              <input type="radio" name="preferred" [value]="s.id" [checked]="s.id === form.value.preferredSupplierId"
+                (change)="setPreferredSupplier(s.id)">
             </div>
             <div>{{ s.name }}</div>
             <div>{{ s.email }}</div>
