@@ -14,7 +14,8 @@ import { Supplier } from '../../models/supplier.model';
 export class ProductEditorComponent implements OnChanges {
   @Input() value: Product | null = null;
   @Input() suppliers: Supplier[] = [];
-  @Input() isDeleting: boolean = false; // New input for delete loading state
+  @Input() isDeleting: boolean = false;
+  @Input() isSaving: boolean = false; // New input for save loading state
 
   /** Returns suppliers sorted: preferred first, then actives, then others */
   get sortedSuppliers(): Supplier[] {
@@ -37,14 +38,14 @@ export class ProductEditorComponent implements OnChanges {
   /** Use inject() so it's available for field initializers */
   private fb = inject(FormBuilder);
 
-  /** Allow nulls for numeric fields */
+  /** Form with validation for required fields */
   form = this.fb.group({
     id: [''],
     name: ['', Validators.required],
     description: [''],
     price: [null as number | null],
-    category: [''],
-    unit: [''],
+    category: ['', Validators.required], // Required field
+    unit: ['', Validators.required], // Required field
     safetyStock: [null as number | null],
     reorderPoint: [null as number | null],
     currentStock: [null as number | null],
@@ -74,8 +75,25 @@ export class ProductEditorComponent implements OnChanges {
   }
 
   onSave() {
+    // Mark all fields as touched to show validation errors
+    this.form.markAllAsTouched();
+    
     if (!this.form.valid) {
-      this.form.markAllAsTouched();
+      // Show specific validation messages
+      const errors: string[] = [];
+      if (this.form.get('name')?.errors?.['required']) {
+        errors.push('Product name is required');
+      }
+      if (this.form.get('category')?.errors?.['required']) {
+        errors.push('Category is required');
+      }
+      if (this.form.get('unit')?.errors?.['required']) {
+        errors.push('Unit of measure is required');
+      }
+      
+      if (errors.length > 0) {
+        alert('Please fix the following errors:\n\n' + errors.join('\n'));
+      }
       return;
     }
 
@@ -83,11 +101,11 @@ export class ProductEditorComponent implements OnChanges {
     const out: Product = {
       ...(this.value ?? { status: 'ok' as const, activeSupplierIds: [] }),
       id: raw.id ?? '',
-      name: raw.name!, // required in form
-      description: raw.description ?? '',
+      name: raw.name!.trim(), // required in form, trim whitespace
+      description: raw.description?.trim() || null,
       price: raw.price != null ? Number(raw.price) : null,
-      category: raw.category ?? '',
-      unit: raw.unit ?? '',
+      category: raw.category!.trim(), // required in form, trim whitespace
+      unit: raw.unit!.trim(), // required in form, trim whitespace
       safetyStock: raw.safetyStock != null ? Number(raw.safetyStock) : null,
       reorderPoint: raw.reorderPoint != null ? Number(raw.reorderPoint) : null,
       currentStock: raw.currentStock != null ? Number(raw.currentStock) : null,
@@ -135,5 +153,28 @@ export class ProductEditorComponent implements OnChanges {
     if (!currentActive.includes(supplierId)) {
       this.form.controls.activeSupplierIds.setValue([...currentActive, supplierId]);
     }
+  }
+
+  // Helper methods for template
+  get isNewProduct(): boolean {
+    return !this.value?.id;
+  }
+
+  get canDelete(): boolean {
+    return !this.isNewProduct && !!this.value?.id;
+  }
+
+  // Field validation helpers
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.form.get(fieldName);
+    return !!(field?.invalid && field?.touched);
+  }
+
+  getFieldError(fieldName: string): string {
+    const field = this.form.get(fieldName);
+    if (field?.errors?.['required']) {
+      return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+    }
+    return '';
   }
 }

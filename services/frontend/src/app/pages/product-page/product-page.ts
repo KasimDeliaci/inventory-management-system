@@ -40,6 +40,7 @@ export class ProductPageComponent implements OnInit {
   detailsLoading = signal(false);
   deleting = signal(false);
   bulkDeleting = signal(false);
+  saving = signal(false); // New saving state
 
   private selectionTick = signal(0);
   
@@ -120,13 +121,31 @@ export class ProductPageComponent implements OnInit {
 
   // Header event handlers
   onAddProduct() {
+    // Load suppliers when adding a new product
+    const suppliersSubscription = this.supplierService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        this.suppliers.set(suppliers);
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => {
+      suppliersSubscription.unsubscribe();
+    });
+
     this.editing.set({
       id: '',
       name: '',
       category: '',
       unit: '',
+      description: null,
+      price: null,
+      safetyStock: null,
+      reorderPoint: null,
       currentStock: 0,
-      preferredSupplierId: '',
+      preferredSupplierId: null,
       activeSupplierIds: [],
       status: 'ok',
       selected: false,
@@ -260,19 +279,77 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
-  // Editor event handlers
+  // Updated save handler with backend API calls
   handleSave(updated: Product) {
-    if (updated.id && this.all().some((p) => p.id === updated.id)) {
-      // Update existing product
-      this.all.update((list) => 
-        list.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
-      );
-    } else {
-      // Add new product
-      const id = updated.id?.trim() || `ID-${String(this.all().length + 1).padStart(3, '0')}`;
-      this.all.update((list) => [{ ...updated, id, selected: false }, ...list]);
+    // Validate required fields
+    if (!updated.name?.trim()) {
+      alert('Product name is required.');
+      return;
     }
-    this.closeEditor();
+    if (!updated.category?.trim()) {
+      alert('Category is required.');
+      return;
+    }
+    if (!updated.unit?.trim()) {
+      alert('Unit of measure is required.');
+      return;
+    }
+
+    this.saving.set(true);
+    
+    const isNewProduct = !updated.id || !this.all().some((p) => p.id === updated.id);
+    
+    if (isNewProduct) {
+      // Create new product via API
+      const createSubscription = this.productService.createProduct(updated).subscribe({
+        next: (createdProduct) => {
+          if (createdProduct) {
+            // Add the new product to the beginning of the list
+            this.all.update((list) => [createdProduct, ...list]);
+            console.log('Product created successfully:', createdProduct);
+            this.closeEditor();
+          } else {
+            alert('Failed to create product. Please try again.');
+          }
+          this.saving.set(false);
+        },
+        error: (err) => {
+          console.error('Error creating product:', err);
+          alert('An error occurred while creating the product. Please try again.');
+          this.saving.set(false);
+        },
+      });
+
+      this.destroyRef.onDestroy(() => {
+        createSubscription.unsubscribe();
+      });
+    } else {
+      // Update existing product via API
+      const updateSubscription = this.productService.updateProduct(updated).subscribe({
+        next: (updatedProduct) => {
+          if (updatedProduct) {
+            // Update the product in the local list
+            this.all.update((list) => 
+              list.map((p) => (p.id === updated.id ? { ...p, ...updatedProduct } : p))
+            );
+            console.log('Product updated successfully:', updatedProduct);
+            this.closeEditor();
+          } else {
+            alert('Failed to update product. Please try again.');
+          }
+          this.saving.set(false);
+        },
+        error: (err) => {
+          console.error('Error updating product:', err);
+          alert('An error occurred while updating the product. Please try again.');
+          this.saving.set(false);
+        },
+      });
+
+      this.destroyRef.onDestroy(() => {
+        updateSubscription.unsubscribe();
+      });
+    }
   }
 
   // Updated delete method with backend API call
@@ -312,6 +389,7 @@ export class ProductPageComponent implements OnInit {
     this.editing.set(null);
     this.detailsLoading.set(false);
     this.deleting.set(false);
+    this.saving.set(false);
   }
 
   // Refresh data method
@@ -319,8 +397,8 @@ export class ProductPageComponent implements OnInit {
     this.loadData();
   }
 
-  // Getter for template to check if any delete operation is in progress
-  get isDeletingAny(): boolean {
-    return this.deleting() || this.bulkDeleting();
+  // Getter for template to check if any operation is in progress
+  get isOperationInProgress(): boolean {
+    return this.deleting() || this.bulkDeleting() || this.saving();
   }
 }
