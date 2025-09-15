@@ -3,7 +3,7 @@
 
 <!-- Modal -->
 <section class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-    <button class="close" aria-label="Close" (click)="close.emit()" [disabled]="deleting">✕</button>
+    <button class="close" aria-label="Close" (click)="close.emit()" [disabled]="deleting || saving">✕</button>
     
     <form [formGroup]="form" (ngSubmit)="onSave()">
         <div class="grid">
@@ -15,7 +15,6 @@
                         type="text" 
                         formControlName="id"
                         readonly
-                        [disabled]="deleting"
                         placeholder="Auto-generated">
                     <div class="error" *ngIf="getFieldError('id')">
                         {{ getFieldError('id') }}
@@ -28,7 +27,6 @@
                         type="text" 
                         formControlName="name"
                         [class.invalid]="form.controls.name.invalid && form.controls.name.touched"
-                        [disabled]="deleting"
                         placeholder="Enter supplier name">
                     <div class="error" *ngIf="getFieldError('name')">
                         {{ getFieldError('name') }}
@@ -41,7 +39,6 @@
                         type="email" 
                         formControlName="email"
                         [class.invalid]="form.controls.email.invalid && form.controls.email.touched"
-                        [disabled]="deleting"
                         placeholder="Enter email address">
                     <div class="error" *ngIf="getFieldError('email')">
                         {{ getFieldError('email') }}
@@ -54,8 +51,8 @@
                         type="text" 
                         formControlName="phone"
                         [class.invalid]="form.controls.phone.invalid && form.controls.phone.touched"
-                        [disabled]="deleting"
-                        placeholder="Enter phone number">
+                        placeholder="Enter phone number (e.g., +90 202 456 4456)"
+                        (input)="onPhoneInput($event)">
                     <div class="error" *ngIf="getFieldError('phone')">
                         {{ getFieldError('phone') }}
                     </div>
@@ -67,7 +64,6 @@
                         type="text" 
                         formControlName="city"
                         [class.invalid]="form.controls.city.invalid && form.controls.city.touched"
-                        [disabled]="deleting"
                         placeholder="Enter city name">
                     <div class="error" *ngIf="getFieldError('city')">
                         {{ getFieldError('city') }}
@@ -96,13 +92,13 @@
 
             <!-- Actions -->
             <div class="actions">
-                <button class="btn primary" type="submit" [disabled]="form.invalid || deleting">
-                    {{ isNewSupplier ? 'CREATE' : 'SAVE' }}
+                <button class="btn primary" type="submit" [disabled]="form.invalid || deleting || saving">
+                    {{ saving ? 'SAVING...' : (isNewSupplier ? 'CREATE' : 'SAVE') }}
                 </button>
                 <button class="btn danger" 
                         type="button" 
                         (click)="onDelete()" 
-                        [disabled]="isNewSupplier || deleting">
+                        [disabled]="isNewSupplier || deleting || saving">
                     {{ deleting ? 'DELETING...' : 'DELETE' }}
                 </button>
             </div>
