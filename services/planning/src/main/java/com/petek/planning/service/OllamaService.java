@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class OllamaService {
 
     private final OllamaChatModel chatModel;
-
+  
     public String callOllama(String product, String stock, String suppliers, String forecasts) {
         String prompt = """
         ## System Prompt

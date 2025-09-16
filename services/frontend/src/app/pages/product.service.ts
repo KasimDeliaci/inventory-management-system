@@ -1,0 +1,589 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, forkJoin, map, catchError, of, switchMap } from 'rxjs';
+import { Product, ProductStatus } from '../models/product.model';
+import {
+  BackendProduct,
+  BackendProductResponse,
+  BackendDetailedProduct,
+  BackendProductStock,
+} from '../models/backend.model';
+
+// Interface for create/update product payload
+interface CreateProductPayload {
+  productName: string;
+  description?: string;
+  category: string;
+  unitOfMeasure: string;
+  safetyStock?: number;
+  reorderPoint?: number;
+  currentPrice?: number;
+}
+
+// Interface for the backend response when creating a product
+interface CreateProductResponse {
+  productId: number;
+  productName: string;
+  category: string;
+  // ... other fields as needed
+}
+
+// Interface for product-supplier assignment
+interface ProductSupplierAssignment {
+  productId: number;
+  supplierId: number;
+  minOrderQuantity: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
+// Interface for getting product suppliers
+interface ProductSupplierResponse {
+  productId: number;
+  supplierId: number;
+  supplierName: string;
+  minOrderQuantity: number;
+  isPreferred: boolean;
+  active: boolean;
+}
+
+// Interface for sales data
+interface DailySalesData {
+  date: string;
+  productId: number;
+  salesUnits: number;
+  offerActiveShare: number;
+}
+
+interface WeeklySalesData {
+  week: string;
+  totalSales: number;
+  label: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ProductService {
+  private httpClient = inject(HttpClient);
+  private readonly baseUrl = 'http://localhost:8000/api/v1';
+
+  // INITIAL PAGE LOAD - Only fetch products summary
+  getProducts(): Observable<Product[]> {
+    return this.httpClient.get<BackendProductResponse>(`${this.baseUrl}/products`).pipe(
+      map((response) => this.transformBackendProducts(response.content)),
+      catchError((error) => {
+        console.error('Error fetching products:', error);
+        return of(this.getFallbackProducts());
+      })
+    );
+  }
+
+  // PRODUCT CLICK - Fetch detailed product info and stock data
+  getProductById(productId: string): Observable<Product | null> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of(null);
+    }
+
+    // Only make the detailed API calls when product is clicked
+    return forkJoin({
+      product: this.httpClient.get<BackendDetailedProduct>(`${this.baseUrl}/products/${numericId}`),
+      stock: this.httpClient.get<BackendProductStock>(
+        `${this.baseUrl}/products/${numericId}/stock`
+      ),
+    }).pipe(
+      map(({ product, stock }) => this.transformDetailedProduct(product, stock)),
+      catchError((error) => {
+        console.error('Error fetching detailed product:', error);
+        return of(null);
+      })
+    );
+  }
+
+  getProductStock(productId: string): Observable<BackendProductStock | null> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of(null);
+    }
+
+    return this.httpClient
+      .get<BackendProductStock>(`${this.baseUrl}/products/${numericId}/stock`)
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching product stock:', error);
+          return of(null);
+        })
+      );
+  }
+
+  // SALES DATA METHODS - NEW FUNCTIONALITY
+
+  getProductSalesData(productId: string, fromDate: string, toDate: string): Observable<DailySalesData[]> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of([]);
+    }
+
+    const url = `${this.baseUrl}/reporting/product-day-sales`;
+    const params = new HttpParams()
+      .set('productId', numericId)
+      .set('from', fromDate)
+      .set('to', toDate);
+
+    return this.httpClient.get<DailySalesData[]>(url, { params }).pipe(
+      catchError((error) => {
+        console.error('Error fetching product sales data:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getWeeklySalesData(productId: string): Observable<WeeklySalesData[]> {
+  const today = new Date();
+  const weeks: { start: Date; end: Date; label: string }[] = [];
+  
+  // Calculate the last 3 weeks (Monday to Sunday)
+  for (let i = 0; i < 3; i++) {
+    const weekEnd = new Date(today);
+    // Go back to the end of the week we want (Saturday)
+    weekEnd.setDate(today.getDate() - (7 * i) - 1);
+    // Find the Saturday of that week
+    weekEnd.setDate(weekEnd.getDate() - weekEnd.getDay() + 6);
+    
+    const weekStart = new Date(weekEnd);
+    // Start of week is 6 days before (Sunday)
+    weekStart.setDate(weekEnd.getDate() - 6);
+    
+    weeks.push({
+      start: weekStart,
+      end: weekEnd,
+      label: i === 0 ? 'Last Week' : i === 1 ? '2 Weeks Ago' : '3 Weeks Ago'
+    });
+  }
+
+  // Fetch data for all weeks
+  const requests = weeks.map(week => {
+    const fromDate = this.formatDate(week.start);
+    const toDate = this.formatDate(week.end);
+    
+    return this.getProductSalesData(productId, fromDate, toDate).pipe(
+      map(salesData => ({
+        week: `${fromDate}_${toDate}`,
+        totalSales: salesData.reduce((sum, day) => sum + (day.salesUnits || 0), 0),
+        label: week.label
+      }))
+    );
+  });
+
+  return forkJoin(requests).pipe(
+    map(results => results.reverse()) // Show oldest to newest (3 weeks ago, 2 weeks ago, last week)
+  );
+}
+
+  /**
+   * Format date to YYYY-MM-DD string
+   */
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  // GET PRODUCT SUPPLIERS - Fetch current supplier assignments for a product
+  getProductSuppliers(productId: string): Observable<ProductSupplierResponse[]> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of([]);
+    }
+
+    return this.httpClient
+      .get<ProductSupplierResponse[]>(`${this.baseUrl}/products/${numericId}/suppliers`)
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching product suppliers:', error);
+          return of([]);
+        })
+      );
+  }
+
+  // ASSIGN SUPPLIER TO PRODUCT - Create product-supplier relationship
+  assignSupplierToProduct(assignment: {
+    productId: string;
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }): Observable<boolean> {
+    const numericProductId = this.extractNumericId(assignment.productId);
+    const numericSupplierId = this.extractNumericId(assignment.supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', assignment);
+      return of(false);
+    }
+
+    const payload: ProductSupplierAssignment = {
+      productId: parseInt(numericProductId, 10),
+      supplierId: parseInt(numericSupplierId, 10),
+      minOrderQuantity: assignment.minOrderQuantity || 0.001,
+      isPreferred: assignment.isPreferred,
+      active: assignment.active,
+    };
+
+    return this.httpClient.post(`${this.baseUrl}/product-suppliers`, payload).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error assigning supplier to product:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // UPDATE PRODUCT-SUPPLIER RELATIONSHIP
+  updateProductSupplier(assignment: {
+    productId: string;
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }): Observable<boolean> {
+    const numericProductId = this.extractNumericId(assignment.productId);
+    const numericSupplierId = this.extractNumericId(assignment.supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', assignment);
+      return of(false);
+    }
+
+    const payload: ProductSupplierAssignment = {
+      productId: parseInt(numericProductId, 10),
+      supplierId: parseInt(numericSupplierId, 10),
+      minOrderQuantity: assignment.minOrderQuantity || 0.001,
+      isPreferred: assignment.isPreferred,
+      active: assignment.active,
+    };
+
+    return this.httpClient.put(`${this.baseUrl}/product-suppliers/${numericProductId}/${numericSupplierId}`, payload).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error updating product-supplier relationship:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // REMOVE SUPPLIER FROM PRODUCT
+  removeSupplierFromProduct(productId: string, supplierId: string): Observable<boolean> {
+    const numericProductId = this.extractNumericId(productId);
+    const numericSupplierId = this.extractNumericId(supplierId);
+    
+    if (!numericProductId || !numericSupplierId) {
+      console.error('Invalid ID format:', productId, supplierId);
+      return of(false);
+    }
+
+    return this.httpClient.delete(`${this.baseUrl}/product-suppliers/${numericProductId}/${numericSupplierId}`).pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error removing supplier from product:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // BULK ASSIGN SUPPLIERS - For saving multiple supplier assignments at once
+  bulkAssignSuppliersToProduct(productId: string, assignments: {
+    supplierId: string;
+    minOrderQuantity?: number;
+    isPreferred: boolean;
+    active: boolean;
+  }[]): Observable<{ success: string[], failed: string[] }> {
+    const assignmentRequests = assignments.map(assignment => 
+      this.assignSupplierToProduct({
+        productId,
+        ...assignment
+      }).pipe(
+        map(success => ({ supplierId: assignment.supplierId, success }))
+      )
+    );
+
+    return forkJoin(assignmentRequests).pipe(
+      map(results => ({
+        success: results.filter(r => r.success).map(r => r.supplierId),
+        failed: results.filter(r => !r.success).map(r => r.supplierId)
+      })),
+      catchError((error) => {
+        console.error('Error in bulk supplier assignment:', error);
+        return of({ 
+          success: [], 
+          failed: assignments.map(a => a.supplierId) 
+        });
+      })
+    );
+  }
+
+  // CREATE PRODUCT - New method for creating products
+  createProduct(product: Product): Observable<Product | null> {
+    const payload: CreateProductPayload = {
+      productName: product.name,
+      description: product.description || undefined,
+      category: product.category,
+      unitOfMeasure: product.unit,
+      safetyStock: product.safetyStock || undefined,
+      reorderPoint: product.reorderPoint || undefined,
+      currentPrice: product.price || undefined,
+    };
+
+    return this.httpClient.post<CreateProductResponse>(`${this.baseUrl}/products`, payload).pipe(
+      map((response) => {
+        // Transform the response back to our Product model
+        const createdProduct: Product = {
+          id: `ID-${response.productId.toString().padStart(3, '0')}`,
+          name: response.productName,
+          category: product.category,
+          unit: product.unit,
+          description: product.description || null,
+          price: product.price || null,
+          safetyStock: product.safetyStock || null,
+          reorderPoint: product.reorderPoint || null,
+          currentStock: 0, // New products start with 0 stock
+          preferredSupplierId: null, // Will be set after supplier assignment
+          activeSupplierIds: [], // Will be populated after supplier assignment
+          status: 'ok' as ProductStatus,
+          selected: false,
+        };
+        return createdProduct;
+      }),
+      catchError((error) => {
+        console.error('Error creating product:', error);
+        return of(null);
+      })
+    );
+  }
+
+  // UPDATE PRODUCT - New method for updating existing products
+  updateProduct(product: Product): Observable<Product | null> {
+    const numericId = this.extractNumericId(product.id);
+    if (!numericId) {
+      console.error('Invalid product ID format:', product.id);
+      return of(null);
+    }
+
+    const payload: CreateProductPayload = {
+      productName: product.name,
+      description: product.description || undefined,
+      category: product.category,
+      unitOfMeasure: product.unit,
+      safetyStock: product.safetyStock || undefined,
+      reorderPoint: product.reorderPoint || undefined,
+      currentPrice: product.price || undefined,
+    };
+
+    return this.httpClient.put<CreateProductResponse>(`${this.baseUrl}/products/${numericId}`, payload).pipe(
+      map((response) => {
+        // Return the updated product with preserved local data
+        return {
+          ...product,
+          name: response.productName,
+          // Keep other fields as they were in the form
+        };
+      }),
+      catchError((error) => {
+        console.error('Error updating product:', error);
+        return of(null);
+      })
+    );
+  }
+
+  // DELETE PRODUCT - Existing method for backend deletion
+  deleteProduct(productId: string): Observable<boolean> {
+    const numericId = this.extractNumericId(productId);
+    if (!numericId) {
+      console.error('Invalid product ID format:', productId);
+      return of(false);
+    }
+
+    return this.httpClient.delete(`${this.baseUrl}/products/${numericId}`).pipe(
+      map(() => true), // Success - return true
+      catchError((error) => {
+        console.error('Error deleting product:', error);
+        return of(false); // Failure - return false
+      })
+    );
+  }
+
+  // DELETE MULTIPLE PRODUCTS - For bulk deletion
+  deleteMultipleProducts(productIds: string[]): Observable<{ success: string[], failed: string[] }> {
+    const deleteRequests = productIds.map(id => 
+      this.deleteProduct(id).pipe(
+        map(success => ({ id, success }))
+      )
+    );
+
+    return forkJoin(deleteRequests).pipe(
+      map(results => ({
+        success: results.filter(r => r.success).map(r => r.id),
+        failed: results.filter(r => !r.success).map(r => r.id)
+      })),
+      catchError((error) => {
+        console.error('Error in bulk delete operation:', error);
+        return of({ success: [], failed: productIds });
+      })
+    );
+  }
+
+  private transformBackendProducts(backendProducts: BackendProduct[]): Product[] {
+    return backendProducts.map((backendProduct) => ({
+      id: `ID-${backendProduct.productId.toString().padStart(3, '0')}`,
+      name: backendProduct.productName,
+      category: backendProduct.category,
+      unit: backendProduct.unitOfMeasure,
+      description: null, // Not available in summary endpoint - will be fetched on click
+      price: null, // Not available in summary endpoint - will be fetched on click
+      safetyStock: null, // Not available in summary endpoint - will be fetched on click
+      reorderPoint: null, // Not available in summary endpoint - will be fetched on click
+      currentStock: backendProduct.quantityAvailable,
+      preferredSupplierId: backendProduct.preferredSupplier
+        ? `SUP-${backendProduct.preferredSupplier.supplierId.toString().padStart(3, '0')}`
+        : null,
+      activeSupplierIds: backendProduct.activeSuppliers.map(
+        (s) => `SUP-${s.supplierId.toString().padStart(3, '0')}`
+      ),
+      status: this.mapInventoryStatusToProductStatus(backendProduct.inventoryStatus),
+      selected: false,
+    }));
+  }
+
+  private transformDetailedProduct(
+    product: BackendDetailedProduct,
+    stock: BackendProductStock
+  ): Product {
+    // Transform supplier data from the detailed product response
+    const activeSupplierIds = product.activeSuppliers.map(
+      (supplier: any) => `SUP-${supplier.supplierId.toString().padStart(3, '0')}`
+    );
+
+    const preferredSupplierId = product.preferredSupplier
+      ? `SUP-${product.preferredSupplier.supplierId.toString().padStart(3, '0')}`
+      : null;
+
+    return {
+      id: `ID-${product.productId.toString().padStart(3, '0')}`,
+      name: product.productName,
+      category: product.category,
+      unit: product.unitOfMeasure,
+      description: product.description || null,
+      price: product.currentPrice || null,
+      safetyStock: product.safetyStock || null,
+      reorderPoint: product.reorderPoint || null,
+      currentStock: stock.quantityAvailable,
+      preferredSupplierId,
+      activeSupplierIds,
+      status: this.determineStatusFromStock(stock, product.safetyStock, product.reorderPoint),
+      selected: false,
+      // Store additional stock info for tooltip use
+      _stockDetails: {
+        onHand: stock.quantityOnHand,
+        reserved: stock.quantityReserved,
+        available: stock.quantityAvailable,
+      },
+    } as Product & { _stockDetails?: any };
+  }
+
+  private mapInventoryStatusToProductStatus(
+    inventoryStatus: 'RED' | 'YELLOW' | 'GREEN'
+  ): ProductStatus {
+    switch (inventoryStatus) {
+      case 'RED':
+        return 'critical';
+      case 'YELLOW':
+        return 'warning';
+      case 'GREEN':
+        return 'ok';
+      default:
+        return 'ok';
+    }
+  }
+
+  private determineStatusFromStock(
+    stock: BackendProductStock,
+    safetyStock: number,
+    reorderPoint: number
+  ): ProductStatus {
+    if (stock.quantityAvailable <= safetyStock) {
+      return 'critical';
+    } else if (stock.quantityAvailable <= reorderPoint) {
+      return 'warning';
+    }
+    return 'ok';
+  }
+
+  private extractNumericId(id: string): string | null {
+    // Handle both formats: "ID-001" -> "1" (removes leading zeros)
+    if (id.startsWith('ID-')) {
+      const numPart = id.substring(3);
+      const numericValue = parseInt(numPart, 10);
+      return numericValue.toString();
+    }
+    // Handle supplier IDs: "SUP-001" -> "1"
+    if (id.startsWith('SUP-')) {
+      const numPart = id.substring(4);
+      const numericValue = parseInt(numPart, 10);
+      return numericValue.toString();
+    }
+    return id.match(/^\d+$/) ? id : null;
+  }
+
+  private getFallbackProducts(): Product[] {
+    return [
+      {
+        id: 'ID-001',
+        name: 'Premium Coffee Beans',
+        category: 'Beverages',
+        unit: 'kg',
+        description: 'High-quality arabica coffee beans from Colombia',
+        price: 25.99,
+        safetyStock: 10,
+        reorderPoint: 20,
+        currentStock: 5,
+        preferredSupplierId: 'SUP-001',
+        activeSupplierIds: ['SUP-001', 'SUP-002'],
+        status: 'critical',
+        selected: false,
+      },
+      {
+        id: 'ID-002',
+        name: 'Organic Green Tea',
+        category: 'Beverages',
+        unit: 'boxes',
+        description: 'Premium organic green tea leaves',
+        price: 18.50,
+        safetyStock: 15,
+        reorderPoint: 25,
+        currentStock: 22,
+        preferredSupplierId: 'SUP-003',
+        activeSupplierIds: ['SUP-003'],
+        status: 'warning',
+        selected: false,
+      },
+      {
+        id: 'ID-003',
+        name: 'Stainless Steel Mug',
+        category: 'Accessories',
+        unit: 'pieces',
+        description: 'Durable stainless steel travel mug',
+        price: 12.99,
+        safetyStock: 20,
+        reorderPoint: 30,
+        currentStock: 45,
+        preferredSupplierId: 'SUP-002',
+        activeSupplierIds: ['SUP-001', 'SUP-002'],
+        status: 'ok',
+        selected: false,
+      },
+    ];
+  }
+}

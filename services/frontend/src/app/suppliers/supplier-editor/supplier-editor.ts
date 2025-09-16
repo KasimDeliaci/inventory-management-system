@@ -14,6 +14,8 @@ import { Product } from '../../models/product.model';
 export class SupplierEditor implements OnChanges {
   @Input() value: Supplier | null = null;
   @Input() associatedProducts: Product[] = [];
+  @Input() deleting = false;
+  @Input() saving = false; // Add saving state input
 
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<Supplier>();
@@ -23,7 +25,7 @@ export class SupplierEditor implements OnChanges {
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
-    id: [''],
+    id: [{value: '', disabled: true}], // Make ID field disabled
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     phone: ['', Validators.required],
@@ -35,6 +37,28 @@ export class SupplierEditor implements OnChanges {
     if (changes['value']) {
       this.updateForm();
     }
+    
+    // Handle deleting and saving states
+    if (changes['deleting'] || changes['saving']) {
+      this.updateFormDisabledState();
+    }
+  }
+
+  private updateFormDisabledState() {
+    const shouldDisable = this.deleting || this.saving;
+    
+    if (shouldDisable) {
+      this.form.get('name')?.disable();
+      this.form.get('email')?.disable();
+      this.form.get('phone')?.disable();
+      this.form.get('city')?.disable();
+    } else {
+      this.form.get('name')?.enable();
+      this.form.get('email')?.enable();
+      this.form.get('phone')?.enable();
+      this.form.get('city')?.enable();
+    }
+    // ID field stays disabled always
   }
 
   private updateForm() {
@@ -44,7 +68,7 @@ export class SupplierEditor implements OnChanges {
         id: this.value.id || '',
         name: this.value.name || '',
         email: this.value.email || '',
-        phone: this.value.phone || '',
+        phone: this.cleanPhoneForEditing(this.value.phone) || '',
         city: this.value.city || '',
       });
     } else {
@@ -62,6 +86,14 @@ export class SupplierEditor implements OnChanges {
     // Reset validation state when value changes
     this.form.markAsUntouched();
     this.form.markAsPristine();
+  }
+
+  // Clean phone number for editing (remove spaces for input field)
+  private cleanPhoneForEditing(phone: string): string {
+    if (!phone) return phone;
+    
+    // Remove all spaces, hyphens, and parentheses but keep the + sign
+    return phone.replace(/[\s\-\(\)]/g, '');
   }
 
   onSave() {
@@ -86,7 +118,7 @@ export class SupplierEditor implements OnChanges {
     
     // Create the supplier object
     const supplier: Supplier = {
-      id: formValue.id?.trim() || '',
+      id: this.isNewSupplier ? '' : (formValue.id?.trim() || ''), // Empty ID for new suppliers
       name: formValue.name?.trim() || '',
       email: formValue.email?.trim() || '',
       phone: formValue.phone?.trim() || '',
@@ -98,8 +130,42 @@ export class SupplierEditor implements OnChanges {
     this.save.emit(supplier);
   }
 
+  onPhoneInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    
+    // Allow user to type with spaces for better readability
+    // The backend formatting will handle the cleanup
+    this.form.get('phone')?.setValue(value, { emitEvent: false });
+  }
+
+  // Format phone number for display (add spaces for readability)
+  formatPhoneForDisplay(phone: string): string {
+    if (!phone) return phone;
+    
+    // Remove all non-digit characters except +
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    
+    // Format Turkish phone numbers: +90 XXX XXX XXXX
+    if (cleaned.startsWith('+90') && cleaned.length === 13) {
+      return `+90 ${cleaned.slice(3, 6)} ${cleaned.slice(6, 9)} ${cleaned.slice(9)}`;
+    }
+    
+    // Format other international numbers: +XX XXX XXX XXXX
+    if (cleaned.startsWith('+') && cleaned.length > 10) {
+      const countryCode = cleaned.slice(0, 3);
+      const remaining = cleaned.slice(3);
+      if (remaining.length === 10) {
+        return `${countryCode} ${remaining.slice(0, 3)} ${remaining.slice(3, 6)} ${remaining.slice(6)}`;
+      }
+    }
+    
+    // Return original if no pattern matches
+    return phone;
+  }
+
   onDelete() {
-    if (this.value?.id) {
+    if (this.value?.id && !this.deleting) {
       this.delete.emit(this.value.id);
     }
   }
@@ -130,7 +196,7 @@ export class SupplierEditor implements OnChanges {
     const field = this.form.get(fieldName);
     if (field?.errors && field.touched) {
       if (field.errors['required']) {
-        return `${fieldName} is required`;
+        return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
       }
       if (field.errors['email']) {
         return 'Please enter a valid email address';
