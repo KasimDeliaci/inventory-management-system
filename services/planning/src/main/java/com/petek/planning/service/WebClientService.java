@@ -29,6 +29,13 @@ public class WebClientService {
         );
     }
 
+    public String getCurrentStock(Long productId) {
+        return restTemplate.getForObject(
+            "http://localhost:8000/api/v1/products/" + productId + "/stock", 
+            String.class
+        );
+    }
+
     public String getSuppliers(Long productId) {
         return restTemplate.getForObject(
             "http://localhost:8000/api/v1/products/" + productId + "/suppliers", 

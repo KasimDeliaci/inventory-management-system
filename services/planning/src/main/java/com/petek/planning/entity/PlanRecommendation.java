@@ -46,7 +46,7 @@ public class PlanRecommendation {
     
     @Column(name = "model", nullable = false, length = 50)
     @Builder.Default
-    private String model = "gemma3:4b";
+    private String model = "gemma3:12b";
     
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

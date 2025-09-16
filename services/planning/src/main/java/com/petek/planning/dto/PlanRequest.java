@@ -29,5 +29,5 @@ public class PlanRequest {
     private String horizonDays = "7";
 
     @Builder.Default
-    private String model = "gemma3:4b";
+    private String model = "gemma3:12b";
 }

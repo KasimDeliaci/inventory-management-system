@@ -31,10 +31,11 @@ public class PlanService {
     public PlanResponse getAiOutput(PlanRequest request) {
         
         String product = webClientService.getProduct(request.getProductId());
+        String stock = webClientService.getCurrentStock(request.getProductId());
         String suppliers = webClientService.getSuppliers(request.getProductId());
         String forecasts = webClientService.getForecasts(request.getProductId(), Integer.parseInt(request.getHorizonDays()), request.getAsOfDate());
 
-        String returnValue = ollamaService.callOllama(product, suppliers, forecasts);
+        String returnValue = ollamaService.callOllama(product, stock, suppliers, forecasts);
 
         Long forecastId = Long.valueOf(0);
         try {
