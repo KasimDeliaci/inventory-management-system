@@ -1,8 +1,7 @@
 .sales-chart {
-  background: #fff;
+  background: #ffffff00;
   border-radius: 12px;
   padding: 24px;
-  border: 1px solid #e5e7eb;
   min-height: 320px;
 
   .chart-header {
@@ -11,7 +10,6 @@
     align-items: center;
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #f1f3f4;
 
     h3 {
       margin: 0;
@@ -57,7 +55,7 @@
       display: flex;
       align-items: end;
       justify-content: space-between;
-      height: 180px;
+      height: 70px;
       padding: 0 8px;
       margin-bottom: 16px;
       gap: 4px;
@@ -206,88 +204,5 @@
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
-
-  // Responsive design
-  @media (max-width: 768px) {
-    padding: 16px;
-    min-height: 280px;
-
-    .chart-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-
-      h3 {
-        font-size: 16px;
-      }
-
-      .chart-legend {
-        gap: 12px;
-      }
-    }
-
-    .chart-container {
-      height: 200px;
-
-      .bars {
-        height: 140px;
-
-        .bar {
-          .bar-value {
-            font-size: 11px;
-          }
-
-          .confidence-indicator {
-            font-size: 9px;
-          }
-        }
-      }
-
-      .labels {
-        .label {
-          font-size: 10px;
-        }
-      }
-    }
-  }
-
-  // Dark mode support
-  @media (prefers-color-scheme: dark) {
-    background: #1f293700;
-    border-color: #37415100;
-
-    .chart-header {
-      border-color: #374151;
-
-      h3 {
-        color: #000000;
-      }
-
-      .chart-legend {
-        .legend-item {
-          color: #000000;
-        }
-      }
-    }
-
-    .bars {
-      .bar {
-        .bar-value {
-          background: rgba(31, 41, 55, 0.95);
-          color: #f9fafb;
-          border-color: #4b5563;
-        }
-      }
-    }
-
-    .loading p,
-    .no-data p {
-      color: #d1d5db;
-    }
-
-    .no-data {
-      color: #6b7280;
-    }
   }
 }
