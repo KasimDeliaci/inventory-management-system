@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, Response
 
 from .routers.train import router as train_router
@@ -9,6 +10,16 @@ app = FastAPI(title="Forecast Service")
 
 app.include_router(train_router, prefix="/train", tags=["Train"])
 app.include_router(forecast_router, prefix="/forecast", tags=["Forecast"])
+
+
+# Allow the Angular dev server to access the API in the browser
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
