@@ -1,21 +1,36 @@
 <div class="sales-chart">
       <div class="chart-header">
-        <h3>Sales Data - Last 3 Weeks</h3>
+        <h3>Sales Data & Forecast - 5 Week Overview</h3>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <div class="legend-color historical"></div>
+            <span>Historical Sales</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color forecast"></div>
+            <span>Forecast</span>
+          </div>
+        </div>
       </div>
       
-      <div class="chart-container" *ngIf="!loading() && salesData().length > 0">
+      <div class="chart-container" *ngIf="!loading() && chartData().length > 0">
         <div class="bars">
           <div 
             class="bar" 
-            *ngFor="let week of salesData(); let i = index"
+            *ngFor="let week of chartData(); let i = index"
+            [class.historical]="week.type === 'historical'"
+            [class.forecast]="week.type === 'forecast'"
             [style.height.%]="getBarHeight(week.totalSales)"
-            [title]="week.label + ': ' + week.totalSales + ' units'">
-            <div class="bar-value">{{ week.totalSales }}</div>
+            [title]="getBarTooltip(week)">
+            <div class="bar-value">{{ Math.round(week.totalSales) }}</div>
+            <div class="confidence-indicator" *ngIf="week.confidence && week.type === 'forecast'">
+              {{ week.confidence }}%
+            </div>
           </div>
         </div>
         
         <div class="labels">
-          <div class="label" *ngFor="let week of salesData()">
+          <div class="label" *ngFor="let week of chartData()">
             {{ week.label }}
           </div>
         </div>
@@ -26,7 +41,7 @@
         <p>Loading sales data...</p>
       </div>
       
-      <div class="no-data" *ngIf="!loading() && salesData().length === 0">
+      <div class="no-data" *ngIf="!loading() && chartData().length === 0">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M3 3l18 18M9 9v6m6-3v3m-3-9v3"/>
           <rect x="3" y="4" width="18" height="16" rx="2"/>
