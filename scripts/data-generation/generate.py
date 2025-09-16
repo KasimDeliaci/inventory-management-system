@@ -34,6 +34,7 @@ from campaigns import (
     emit_customer_offers_sql,
 )
 from orders import generate_orders
+from current_stock import generate_current_stock
 
 
 
@@ -251,6 +252,10 @@ def main():
 
     so_sql, soi_sql, orders_csv, order_items_csv, prod_day_csv = generate_orders(world, cal_df, camp_df, offers_df, outdir, demand_df)
     print(f"Wrote {so_sql}\nWrote {soi_sql}\nWrote {orders_csv}\nWrote {order_items_csv}\nWrote {prod_day_csv}")
+
+    # Generate a plausible current_stock snapshot aligned with sales
+    cs_sql, cs_csv = generate_current_stock(world, outdir, Path(prod_day_csv) if prod_day_csv else None)
+    print(f"Wrote {cs_sql}\nWrote {cs_csv}")
 
 
 if __name__ == '__main__':
