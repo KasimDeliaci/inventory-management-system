@@ -3,11 +3,6 @@ package com.petek.planning.entity;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,13 +41,12 @@ public class PlanRecommendation {
     @Builder.Default
     private Integer horizonDays = 7;
     
-    @Column(name = "response_json", nullable = false, columnDefinition = "jsonb")
-    @JdbcTypeCode(SqlTypes.JSON)
-    private JsonNode responseJson;
+    @Column(name = "response_json", nullable = false, columnDefinition = "TEXT")
+    private String responseJson;
     
     @Column(name = "model", nullable = false, length = 50)
     @Builder.Default
-    private String model = "gemma3:4b";
+    private String model = "gemma3:12b";
     
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

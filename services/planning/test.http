@@ -1,14 +1,15 @@
+### Planning Request
 
-GET http://localhost:8200/api/v1/plan?productId=1002&asOfDate=2025-01-01
+GET http://localhost:8200/api/v1/plan?productId=1001&asOfDate=2025-06-30
 
-### {{$timestamp}}
+### Forecast Request
 
 POST http://localhost:8100/forecast
 content-type: application/json
 
 {
-  "productIds" : [ 1002 ],
-  "horizonDays" : 7,
-  "asOfDate" : "2025-01-01",
-  "returnDaily" : true
+    "productIds": [ 1001 ],
+    "horizonDays": 7,
+    "asOfDate": "2025-01-01",
+    "returnDaily": true
 }

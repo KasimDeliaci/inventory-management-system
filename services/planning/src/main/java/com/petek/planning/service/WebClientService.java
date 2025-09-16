@@ -29,6 +29,13 @@ public class WebClientService {
         );
     }
 
+    public String getCurrentStock(Long productId) {
+        return restTemplate.getForObject(
+            "http://localhost:8000/api/v1/products/" + productId + "/stock", 
+            String.class
+        );
+    }
+
     public String getSuppliers(Long productId) {
         return restTemplate.getForObject(
             "http://localhost:8000/api/v1/products/" + productId + "/suppliers", 
@@ -36,7 +43,7 @@ public class WebClientService {
         );
     }
 
-    public String getForecasts(Integer productId, int horizonDays, LocalDate asOfDate) {
+    public String getForecasts(Long productId, int horizonDays, LocalDate asOfDate) {
         ForecastRequest request = ForecastRequest.builder()
             .productIds(List.of(productId))
             .horizonDays(horizonDays)
@@ -58,7 +65,7 @@ public class WebClientService {
             entity,
             String.class
         );
-
+        
         return response.getBody();
     }
 

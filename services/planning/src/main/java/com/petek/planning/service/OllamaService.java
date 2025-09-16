@@ -13,76 +13,63 @@ import lombok.RequiredArgsConstructor;
 public class OllamaService {
 
     private final OllamaChatModel chatModel;
-
-    public String callOllama(String products, String forecasts) {
+  
+    public String callOllama(String product, String stock, String suppliers, String forecasts) {
         String prompt = """
         ## System Prompt
 
-        You are a replenishment planner. Use only the provided facts JSON. If a field is missing or null, state the assumption and use a safe fallback (e.g., avgLeadTimeDays=5). Keep responses under **120 tokens**. Do not invent numbers. If data is insufficient, propose a next action.
+        You are an inventory replenishment planner. **Use only provided JSON data.** If field missing, use safe fallback (e.g., `avgLeadTimeDays=5`). But do not invent numbers **Respond in Turkish.**
 
-        For countable UoMs {adet, koli, paket, çuval, şişe} round orderQty to the nearest integer multiple of minOrderQuantity; otherwise round to 3 decimals. Consider all suppliers and pick one; explain briefly if the preferred supplier is not chosen. Return exactly one JSON object, with no extra text.
+        ## CRITICAL RULES
 
-        Use sumYhat as the primary demand signal, regardless of forecast horizonDays. The optional daily forecast values are only for observing potential demand spikes, not for calculating the primary order quantity.
+        ### Order Criteria (ALWAYS CHECK BOTH)
+        Place order ONLY if either condition is true:
+        1. `quantityAvailable < reorderPoint` 
+        2. `quantityAvailable < sum + safetyStock`
 
-        -----
+        **If neither condition is met, DO NOT ORDER.**
 
-        ## Output Schema
+        ### Calculations
+        - Demand = `sum` (sumYhat) value
+        - Order qty = `max(0, sum + safetyStock - quantityAvailable)`
+        - Round UP to MOQ
+        - Countable units {adet, koli, paket, çuval, şişe} = integers only (no decimals)
 
-        The model must return a single JSON object with the following structure:
+        ### Supplier Selection
+        **Consider all suppliers and pick one**; explain briefly if the preferred supplier is not chosen.
+        1. Priority: Active + Preferred supplier
+        2. Otherwise: Active supplier with shortest `avgLeadTimeDays`
+        3. Tiebreaker: Most recent `lastDeliveryDate` or lower MOQ
 
-        {
-          "text": "string",
-          "recommendation": {
-            "supplierId": "number|null",
-            "orderQty": "number",
-            "orderDate": "YYYY-MM-DD",
-            "confidence": "integer (0-100)",
-            "assumptions": ["string"],
-            "risks": ["string"]
-          },
-          "facts": {
-            "productId": "int",
-            "forecastId": "int",
-            "asOfDate": "YYYY-MM-DD",
-            "horizonDays": "int",
-            "sumYhat": "number",
-            "available": "number",
-            "safetyStock": "number",
-            "reorderPoint": "number",
-            "avgDailyDemand": "number",
-            "daysToSafety": "number",
-            "targetArrivalDate": "YYYY-MM-DD",
-            "chosenSupplierId": "number|null",
-            "baselineOrderQty": "number",
-            "baselineOrderDate": "YYYY-MM-DD",
-            "supplierOptions": [
-              {
-                "supplierId": "int",
-                "supplierName": "string",
-                "isPreferred": "bool",
-                "active": "bool",
-                "minOrderQuantity": "number",
-                "avgLeadTimeDays": "number",
-                "lastDeliveryDate": "YYYY-MM-DD|null"
-              }
-            ]
-          }
-        }
+        ### Response Format (3-4 sentences, plain text, Turkish)
+        1. Period forecast (7 days="bu hafta", 14="iki hafta"): "~X birim"
+        2. Decision: "X adet sipariş verin..." OR "Stok yeterli, sipariş gerekmiyor..."
+        3. Supplier + lead time
+        4. (Optional) Mention spike if `daily` shows sudden increase
+        5. **DO NOT use backslash and asterisk like characters. Response must be plain text only.**
 
-        -----
+        ## Example Output
 
-        ## User Prompt
+        **No Order Needed:**
+        "<productName> için bu haftaki satış öngörüsü yaklaşık <sum> adet. Mevcut <quantityAvailable> adet stok, <reorderPoint>t'in üzerinde olduğundan dolayı şu anda sipariş vermeye gerek yok. Stok seviyelerini yakından takip edin, özellikle de hafta sonu satışları artabilir."
 
-        Facts JSON:
-        Products: %s
-        Forecasts: %s
-        """.formatted(products, forecasts);
+        **Order Required:**
+        "<productName> için bu haftaki satış öngörüsü ~<sum> adettir. Mevcut <quantityAvailable> adetlik stoku korumak amacıyla, tercihli tedarikçimiz <supplierName>'den minimum sipariş miktarı <minOrderQuantity> gereği <orderQty> adetlik (3x<quantityAvailable>) sipariş verilmelidir.
+
+        Lütfen <avgLeadTimeDays> teslimat süresini dikkate alın. Hafta sonu bu ürünün satışları artabileceğinden rakamları yakından takip edin."
+
+        ## Data Input Order
+        1. Product info JSON: %s
+        2. Current stock JSON: %s
+        3. Supplier info JSON: %s
+        4. Forecast response JSON: %s
+        """.formatted(product, stock, suppliers, forecasts);
 
         ChatResponse response = chatModel.call(
             new Prompt(
                 prompt,
                 ChatOptions.builder()
-                    .maxTokens(120)  // limit output to 120 tokens
+                    .temperature(0.0)
                     .build()
             )
         );

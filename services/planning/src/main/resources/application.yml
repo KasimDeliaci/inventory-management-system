@@ -7,7 +7,7 @@ spring:
     ollama:
       base-url: http://localhost:11434
       chat:
-        model: gemma3:4b
+        model: gemma3:12b
 
   # --- Database (PostgreSQL) ---
   datasource:
