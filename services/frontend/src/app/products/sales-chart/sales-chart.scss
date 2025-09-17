@@ -34,11 +34,11 @@
           border-radius: 3px;
 
           &.historical {
-            background: #163a5a;
+            background: #163a5aa9;
           }
 
           &.forecast {
-            background: #A51834;
+            background: #163a5a;
           }
         }
       }
@@ -73,18 +73,18 @@
         align-items: center;
 
         &.historical {
-          background: #163a5a;
+          background: #163a5aa9;
           box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 
           &:hover {
-            background: #155e9e;
+            background: #155e9ea9;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
           }
         }
 
         &.forecast {
-          background: #A51834;
+          background: #163a5a;
           box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
           position: relative;
 
@@ -106,7 +106,7 @@
           }
 
           &:hover {
-            background: #D92042;
+            background: #155e9e;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
           }
@@ -126,7 +126,7 @@
 
         .confidence-indicator {
           position: absolute;
-          bottom: -20px;
+          bottom: -16px;
           font-size: 10px;
           font-weight: 500;
           color: #059669;
