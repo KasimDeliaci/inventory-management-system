@@ -50,7 +50,7 @@
       <label class="box" [class.error]="isFieldInvalid('unit')">
         <span class="label">UNIT *</span>
         <input type="text" class="input" [value]="form.value.unit || ''" [class.error]="isFieldInvalid('unit')"
-          placeholder="e.g. adet, kg, lt, şişe" (input)="form.controls.unit.setValue($any($event.target).value)">
+          placeholder="e.g. adet, kg, lt, ÅŸiÅŸe" (input)="form.controls.unit.setValue($any($event.target).value)">
         <small *ngIf="isFieldInvalid('unit')" class="error-text">{{ getFieldError('unit') }}</small>
       </label>
       <label class="box">
@@ -69,6 +69,15 @@
           (input)="form.controls.currentStock.setValue($any($event.target).valueAsNumber || null)">
         <small class="help-text">Read-only field</small>
       </label>
+    </div>
+
+    <!-- Ollama Suggestion Row -->
+    <div class="ollama-row">
+      <div class="box ollama-suggestion-box">
+        <span class="label">AI SUGGESTION</span>
+        <!-- Pass the product ID to the suggestion component -->
+        <app-ollama-suggestion [productId]="value?.id || null"></app-ollama-suggestion>
+      </div>
     </div>
 
     <!-- Supplier section - conditional display -->
