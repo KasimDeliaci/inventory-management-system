@@ -27,7 +27,7 @@
         <textarea class="textarea" [value]="form.value.description || ''" placeholder="Enter product description..."
           (input)="form.controls.description.setValue($any($event.target).value)"></textarea>
       </label>
-      
+
       <!-- Sales Chart - Only show for existing products -->
       <div class="box chart-box" *ngIf="shouldShowSalesChart">
         <app-sales-chart [productId]="value?.id || null"></app-sales-chart>
@@ -71,11 +71,17 @@
       </label>
     </div>
 
-    <!-- Ollama Suggestion Row -->
-    <div class="ollama-row">
-      <div class="box ollama-suggestion-box">
-        <span class="label">AI SUGGESTION</span>
-        <!-- Pass the product ID to the suggestion component -->
+    <!-- Ollama Icon - Now positioned independently -->
+    <div class="ollama-icon-container" (click)="toggleOllamaDropdown()"
+      [class.dropdown-active]="isOllamaDropdownActive">
+      <img src="assets/icons/ollama-sug.svg" alt="Ollama Logo" class="ollama-logo">
+    </div>
+
+    <!-- Ollama Suggestion Row - Only appears when active -->
+    <div class="ollama-row" [class.has-active-suggestion]="isOllamaDropdownActive">
+      <div class="box ollama-suggestion-box" [class.dropdown-active]="isOllamaDropdownActive"
+        [class.dropdown-bounce]="shouldBounce">
+        <span class="label"><img src="assets/icons/ollama-sug.svg" alt="Ollama Logo" class="ollama-logo-small">AI SUGGESTION</span>
         <app-ollama-suggestion [productId]="value?.id || null"></app-ollama-suggestion>
       </div>
     </div>

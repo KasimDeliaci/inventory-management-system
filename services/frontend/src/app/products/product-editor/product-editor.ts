@@ -239,4 +239,19 @@ export class ProductEditorComponent implements OnChanges {
     }
     return '';
   }
+
+  isOllamaDropdownActive = false;
+  shouldBounce = false;
+
+  toggleOllamaDropdown() {
+    if (!this.isOllamaDropdownActive) {
+      this.isOllamaDropdownActive = true;
+      this.shouldBounce = true;
+      
+      // Remove bounce class after animation
+      setTimeout(() => {
+        this.shouldBounce = false;
+      }, 500);
+    }
+  }
 }
