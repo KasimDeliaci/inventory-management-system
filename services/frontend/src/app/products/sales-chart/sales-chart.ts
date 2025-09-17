@@ -164,11 +164,11 @@ export class SalesChartComponent implements OnInit, OnChanges {
     // Forecast weeks (next week and 2 weeks later)
     forecast.push({
       horizonDays: 7,
-      label: 'Next Week'
+      label: '7 days forecast'
     });
     forecast.push({
       horizonDays: 14,
-      label: '2 Weeks Later'
+      label: '14 days forecast'
     });
 
     return {
@@ -221,7 +221,7 @@ export class SalesChartComponent implements OnInit, OnChanges {
             // Get the first week's forecast to subtract
             return this.getForecastData(productId, 7).pipe(
               map(firstWeekData => ({
-                sum: forecast.sum - (firstWeekData?.sum || 0),
+                sum: forecast.sum,
                 confidence: forecast.confidence.score
               }))
             );

@@ -12,11 +12,12 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angu
 import { Product } from '../../models/product.model';
 import { Supplier } from '../../models/supplier.model';
 import { SalesChartComponent } from '../sales-chart/sales-chart';
+import { OllamaSuggestion } from '../ollama-suggestion/ollama-suggestion';
 
 @Component({
   selector: 'app-product-editor',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, SalesChartComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, SalesChartComponent, OllamaSuggestion],
   templateUrl: './product-editor.html',
   styleUrls: ['./product-editor.scss'],
 })

@@ -1,0 +1,20 @@
+<div class="suggestion-container">
+    <div class="loading" *ngIf="loading()">
+        <div class="spinner"></div>
+        <span>Getting AI suggestion...</span>
+    </div>
+
+    <div class="suggestion-content" *ngIf="!loading() && suggestion()">
+        <p class="suggestion-text">{{ suggestion() }}</p>
+    </div>
+
+    <div class="error" *ngIf="!loading() && !suggestion() && hasError()">
+        <span class="error-icon">⚠</span>
+        <p>Unable to load AI suggestion</p>
+    </div>
+
+    <div class="no-product" *ngIf="!loading() && !productId">
+        <span class="info-icon">ℹ</span>
+        <p>Save product first to get AI suggestions</p>
+    </div>
+</div>
