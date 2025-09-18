@@ -31,7 +31,7 @@ public class OllamaService {
 
         ### Calculations
         - Demand = `sum` (sumYhat) value
-        - Order qty = `max(0, sum + safetyStock - quantityAvailable)`
+        - orderQty = `max(0, sum + safetyStock - quantityAvailable)` use this result in your final response for recommending
         - Round UP to MOQ
         - Countable units {adet, koli, paket, çuval, şişe} = integers only (no decimals)
 
