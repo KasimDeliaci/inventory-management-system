@@ -75,6 +75,16 @@ export class SalesChartComponent implements OnInit, OnChanges {
 
   chartData = computed(() => this.rawChartData());
 
+  isForecastStart(index: number): boolean {
+    const data = this.chartData();
+    if (index < 0 || index >= data.length) {
+      return false;
+    }
+    const current = data[index];
+    const previous = data[index - 1];
+    return current?.type === 'forecast' && (!previous || previous.type !== 'forecast');
+  }
+
   ngOnInit() {
     if (this.productId) {
       this.loadChartData();

@@ -20,6 +20,7 @@
             *ngFor="let week of chartData(); let i = index"
             [class.historical]="week.type === 'historical'"
             [class.forecast]="week.type === 'forecast'"
+            [class.forecast-gap]="isForecastStart(i)"
             [style.height.%]="getBarHeight(week.totalSales)"
             [title]="getBarTooltip(week)">
             <div class="bar-value">{{ Math.round(week.totalSales) }}</div>
@@ -30,7 +31,10 @@
         </div>
         
         <div class="labels">
-          <div class="label" *ngFor="let week of chartData()">
+          <div 
+            class="label" 
+            *ngFor="let week of chartData(); let i = index"
+            [class.forecast-gap]="isForecastStart(i)">
             {{ week.label }}
           </div>
         </div>
