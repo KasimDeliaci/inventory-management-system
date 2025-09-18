@@ -133,12 +133,12 @@
 
     <!-- Actions -->
     <div class="actions">
-      <button class="btn primary" type="button" (click)="onSave()" [disabled]="isSaving">
-        {{ isSaving ? (isNewProduct ? 'CREATING...' : 'UPDATING...') : 'SAVE' }}
-      </button>
       <button class="btn danger" type="button" (click)="onDelete()" [disabled]="!canDelete || isDeleting || isSaving"
         *ngIf="!isNewProduct">
         {{ isDeleting ? 'DELETING...' : 'DELETE' }}
+      </button>
+      <button class="btn primary" type="button" (click)="onSave()" [disabled]="isSaving">
+        {{ isSaving ? (isNewProduct ? 'CREATING...' : 'UPDATING...') : 'SAVE' }}
       </button>
     </div>
 
