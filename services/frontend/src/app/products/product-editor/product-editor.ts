@@ -151,6 +151,10 @@ export class ProductEditorComponent implements OnChanges {
     };
 
     this.save.emit(out);
+    
+    setTimeout(() => {
+    window.location.reload();
+  }, 100);
   }
 
   onDelete() {
