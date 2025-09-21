@@ -230,29 +230,40 @@ Highlights:
 
     %% Products branch
     P --> P1{Current stock<br/>below safety stock?}
-    P1 -- Yes --> P2[Notify Purchasing Unit]
-    P2 --> P3[Show Safety Stock Screen / Details]
-    P1 -- No --> P4[Product list remains same]
+    P1 -- Yes --> P2[Warning screen pops out]
+    P2 --> P3[Notify purchasing unit]
+    P2 --> P4[Show details]
+    P4 --> P5[Direct to safety stock notification page]
+    P2 --> P6[Ignore notification]
+    P1 -- No --> P7{Is sales order quantity<br/>below current stock value?}
+    P7 -- Yes --> P8[Accept sales order and update current stock]
+    P7 -- No --> P9[Reject sales order and notify related unit]
 
-    P --> P5{New product exists?}
-    P5 -- Yes --> P6[Add product to supplier list]
-    P5 -- No --> P7[No change]
+    P --> P10{New product exists or updated?}
+    P10 -- Yes --> P11[Add or update product list]
+    P10 -- No --> P12[Product list remains the same]
+
+    P --> P13{Product still active?}
+    P13 -- Yes --> P14[Product list remains the same]
+    P13 -- No --> P15[Remove inactive product from list]
 
     %% Suppliers branch
-    S --> S1{New supplier exists?}
-    S1 -- Yes --> S2[Add supplier to list]
-    S1 -- No --> S3[No change]
+    S --> S1{New supplier exists or updated?}
+    S1 -- Yes --> S2[Add or update supplier list]
+    S1 -- No --> S3[Supplier list remains the same]
+
     S --> S4{Supplier still active?}
+    S4 -- Yes --> S6[Supplier list remains the same]
     S4 -- No --> S5[Remove inactive supplier]
-    S4 -- Yes --> S6[Supplier list remains same]
 
     %% Customers branch
-    C --> C1{New customer exists?}
-    C1 -- Yes --> C2[Add customer to list]
-    C1 -- No --> C3[No change]
+    C --> C1{New customer exists or updated?}
+    C1 -- Yes --> C2[Add or update customer list]
+    C1 -- No --> C3[Customer list remains the same]
+
     C --> C4{Customer still active?}
+    C4 -- Yes --> C6[Customer list remains the same]
     C4 -- No --> C5[Remove inactive customer]
-    C4 -- Yes --> C6[Customer list remains same]
 
     %% Orders branch
     O --> O1{Purchase order received?}
@@ -264,12 +275,9 @@ Highlights:
     O4 -- No --> O6[No change]
 
     %% Campaigns branch
-    G --> G1{Campaign exists/updated?}
-    G1 -- Yes --> G2[Add/Update campaign products]
-    G1 -- No --> G3[Campaign list remains same]
-
-    %% End
-    P4 & P7 & S3 & S6 & C6 & O3 & O6 & G3 --> Z([End])
+    G --> G1{Campaign exists or updated?}
+    G1 -- Yes --> G2[Add or update campaign list]
+    G1 -- No --> G3[Campaign list remains the same]
 ```
 
 ---
